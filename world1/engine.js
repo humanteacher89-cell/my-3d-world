@@ -344,7 +344,8 @@ function start(CFG){
       const model=this.model=gltf.scene;this.bones={};this.restPos={};this.applied=[];
       this.fix=Object.assign({armSpread:0.12,shoulderLift:0.08,armLength:0.92,spineBend:0.15,neckBend:-0.3,headBend:0.15},o.poseFix||{});
       model.traverse(x=>{if(x.isMesh){x.castShadow=true;x.receiveShadow=false;if(x.isSkinnedMesh)x.frustumCulled=false;
-          (Array.isArray(x.material)?x.material:[x.material]).forEach(m=>{m.metalness=0;m.metalnessMap=null;m.needsUpdate=true;});}
+          // 폰에서는 노멀맵을 뺀다: Tripo GLB에 탄젠트가 없어 화면 미분으로 계산하는데, 폰 GPU 정밀도에서는 몸에 때 같은 얼룩이 생긴다(2026-10-03 휴먼쌤 폰)
+          (Array.isArray(x.material)?x.material:[x.material]).forEach(m=>{m.metalness=0;m.metalnessMap=null;if(IS_TOUCH)m.normalMap=null;m.needsUpdate=true;});}
         if(x.isBone)this.bones[x.name.replace('mixamorig','')]=x;});
       for(const side of['Left','Right'])for(const n of[side+'ForeArm',side+'Hand'])if(this.bones[n])this.restPos[n]=this.bones[n].position.clone();
       // 키를 맞추고, 발 가운데가 원점(0,0,0)에 오도록 모델을 옮긴다(파일 속 원점이 비껴 있으면 카메라 구도가 어긋난다)
