@@ -1,0 +1,18 @@
+# Render Blueprint — 프랑스 한글학교 로비 중계 서버 (무료 요금제)
+# 쓰는 법: Render 대시보드 → New → Blueprint → 이 저장소 선택 → Apply
+services:
+  - type: web
+    name: hangul-lobby-relay
+    runtime: node
+    plan: free
+    region: frankfurt
+    rootDir: relay
+    buildCommand: npm install --omit=dev
+    startCommand: node server.js
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: MAX_ROOM
+        value: "50"
