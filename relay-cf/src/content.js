@@ -6,6 +6,10 @@
 // 첫 관리자: wrangler.jsonc의 ADMIN_SETUP_HASH(1회용 설정 코드의 SHA-256)와 맞는 코드를 넣은 사람이 만든다.
 //   코드를 새로 만들어 배포하면 관리자 비밀번호를 다시 정할 수 있다(그때 모든 로그인이 풀린다). 쓴 코드는 다시 못 쓴다.
 // 로그인 5번 틀리면 15분 잠김(아이디별·접속 주소별). 사진은 한 장 1.8MB까지(관리자 페이지가 1600px JPEG로 줄여 올린다).
+// 시드(seed-fr.js, 2026-10-07): 공개 자료 조사로 모은 학교 홈페이지·책 글·TV 영상·링크를 저장소의 비어 있는 칸에만 한 번 넣는다.
+//   관리자 페이지에서 고친 값은 건드리지 않고, 시드 version을 올려 다시 배포하면 그때 비어 있는 칸만 다시 채운다.
+
+import SEED from './seed-fr.js';
 
 const ADMIN_ORIGINS = ['https://humanteacher89-cell.github.io'];
 const MAPS = { fr: true };
@@ -191,8 +195,41 @@ export class Content {
     }
   }
 
+  // ── 시드: 비어 있는 칸에만 한 번(관리자가 저장한 값은 그대로) ──
+  seed(map) {
+    if (!SEED || SEED.map !== map || !(SEED.version > 0)) return;
+    const key = 'seed:' + map;
+    if (+(this.meta(key) || 0) >= SEED.version) return;
+    const now = Date.now(), by = str(SEED.by, 20) || 'seed';
+    const put = (k, doc) => this.run('INSERT INTO docs (k, j, at, by) VALUES (?, ?, ?, ?) ON CONFLICT(k) DO UPDATE SET j = excluded.j, at = excluded.at, by = excluded.by', k, JSON.stringify(doc), now, by);
+    const get = k => { const r = this.row('SELECT j FROM docs WHERE k = ?', k); return r ? JSON.parse(r.j) : null; };
+    let n = 0;
+    for (const [rawId, s] of Object.entries(SEED.schools || {})) {
+      let id;
+      try { id = idOf(rawId); } catch { continue; }
+      try {
+        const sk = `${map}/school/${id}`, cur = get(sk) || {};
+        const web = cleanUrl(s.web);
+        if (web && !cur.web) { put(sk, { web }); n++; }
+      } catch { /* 주소가 잘못된 시드는 건너뛴다 */ }
+      try {
+        const rk = `${map}/room/${id}`;
+        const cur = get(rk) || cleanRoom({});
+        const sd = cleanRoom({ book: s.book, tv: s.tv, links: s.links });
+        let changed = false;
+        if (sd.book.text && !(cur.book && cur.book.text)) { cur.book = sd.book; changed = true; }
+        if (sd.tv.video && !(cur.tv && cur.tv.video)) { cur.tv = sd.tv; changed = true; }
+        if (sd.links.length && !(Array.isArray(cur.links) && cur.links.length)) { cur.links = sd.links; changed = true; }
+        if (changed) { put(rk, cur); n++; }
+      } catch { /* 값이 틀린 학교는 건너뛴다 */ }
+    }
+    this.setMeta(key, SEED.version);
+    if (n) this.bump(map);
+  }
+
   // ── 공개: 내용과 사진 ──
   content(map, admin) {
+    this.seed(map);
     const out = { map, v: +(this.meta('v:' + map) || 0), schools: {}, rooms: {} };
     for (const r of this.rows('SELECT k, j, at, by FROM docs WHERE k LIKE ?', map + '/%')) {
       const [, kind, id] = r.k.split('/');
