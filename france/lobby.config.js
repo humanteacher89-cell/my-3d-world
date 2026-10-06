@@ -1,6 +1,6 @@
 // 프랑스 한글학교 로비 설정 v0.2. 화면 글·학교·지역 색·학교 공간(교실) 내용은 여기서만 고친다.
 // [확인 전] = 휴먼쌤 확인 전 문구. [예시] = 휴먼쌤이 줄 글·사진·영상으로 바꿀 자리.
-// 학교 목록: 하위 에이전트 웹 조사(2026-10-05, 자료\한글학교-목록.md → 10-06 실존 확인 자료\한글학교-실존확인-20261006.md). 좌표는 도시 중심.
+// 학교 목록: 하위 에이전트 웹 조사(2026-10-05, 자료\한글학교-목록.md → 10-06 실존 확인 자료\한글학교-실존확인-20261006.md, 20곳·소재지 좌표).
 window.LOBBY_CONFIG = {
   version: 'v0.2',
   text: {
@@ -16,7 +16,7 @@ window.LOBBY_CONFIG = {
     mapClose: '내 위치로',
     list: '학교 목록',
     listTitle: '지역별 한글학교',
-    listNote: '학교 목록은 공개된 연락처 자료를 옮긴 것이라 아직 확인 전입니다.',   // [확인 전]
+    listNote: '학교 목록은 주프랑스 대사관 연락처 표와 스터디코리안 한글학교 정보(2026년)로 확인했습니다. \'확인 전\' 표시는 올해 운영이 확인되지 않은 곳입니다.',   // [확인 전]
     noSchools: '아직 표시할 학교가 없습니다.',
     close: '닫기',
     enter: '입장하기',
@@ -110,27 +110,30 @@ window.LOBBY_CONFIG = {
   },
   // 멀티플레이: 같은 폴더 relay.json의 중계 서버 주소를 읽는다(없으면 혼자 보기). 주소 ?mp=0 끔, ?mp=ws://…/ws 시험 서버
   multiplayer: { file: 'relay.json', lobbyRoom: 'fr:lobby', roomPrefix: 'fr:', sendHz: 8 },
-  // 한글학교 19곳 [확인 전]. rooms에 같은 id가 있으면 입장할 때 그 교실로 들어간다
+  // 한글학교 20곳. 실존 확인 2026-10-06(하위 에이전트, 자료\한글학교-실존확인-20261006.md): 주프랑스 대사관 연락처 표(원문)·한국교육원 지도·
+  // 스터디코리안 한글학교 정보(2026-01)에 모두 있는 곳 = 등급 ◎. 좌표는 학교 소재지(번지 수준). 연구부 '검증' 딱지는 아직 아님.
+  // pending: true = 아직 확인 중(숄레: 2026 스터디코리안 목록에 없고 최근 활동 근거 2025-06). rooms에 같은 id가 있으면 입장할 때 그 교실로 들어간다
   schools: [
-    { id: 'paris', name: '파리 한글학교', nameFr: '', city: '파리', lon: 2.3522, lat: 48.8567, pending: true },
-    { id: 'opera', name: '오페라 한글학교', nameFr: '', city: '파리', lon: 2.3522, lat: 48.8567, pending: true },
-    { id: 'arissol', name: '파리 아리솔 한글학교', nameFr: 'Association Arissol', city: '파리', lon: 2.3522, lat: 48.8567, pending: true },
-    { id: 'lyon', name: '리옹 한글학교', nameFr: '', city: '리옹', lon: 4.8350, lat: 45.7675, pending: true },
-    { id: 'grenoble', name: '그르노블 한글학교', nameFr: '', city: '그르노블', lon: 5.7224, lat: 45.1715, pending: true },
-    { id: 'strasbourg', name: '스트라스부르 한글학교', nameFr: '', city: '스트라스부르', lon: 7.7458, lat: 48.5833, pending: true },
-    { id: 'toulouse', name: '툴루즈 한글학교', nameFr: '', city: '툴루즈', lon: 1.4440, lat: 43.6045, pending: true },
-    { id: 'aix', name: '엑상프로방스 한글학교', nameFr: '', city: '엑상프로방스', lon: 5.4454, lat: 43.5263, pending: true },
-    { id: 'bordeaux', name: '보르도 한글학교', nameFr: '', city: '보르도', lon: -0.5800, lat: 44.8400, pending: true },
-    { id: 'montpellier', name: '몽펠리에 한글학교', nameFr: '', city: '몽펠리에', lon: 3.8772, lat: 43.6119, pending: true },
-    { id: 'dijon', name: '디종 한글학교', nameFr: '', city: '디종', lon: 5.0167, lat: 47.3167, pending: true },
-    { id: 'clermont', name: '클레르몽페랑 한글학교', nameFr: '', city: '클레르몽페랑', lon: 3.0824, lat: 45.7831, pending: true },
-    { id: 'nantes', name: '낭트 한글학교', nameFr: '', city: '낭트', lon: -1.5528, lat: 47.2181, pending: true },
-    { id: 'lille', name: '릴 한글학교', nameFr: '', city: '릴', lon: 3.0583, lat: 50.6278, pending: true },
-    { id: 'tours', name: '투르 한글학교', nameFr: '', city: '투르', lon: 0.6892, lat: 47.3936, pending: true },
-    { id: 'cholet', name: '숄레 한글학교', nameFr: '', city: '숄레', lon: -0.8783, lat: 47.0600, pending: true },
-    { id: 'brest', name: '브레스트 한글학교', nameFr: '', city: '브레스트', lon: -4.4861, lat: 48.3906, pending: true },
-    { id: 'marseille', name: '마르세유 한글학교', nameFr: '', city: '마르세유', lon: 5.3700, lat: 43.2964, pending: true },
-    { id: 'lemans', name: '르망 한글학교', nameFr: '', city: '르망', lon: 0.1984, lat: 48.0077, pending: true }
+    { id: 'paris', name: '파리 한글학교', nameFr: 'École coréenne de Paris', city: '파리', lon: 2.3627, lat: 48.8250, web: 'https://www.helloasso.com/associations/ecole-coreenne-de-paris' },
+    { id: 'opera', name: '오페라 한글학교', nameFr: "École coréenne de l'Opéra de Paris", city: '파리', lon: 2.3362, lat: 48.8743, web: 'https://www.instagram.com/hangeul75009/' },
+    { id: 'arissol', name: '파리 아리솔 한글학교', nameFr: 'École coréenne Arissol', city: '파리', lon: 2.3302, lat: 48.8553, web: 'https://fr.arissol-association.com/' },
+    { id: 'lyon', name: '리옹 한글학교', nameFr: 'École coréenne de Lyon', city: '리옹', lon: 4.8862, lat: 45.7584, web: 'https://www.ecolecoreenlyon.fr/' },
+    { id: 'lium', name: '리옹 에콜리움 한글학교', nameFr: 'Lium École coréenne', city: '리옹', lon: 4.8323, lat: 45.7547, web: 'https://www.ecolelium.com/' },
+    { id: 'grenoble', name: '그르노블 한글학교', nameFr: 'Association franco-coréenne de Grenoble et de l\'Isère', city: '그르노블', lon: 5.8229, lat: 45.1913, web: 'https://afcgi.wordpress.com/' },
+    { id: 'strasbourg', name: '스트라스부르 한글학교', nameFr: 'École coréenne de Strasbourg', city: '스트라스부르', lon: 7.7779, lat: 48.5821, web: 'https://ecolecoreenne.blogspot.com/' },
+    { id: 'toulouse', name: '툴루즈 한글학교', nameFr: 'École coréenne de Toulouse', city: '툴루즈', lon: 1.3916, lat: 43.5853, web: '' },
+    { id: 'aix', name: '엑상프로방스 한글학교', nameFr: "École coréenne d'Aix-en-Provence", city: '엑상프로방스', lon: 5.4463, lat: 43.5149, web: 'https://ecole-coreenne.fr/' },
+    { id: 'bordeaux', name: '보르도 한글학교', nameFr: 'École coréenne de Bordeaux', city: '보르도', lon: -0.5665, lat: 44.8318, web: 'https://ecolecoreennedebordeaux.fr/' },
+    { id: 'montpellier', name: '몽펠리에 한글학교', nameFr: 'École coréenne de Montpellier', city: '몽펠리에', lon: 4.0799, lat: 43.7276, web: 'https://ecolecoreennemontpellier.wordpress.com/' },
+    { id: 'dijon', name: '디종 한글학교', nameFr: 'École coréenne de Dijon', city: '디종', lon: 5.0253, lat: 47.3208, web: 'https://www.instagram.com/ecole_coreenne_de_dijon_/' },
+    { id: 'clermont', name: '클레르몽페랑 한글학교', nameFr: 'École coréenne de Clermont-Ferrand', city: '클레르몽페랑', lon: 3.0854, lat: 45.7818, web: 'https://ecolecoreennecf63.wixsite.com/clermont-ferrand' },
+    { id: 'nantes', name: '낭트 한글학교', nameFr: 'École coréenne de Nantes', city: '낭트', lon: -1.5645, lat: 47.2593, web: 'https://www.helloasso.com/associations/ecole-coreenne-de-nantes-44' },
+    { id: 'lille', name: '릴 한글학교', nameFr: 'École coréenne de Lille', city: '릴', lon: 3.0905, lat: 50.6372, web: 'https://www.ecolecoreennelille.com/' },
+    { id: 'tours', name: '투르 한글학교', nameFr: 'École coréenne de Tours', city: '투르', lon: 0.7088, lat: 47.4203, web: 'https://www.salangchae.com/' },
+    { id: 'cholet', name: '숄레 한글학교', nameFr: 'École coréenne de Cholet', city: '숄레', lon: -0.8841, lat: 47.0565, web: 'https://www.facebook.com/ecolecoreennecholet/', pending: true },
+    { id: 'brest', name: '브레스트 한글학교', nameFr: 'École coréenne de Brest', city: '브레스트', lon: -4.4687, lat: 48.4043, web: 'https://www.ecolecoreennebrest.org/' },
+    { id: 'marseille', name: '마르세유 한글학교', nameFr: 'École coréenne de Marseille', city: '마르세유', lon: 5.3817, lat: 43.2981, web: 'https://www.ecolecoreennedemarseille.fr/' },
+    { id: 'lemans', name: '르망 한글학교', nameFr: 'Le Mans École coréenne', city: '르망', lon: 0.1844, lat: 48.0267, web: 'https://www.instagram.com/lemansecolecoreenne/' }
   ],
   // ── 학교별 공간(교실) ──
   // 컨셉(휴먼쌤 2026-10-06): 교실마다 지역 특색 + 책(도시 소개 글)·사진첩(학교 사진)·TV(소개 영상) + 정면의 교장 NPC와 '한국어 회화' 버튼 선택 연습.

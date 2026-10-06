@@ -998,7 +998,7 @@
       }
       body.appendChild(sec);
     }
-    if (SCHOOLS.some(s => s.pending)) { const p = document.createElement('p'); p.className = 'note'; p.textContent = T.listNote; body.appendChild(p); }
+    if (T.listNote) { const p = document.createElement('p'); p.className = 'note'; p.textContent = T.listNote; body.appendChild(p); }
   }
   function setupUI() {
     document.title = T.title;
