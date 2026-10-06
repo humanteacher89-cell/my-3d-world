@@ -741,7 +741,7 @@ function start(CFG){
     const back=new THREE.Mesh(new THREE.BoxGeometry(1.8,0.45,0.06),wood);back.position.set(0,0.78,0.24);back.rotation.x=-0.12;bs.add(back);
     for(const s of[-0.8,0.8]){const leg=new THREE.Mesh(new THREE.BoxGeometry(0.08,0.48,0.42),metal);leg.position.set(s,0.24,0);bs.add(leg);}
     shadowize(bs,true,true);blocks.push([10.2,3.8,1.25]);
-    const out={group:g,C,lamps,rects,blocks,dock:null,islands:[],islandC:null};
+    const out={group:g,C,lamps,rects,blocks,dock:null,islands:[],islandC:null,fr:null,pod:null};
     if(PZC)buildPlazaExtras(g,C,flat,metal,rects,blocks,SCH,out);
     return out;
   }
@@ -781,14 +781,73 @@ function start(CFG){
     for(const s of[-0.85,0.85]){const post=new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.05,1.2,8),metal);post.position.set(s,0.6,-0.04);bd.add(post);}
     shadowize(bd,true,false);blocks.push([bd.position.x,bd.position.z,1.1]);
     out.dock=new THREE.Vector3(C.x+D.x,0,C.z+D.z);
+    const FI=P.franceIsland;
+    // 섬으로 가는 승강장 바닥(프랑스 한글학교 섬이 있을 때만): 평소에는 바닥 밑에 숨어 있다가 떠나기를 누르면 떠오른다. 출발 수단 시안이 정해지면 바꾼다
+    if(FI){const pod=new THREE.Group();
+      const body=new THREE.Mesh(new THREE.CylinderGeometry(2.3,1.7,0.34,40),std('#5e5a72',{roughness:.6}));body.position.y=-0.13;pod.add(body);
+      const deck=new THREE.Mesh(new THREE.CircleGeometry(2.3,40),std('#6c6780',{roughness:.7}));deck.rotation.x=-Math.PI/2;deck.position.y=0.045;pod.add(deck);
+      const rr=new THREE.Mesh(new THREE.RingGeometry(2.06,2.3,48),ringM);rr.rotation.x=-Math.PI/2;rr.position.y=0.05;pod.add(rr);
+      const under=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:'#7fe3d0',transparent:true,opacity:0,depthWrite:false,toneMapped:false}));under.scale.setScalar(5);under.position.y=-0.5;pod.add(under);pod.userData.glow=under;
+      pod.position.set(D.x,-0.4,D.z);g.add(pod);out.pod=pod;}
+    // 프랑스 한글학교 섬(2026-10-06 휴먼쌤 "섬 중에 하나를 '프랑스 한글학교'로, 일종의 웰컴"): 착륙장 + 환영 문 + '한'·프랑스 깃발 + 작은 에펠탑 + 작은 학교 + 켜진 등 + 섬 이름표. 문구는 [확인 전]
+    function buildFrIsland(o,r){const y0=r*0.12,F=FI;
+      const pad=new THREE.Vector3(0,y0+0.02,r*0.56),az=pad.z-3.7;
+      const pd=new THREE.Mesh(new THREE.CircleGeometry(2.7,48),std('#6c6780',{roughness:.7}));pd.rotation.x=-Math.PI/2;pd.position.copy(pad);o.add(pd);
+      const rg=new THREE.Mesh(new THREE.RingGeometry(2.48,2.7,48),ringM);rg.rotation.x=-Math.PI/2;rg.position.set(pad.x,pad.y+0.01,pad.z);o.add(rg);
+      // 환영 문: 기둥 둘 + 이름판(앞면 +z = 착륙장·광장 쪽)
+      const postM=std('#f1e6d2',{roughness:.6});
+      for(const s of[-1,1]){const p=new THREE.Mesh(new THREE.BoxGeometry(0.34,3.4,0.34),postM);p.position.set(s*2.3,y0+1.7,az);o.add(p);}
+      const signT=label(1024,300,(c,w,h)=>{c.fillStyle='#24345e';c.fillRect(0,0,w,h);c.strokeStyle='#7fe3d0';c.lineWidth=10;c.strokeRect(12,12,w-24,h-24);
+        c.textAlign='center';c.textBaseline='middle';c.fillStyle='#fff6e2';c.font=`900 ${Math.round(h*0.34)}px ${FONT}`;c.fillText(T_(F.signTitle||F.name||'프랑스 한글학교'),w/2,h*0.42);
+        c.fillStyle='#ffd9a0';c.font=`500 ${Math.round(h*0.15)}px ${FONT}`;c.fillText(T_(F.signSub||''),w/2,h*0.77);});
+      const sm=new THREE.MeshStandardMaterial({map:signT,emissiveMap:signT,emissive:'#ffffff',emissiveIntensity:.8,roughness:.6});
+      const sg=new THREE.Mesh(new THREE.BoxGeometry(5.2,1.5,0.18),[postM,postM,postM,postM,sm,postM]);sg.position.set(0,y0+3.75,az);o.add(sg);
+      const cap=new THREE.Mesh(new THREE.BoxGeometry(5.6,0.22,0.42),std('#9a6a55',{roughness:.8}));cap.position.set(0,y0+4.6,az);o.add(cap);
+      // 깃발: 로비와 같이 '한' 깃발(왼쪽)과 프랑스 국기(오른쪽)
+      const flagT=k=>label(192,128,(c,w,h)=>{if(k==='fr'){['#2A4D9B','#FFFFFF','#E0483E'].forEach((col,i)=>{c.fillStyle=col;c.fillRect(i*w/3,0,w/3+1,h);});}
+        else{c.fillStyle='#ffffff';c.fillRect(0,0,w,h);c.fillStyle='#E0483E';c.fillRect(0,0,w,12);c.fillStyle='#2A4D9B';c.fillRect(0,h-12,w,12);c.fillStyle='#1E2B4A';c.font=`900 76px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillText('한',w/2,h/2+4);}});
+      for(const [k,x] of[['kr',-3.7],['fr',3.7]]){const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.06,3.7,8),metal);pole.position.set(x,y0+1.85,az+0.3);o.add(pole);
+        const t=flagT(k),fl=new THREE.Mesh(new THREE.PlaneGeometry(1.3,0.86),new THREE.MeshStandardMaterial({map:t,emissiveMap:t,emissive:'#ffffff',emissiveIntensity:.35,side:THREE.DoubleSide,roughness:.8}));
+        fl.position.set(x+(x<0?-0.67:0.67),y0+3.2,az+0.3);o.add(fl);}
+      // 작은 에펠탑(왼쪽 뒤)
+      {const em=std('#9a7a55',{roughness:.7,metalness:.2,emissive:'#5a3f22',emissiveIntensity:.35}),ex=-5.6,ezz=-3.2;
+        // 오목하게 휘는 옆선(선반 돌리기, 네 모서리) = 에펠탑 실루엣
+        const prof=[[2.0,0],[1.35,1.0],[0.95,2.0],[0.7,2.9],[0.5,3.9],[0.36,5.0],[0.24,6.2],[0.14,7.3],[0.06,8.3],[0.0,8.9]].map(([x,y])=>new THREE.Vector2(x,y));
+        const tw=new THREE.Mesh(new THREE.LatheGeometry(prof,4),em);tw.rotation.y=Math.PI/4;tw.position.set(ex,y0,ezz);o.add(tw);
+        // 다리 사이 아치(앞면) + 전망대 둘
+        const arc=new THREE.Mesh(new THREE.TorusGeometry(0.75,0.09,6,16,Math.PI),em);arc.position.set(ex,y0+0.15,ezz+1.32);o.add(arc);
+        for(const [yy,s] of[[2.0,1.75],[5.0,0.95]]){const pl=new THREE.Mesh(new THREE.BoxGeometry(s,0.16,s),em);pl.rotation.y=Math.PI/4;pl.position.set(ex,y0+yy,ezz);o.add(pl);}}
+      // 작은 한글학교 건물(오른쪽 뒤)
+      {const sx=5.4,sz=-2.6,wallM=std('#f3ead8',{roughness:.85});
+        const hb=new THREE.Mesh(new THREE.BoxGeometry(3.6,2.2,2.6),wallM);hb.position.set(sx,y0+1.1,sz);o.add(hb);
+        const rf=new THREE.Mesh(new THREE.ConeGeometry(2.7,1.3,4),std('#c4553f',{roughness:.8}));rf.rotation.y=Math.PI/4;rf.scale.z=0.75;rf.position.set(sx,y0+2.85,sz);o.add(rf);
+        const fT=label(512,320,(c,w,h)=>{c.fillStyle='#f3ead8';c.fillRect(0,0,w,h);c.fillStyle='#ffe2b0';for(const x of[0.08,0.72])c.fillRect(w*x,h*0.36,w*0.2,h*0.28);
+          c.fillStyle='#7a5a44';c.fillRect(w*0.4,h*0.44,w*0.2,h*0.56);c.fillStyle='#24345e';c.fillRect(w*0.26,h*0.06,w*0.48,h*0.22);
+          c.fillStyle='#fff6e2';c.font=`900 ${Math.round(h*0.14)}px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillText('한글학교',w/2,h*0.175);});
+        const fp=new THREE.Mesh(new THREE.PlaneGeometry(3.6,2.2),new THREE.MeshStandardMaterial({map:fT,emissiveMap:fT,emissive:'#ffffff',emissiveIntensity:.5,roughness:.85}));fp.position.set(sx,y0+1.1,sz+1.31);o.add(fp);}
+      // 나무는 뒤쪽 가장자리에만(착륙장·문 앞은 비운다)
+      [[-8.2,-1.5],[-7,-5.5],[-2.4,-7.8],[2.2,-8.4],[8.4,1.2],[4.4,-7.9],[-8.6,3.2]].forEach(([x,z],k)=>{const th=r*(0.5+0.08*(k%3)),t=new THREE.Mesh(new THREE.ConeGeometry(r*0.13,th,7),treeM);t.position.set(x,y0+th/2,z);o.add(t);});
+      // 켜진 등(이 섬은 열렸다). 환영 문을 가리지 않게 섬 뒤쪽 가장자리에
+      const lx=r*0.71,lz=-r*0.59;
+      const pole=new THREE.Mesh(new THREE.CylinderGeometry(r*0.025,r*0.03,r*1.1,6),metal);pole.position.set(lx,r*0.67,lz);o.add(pole);
+      const bulb=new THREE.Mesh(new THREE.SphereGeometry(r*0.1,14,10),new THREE.MeshStandardMaterial({color:'#fff3d6',emissive:'#ffd9a0',emissiveIntensity:1.6,roughness:.4}));bulb.position.set(lx,r*1.25,lz);o.add(bulb);
+      const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:'#ffd9a0',transparent:true,opacity:.85,depthWrite:false,toneMapped:false}));glow.scale.setScalar(r*1.7);glow.position.set(lx,r*1.25,lz);o.add(glow);
+      // 광장에서 보이는 섬 이름표(안개에 묻히지 않게)
+      const nt=label(1024,256,(c,w,h)=>{c.fillStyle='rgba(29,33,51,.85)';if(c.roundRect){c.beginPath();c.roundRect(8,8,w-16,h-16,h*0.4);c.fill();}else c.fillRect(8,8,w-16,h-16);
+        c.strokeStyle='#7fe3d0';c.lineWidth=8;if(c.roundRect){c.beginPath();c.roundRect(8,8,w-16,h-16,h*0.4);c.stroke();}
+        c.fillStyle='#fff6e2';c.font=`900 ${Math.round(h*0.42)}px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillText(T_(F.name||'프랑스 한글학교'),w/2,h/2+4);});
+      const ns=new THREE.Sprite(new THREE.SpriteMaterial({map:nt,transparent:true,depthWrite:false,fog:false,toneMapped:false}));ns.scale.set(r*1.9,r*0.475,1);ns.position.y=r*1.62;o.add(ns);
+      out.fr={o,r,pad,arch:new THREE.Vector3(0,y0+3.2,az),label:ns};}
     // 북쪽 하늘의 섬들: 떠 있는 바위 + 풀밭 + 나무 + 꺼진 등(섬이 열리면 켜진다). 주제가 정해지기 전이라 이름은 없다
     // 거리에서 올려다보므로 밑면(둥근 바위)과 위로 솟은 나무·등대가 모양을 만든다
     const IP=[[-22,24,-96,9],[4,32,-110,11],[26,21,-92,8],[-7,17,-80,5],[40,28,-112,7]],n=clamp(P.islands==null?3:P.islands,0,IP.length),sum=new THREE.Vector3();
     const rockM=std('#6a5f74',{roughness:.95}),grassM=std('#62806a',{roughness:.9}),treeM=std('#4a6b55',{roughness:.9});
+    const fi=FI&&n?clamp(FI.index==null?1:FI.index,0,n-1):-1;   // 프랑스 한글학교 섬 번호(기본 1 = 가운데 큰 섬)
     for(let i=0;i<n;i++){const [x,y,z,r]=IP[i],o=new THREE.Group();o.position.set(x,y,z);o.userData.y=y;g.add(o);
       const bowl=new THREE.Mesh(new THREE.SphereGeometry(r,18,10,0,Math.PI*2,Math.PI/2,Math.PI/2),rockM);bowl.scale.y=0.75;o.add(bowl);
       const tip=new THREE.Mesh(new THREE.ConeGeometry(r*0.55,r*0.9,9,1),rockM);tip.rotation.x=Math.PI;tip.position.y=-r*0.75-r*0.3;o.add(tip);
       const top=new THREE.Mesh(new THREE.CylinderGeometry(r*1.0,r*1.0,r*0.12,20),grassM);top.position.y=r*0.06;o.add(top);
+      if(i===fi){buildFrIsland(o,r);out.islands.push(o);sum.add(o.position);continue;}
       for(let k=0;k<6;k++){const a=k*1.05+i,rr=r*(0.35+0.55*((k*37+i*11)%10)/10),th=r*(0.55+0.25*((k*13+i*7)%5)/5);const t=new THREE.Mesh(new THREE.ConeGeometry(r*0.14,th,7),treeM);t.position.set(Math.cos(a)*rr,r*0.12+th/2,Math.sin(a)*rr);o.add(t);}
       // 아직 꺼진 등(섬이 열리면 켜진다): 기둥 + 희미한 빛
       const pole=new THREE.Mesh(new THREE.CylinderGeometry(r*0.025,r*0.03,r*1.1,6),metal);pole.position.y=r*0.67;o.add(pole);
@@ -998,6 +1057,54 @@ function start(CFG){
       const f=0.2,hx=(I.x-ax)*f,hz=(I.z-az)*f;look.set(ax+hx+lerp(-2.5,2.5,ez(k))*(camera.aspect<0.8?1.6:0.6),ay+Math.hypot(hx,hz)*0.11,az+hz);},12,finishDock,true);
     sayLines(PZC.dockLines||[],()=>endShot());}
   function finishDock(){sayStop();clearShot();setCut(false);DIR.manual=0;plazaChoices();}
+  /* 프랑스 한글학교 섬으로(2026-10-06 휴먼쌤): 승강장 바닥이 떠올라 방문자와 리니를 섬 착륙장까지 태워 간다 → 환영 장면 → 프랑스 로비(2.5D)로 넘어간다.
+     설정 PZC.franceIsland(없으면 예전처럼 '준비 중'). 출발 수단은 아직 시안 전이라 떠오르는 승강장 바닥으로 둔다 */
+  const FLY_BOARD=1.2,FLY_DUR=10,_fv=new THREE.Vector3(),_fm=new THREE.Vector3(),_fa=new THREE.Vector3();
+  const frWorld=(v,o)=>{const G=CITY.group.position,I=CITY.fr.o.position;return o.set(G.x+I.x+v.x,G.y+I.y+v.y,G.z+I.z+v.z);};
+  function startFly(){const FI=PZC.franceIsland;if(!PZ.active||!FI||!CITY.fr||!CITY.pod||PZ.fly)return;
+    hideChoices();sayStop();setCut(true);PZ.atDock=true;PZ.follow=false;PZ.rpath=[];PZ.rmode='fly';
+    const S=CITY.dock.clone(),E=frWorld(CITY.fr.pad,new THREE.Vector3());S.y=0.02;
+    PZ.fly={t:0,S,E:new THREE.Vector3(),pp:new THREE.Vector3(),f:Math.atan2(E.x-S.x,E.z-S.z),p0:player.pos.clone(),r0:PZ.rpos.clone(),landed:false};
+    SND('sfx','whoosh');if(FI.flyLines)sayLines(FI.flyLines);
+    shot(flyShot,FLY_DUR,landFr,true);}
+  // 매 프레임(plazaMove 대신): 승강장 바닥 위치 → 방문자·리니를 그 위에 세운다
+  function flyStep(dt){const F=PZ.fly,I=CITY.fr,G=CITY.group.position;F.t=Math.min(FLY_DUR,F.t+dt);
+    const S=F.S,E=frWorld(I.pad,F.E),u=F.landed?1:clamp((F.t-FLY_BOARD)/(FLY_DUR-FLY_BOARD),0,1),e=ez(u),a=1-e,b=F.landed?1:Math.min(1,F.t/FLY_BOARD);
+    _fm.set((S.x+E.x)/2,E.y+9,(S.z+E.z)/2);   // 2차 베지어: 출발점 → 가운데 섬보다 9m 위 → 착륙장
+    const pp=F.pp.set(a*a*S.x+2*a*e*_fm.x+e*e*E.x,a*a*S.y+2*a*e*_fm.y+e*e*E.y,a*a*S.z+2*a*e*_fm.z+e*e*E.z);
+    if(u===0)pp.y=lerp(-0.4,S.y,ez(b));   // 탈 때: 바닥 밑에서 떠오른다
+    const pod=CITY.pod;pod.position.set(pp.x-G.x,pp.y-G.y,pp.z-G.z);pod.userData.glow.material.opacity=u>0&&u<1?0.85:b*0.4;
+    I.label.material.opacity=1-clamp(u*1.8,0,1);I.label.visible=u<0.56;   // 가까워지면 섬 이름표는 숨긴다(문 이름판이 대신, 말풍선과 겹치지 않게)
+    const f=F.landed?Math.PI:F.f,rx=Math.cos(f),rz=-Math.sin(f),y=pp.y+0.05;
+    const sp=_fv.set(pp.x-rx*0.75,y,pp.z-rz*0.75),sr=_fa.set(pp.x+rx*0.8,y,pp.z+rz*0.8);
+    const turn=(cur,want,k)=>{let d=want-cur;d=Math.atan2(Math.sin(d),Math.cos(d));return cur+d*Math.min(1,k);};
+    if(b<1){const k=ez(b),ox=PZ.rpos.x,oz=PZ.rpos.z;player.pos.lerpVectors(F.p0,sp,k);PZ.rpos.lerpVectors(F.r0,sr,k);
+      PZ.flySpd=Math.hypot(PZ.rpos.x-ox,PZ.rpos.z-oz)/Math.max(dt,1e-3);}
+    else{player.pos.copy(sp);PZ.rpos.copy(sr);PZ.flySpd=0;if(me.st&&me.st.prev)me.st.prev.copy(player.pos);}   // 바닥에 실려 갈 때는 걷는 동작을 하지 않게
+    player.facing=turn(player.facing,f,dt*6);PZ.rface=PZ.rfaceT=turn(PZ.rface,f,dt*6);
+    player.vx=player.vz=0;player.speed=0;}
+  // 날아가는 동안 카메라: 바닥 뒤 위에서 섬 쪽을 본다
+  function flyShot(k,pos,look){const F=PZ.fly;if(!F)return;const pp=F.pp,E=F.E,sx=Math.sin(F.f),sz=Math.cos(F.f),back=camera.aspect<0.8?9.5:7.5;
+    pos.set(pp.x-sx*back,pp.y+3.4,pp.z-sz*back);look.set(pp.x+sx*12,pp.y+2.6,pp.z+sz*12);}   // 섬은 화면 위쪽, 방문자·리니는 아래쪽
+  // 도착: 착륙장 뒤(광장 쪽)에서 환영 문을 바라보며 리니가 맞이한다 → 끝나면 프랑스 로비로
+  function landFr(){const F=PZ.fly;if(!F||F.landed)return;F.landed=true;F.t=FLY_DUR;sayStop();SND('sfx','appear');
+    const FI=PZC.franceIsland,I=CITY.fr,P=new THREE.Vector3(),A=new THREE.Vector3();
+    shot((k,pos,look)=>{frWorld(I.pad,P);frWorld(I.arch,A);const w=camera.aspect<0.8?1.6:1,e=ez(k);pos.set(P.x+0.8-e*0.8,P.y+2.6-e*0.5,P.z+(6.6-e*1.8)*w);look.set(A.x,A.y-0.5,A.z);},9,goFrance,true);
+    sayLines(FI.welcomeLines||[],()=>endShot());}
+  function frUrl(){const FI=PZC.franceIsland||{};return /\/world1\//.test(location.pathname)?(FI.url||'../france/'):(FI.urlAbs||FI.url||'../france/');}
+  function goFrance(){const FI=PZC.franceIsland||{},url=frUrl();sayStop();
+    let el=$('#frLeave');if(!el){el=document.createElement('div');el.id='frLeave';document.body.appendChild(el);}
+    el.style.cssText='position:fixed;inset:0;z-index:60;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;text-align:center;background:#fff8ec;color:#24345e;opacity:0;transition:opacity 1.1s ease;font-family:"Noto Sans KR",sans-serif';
+    el.textContent='';const t=document.createElement('div');t.style.cssText='font-weight:900;font-size:clamp(20px,5.4vw,30px);line-height:1.4';t.textContent=T_(FI.leave||'프랑스 한글학교 로비로 이동합니다');
+    const go=document.createElement('a');go.href=url;go.textContent=T_(FI.leaveLink||'바로 가기');go.style.cssText='padding:10px 24px;border-radius:999px;background:#24345e;color:#fff;text-decoration:none;font-weight:700';
+    const back=document.createElement('button');back.textContent=T_(FI.back||'광장으로 돌아가기');back.style.cssText='border:0;background:none;color:#6b6f80;font:inherit;font-size:14px;text-decoration:underline;cursor:pointer';back.onclick=backFromFr;
+    el.append(t,go,back);el.hidden=false;requestAnimationFrame(()=>requestAnimationFrame(()=>{el.style.opacity='1';}));
+    mpStop();clearTimeout(PZ.leaveT);PZ.leaveT=setTimeout(()=>{location.href=url;},2000);}
+  // 돌아가기(프랑스 로비에서 뒤로 오거나, 넘어가지 못했을 때): 승강장 바닥을 숨기고 출발점에 세운다
+  function backFromFr(){clearTimeout(PZ.leaveT);const el=$('#frLeave');if(el){el.hidden=true;el.style.opacity='0';}
+    if(!PZ.fly)return;PZ.fly=null;CITY.fr.label.visible=true;CITY.fr.label.material.opacity=1;CITY.pod.position.set(CITY.dock.x-CITY.group.position.x,-0.4,CITY.dock.z-CITY.group.position.z);CITY.pod.userData.glow.material.opacity=0;
+    sayStop();clearShot();arriveNow();PZ.atDock=true;PZ.rmode='dock';setCut(false);DIR.init=false;plazaChoices();try{mpBegin();}catch(_){}}
+  addEventListener('pageshow',e=>{if(e.persisted&&PZ.fly)backFromFr();});
   function plazaLook(){hideChoices();setCut(true);toast(UI.lookHint||'화면을 누르면 둘러보기를 마쳐요.');shot(shotOrbit(player.pos.clone(),11,6.5),8,()=>{clearShot();setCut(false);plazaChoices();},true);}
   function plazaChoices(){if(!PZ.active||PZ.cut)return;const P=PZC,L=[];let where;
     if(PZ.menu){where=T_(P.menu||'메뉴');
@@ -1006,7 +1113,9 @@ function start(CFG){
       L.push({label:T_(P.exit||'월드 나가기'),fn:()=>{PZ.menu=false;hideChoices();showEnd();$('#endExit').onclick();}});
       L.push({label:T_(UI.back||'돌아가기'),minor:true,fn:()=>{PZ.menu=false;plazaChoices();}});}
     else if(PZ.atDock){where=T_(P.dockName||'섬 출발점');
-      L.push({label:T_(P.depart||'섬으로 떠나기'),sub:T_(P.departSub||'준비 중'),fn:()=>{toast(T_(P.departToast||'섬들은 아직 준비 중이에요.'));const R=PZ.cast&&PZ.cast.rini;if(R&&R.isGlb)R.emote('wave');}});
+      if(P.franceIsland&&CITY.fr){const FI=P.franceIsland;L.push({label:T_(FI.go||'프랑스 한글학교 섬으로'),sub:T_(FI.goSub||''),hot:true,fn:startFly});
+        L.push({label:T_(FI.others||'다른 섬들'),sub:T_(P.departSub||'준비 중'),minor:true,fn:()=>{toast(T_(P.departToast||'섬들은 아직 준비 중이에요.'));}});}
+      else L.push({label:T_(P.depart||'섬으로 떠나기'),sub:T_(P.departSub||'준비 중'),fn:()=>{toast(T_(P.departToast||'섬들은 아직 준비 중이에요.'));const R=PZ.cast&&PZ.cast.rini;if(R&&R.isGlb)R.emote('wave');}});
       L.push({label:T_(P.look||'둘러보기'),minor:true,fn:plazaLook},{label:T_(P.menu||'메뉴'),minor:true,fn:()=>{PZ.menu=true;plazaChoices();}});}
     else if(PZ.rmode==='guide'){where=T_(P.following||'리니를 따라가는 중');
       if(!PZ.follow)L.push({label:T_(P.followAgain||'리니 따라가기'),hot:true,fn:()=>{PZ.follow=true;plazaChoices();}});
@@ -1017,7 +1126,7 @@ function start(CFG){
     if(MP.id!=null&&!PZ.menu)L.splice(L.length-1,0,{label:T_(P.wave||'손 흔들기'),minor:true,fn:mpWave});   // 멀티플레이: 메뉴 앞에
     setChoices(where,L);const j=$('#journey');document.documentElement.style.setProperty('--jh',(j.offsetHeight||0)+'px');}
   // 방문자 걷기(광장): 입력은 카메라 기준. 따라가기 중에는 리니 뒤 1.5m를 유지한다
-  function plazaMove(dt){const P=player.pos;let tx=0,tz=0;
+  function plazaMove(dt){if(PZ.fly){flyStep(dt);return;}const P=player.pos;let tx=0,tz=0;
     let fx=(KEYS.right?1:0)-(KEYS.left?1:0),fz=(KEYS.up?1:0)-(KEYS.down?1:0);if(JOY.on){fx=JOY.x;fz=-JOY.y;}
     const mag=Math.hypot(fx,fz),manual=!PZ.cut&&mag>0.22;
     if(manual){fx/=mag;fz/=mag;if(PZ.follow){PZ.follow=false;plazaChoices();}player.faceT=null;
@@ -1038,7 +1147,8 @@ function start(CFG){
     if(RINI_GLB&&cast.rini!==RINI_GLB){const old=cast.rini;scene.remove(old.root);const N=RINI_GLB;scene.add(N.root);cast.extras.push(N.root);cast.rini=N;N.waving=false;N.hold='idle';N.act=null;N.setState('idle');}
     castLife(cast,PZ.t,dt);
     const R=cast.rini,rp=PZ.rpos,dP=Math.hypot(P.x-rp.x,P.z-rp.z),busy=(R.isGlb&&R.waving)||PZ.cut;PZ.rspeed=0;let face=null;
-    if(PZ.rmode==='guide'){
+    if(PZ.fly){PZ.rspeed=PZ.flySpd||0;face=PZ.rface;}   // 섬으로 가는 중: 자리·방향은 flyStep이 정한다
+    else if(PZ.rmode==='guide'){
       if(!PZ.follow){if(PZ.waiting?dP>4:dP>6.5){PZ.waiting=true;face=angTo(rp,P);}else PZ.waiting=false;}else PZ.waiting=false;
       if(!PZ.waiting&&!busy){const w=PZ.rpath[0];if(w){if(riniWalk(w,RINI_GUIDE,0.15,dt))PZ.rpath.shift();}else{PZ.rmode='dock';PZ.follow=false;plazaChoices();}}}
     else if(PZ.rmode==='come'){if(!busy){const k=1.8/Math.max(dP,0.01),to={x:P.x+(rp.x-P.x)*k,z:P.z+(rp.z-P.z)*k};if(riniWalk(to,RINI_COME,0.2,dt)||dP<2.1)PZ.rmode='idle';}}
@@ -1048,7 +1158,7 @@ function start(CFG){
     {const want=PZ.rspeed>0?PZ.rfaceT:face!=null?face:PZ.rface;let d=want-PZ.rface;d=Math.atan2(Math.sin(d),Math.cos(d));PZ.rface+=d*Math.min(1,dt*(PZ.rspeed>0?9:4));}
     const moving=PZ.rspeed>0.05;
     if(R.isGlb){R.hold=moving?'walk':'idle';if(R.actions.walk)R.actions.walk.timeScale=clamp(PZ.rspeed/RINI_STEP,1,4);R.update(dt,T,{pos:rp,facing:PZ.rface});}
-    else{R.root.position.copy(rp);R.root.position.y=0.06+(moving?Math.abs(Math.sin(T*7))*0.03:Math.sin(T*2.6)*0.04);R.root.rotation.y=PZ.rface;R.inner.rotation.x=moving?0.1:0;R.head.rotation.set(0,0,0);
+    else{R.root.position.copy(rp);R.root.position.y=rp.y+0.06+(moving?Math.abs(Math.sin(T*7))*0.03:Math.sin(T*2.6)*0.04);R.root.rotation.y=PZ.rface;R.inner.rotation.x=moving?0.1:0;R.head.rotation.set(0,0,0);
       R.arms[0].rotation.z=-0.18;R.arms[1].rotation.z=0.18;R.arms.forEach((a,j)=>a.rotation.x=moving?Math.sin(T*7+j*Math.PI)*0.35:0);const blink=(T%3.2)<0.12;R.eyes.forEach(e=>e.scale.y=blink?0.2:1.25);}
     // 섬 출발점: 가까이 오면 섬 장면, 멀어지면 광장 선택지로
     const D=CITY.dock,dD=Math.hypot(P.x-D.x,P.z-D.z);
@@ -1185,7 +1295,7 @@ function start(CFG){
     if(useBloom&&composer)composer.render(dt);else renderer.render(scene,camera);});
   addEventListener('resize',fitViewport);fitViewport();
   window.__world={CFG,Q,J,player,startEnding,restartAll,goMission,talkGuide,refreshChoices,get intro(){return intro;},get cine(){return cine;},get human(){return human;},enterDoor,startArrival,skipArrival,get arr(){return ARR;},get rini(){return RINI_GLB;},
-    get pz(){return PZ;},get city(){return CITY;},get mp(){return MP;},enterPlaza,exitPlaza,startGuide,arriveNow,dockArrive,keys:KEYS,joy:JOY};
+    get pz(){return PZ;},get city(){return CITY;},get dir(){return DIR;},get mp(){return MP;},enterPlaza,exitPlaza,startGuide,arriveNow,dockArrive,startFly,landFr,backFromFr,keys:KEYS,joy:JOY};
 }
 window.WorldEngine={start};
 })();
