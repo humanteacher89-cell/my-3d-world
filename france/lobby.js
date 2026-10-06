@@ -16,7 +16,7 @@
   const LAND_Y = 0.6;                       // 프랑스 땅 윗면 높이
   const SPEED = 6;                          // 걷는 속도(칸/초). 1칸은 약 9km
   const SCALE = 0.82;                       // 캐릭터 크기(키 약 1.6칸)
-  const MAX_CHARS = 64;                     // 한 번에 그릴 수 있는 최대 인원
+  const MAX_CHARS = 80; /* 동시접속 60명 예정(10-06 휴먼쌤) + NPC·여유 */                    // 한 번에 그릴 수 있는 최대 인원
   const NEAR_TAGS = IS_TOUCH ? 10 : 16;     // 이름표를 보여 줄 가까운 사람 수
   const VFOV = 32;
   const FONT_D = "'Jua', 'Noto Sans KR', sans-serif", FONT_B = "'Noto Sans KR', sans-serif";

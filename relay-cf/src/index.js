@@ -7,7 +7,7 @@
 import { handleApi, Content } from './content.js';
 export { Content };
 
-const MAX_PER_ROOM = 50;
+const MAX_PER_ROOM = 70;   // 동시접속 60명 예정(2026-10-06 휴먼쌤) + 여유
 const TICK_MS = 100;
 const ORIGINS = ['https://humanteacher89-cell.github.io'];
 
