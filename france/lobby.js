@@ -743,7 +743,7 @@
     if (WORLD.scene.fog) { WORLD.scene.fog.near = CAM.d * 1.35; WORLD.scene.fog.far = CAM.d * 3.4; }
     // 이름판·이름표는 화면에서 늘 비슷한 크기로 보이게(땅에서 1픽셀이 몇 칸인지로 계산)
     const wpp = 2 * CAM.d * tanV() * camera.aspect / Math.max(1, view.clientWidth || innerWidth);
-    const goalPx = over ? (IS_TOUCH ? 78 : 112) : (IS_TOUCH ? 112 : 150);
+    const goalPx = over ? (IS_TOUCH ? 60 : 80) : (IS_TOUCH ? 112 : 150);   // 전체 지도에서는 이름판을 작게(지역 이름을 덜 가리게, 10-06 검수)
     signPx += (goalPx - signPx) * (snap ? 1 : k2);
     camUp.set(0, Math.cos(CAM.pitch), -Math.sin(CAM.pitch));
     for (const sp of (WORLD.signs || SIGNS)) {
@@ -1226,7 +1226,8 @@
   function mpConnect() {
     if (!MP.on || MP.ws) return;
     let ws;
-    try { ws = new WebSocket(MP.url); } catch (_) { mpBadge('off'); return; }
+    // 방 이름은 주소(?room=)와 첫 인사(hello) 둘 다에 넣는다: Cloudflare 판은 주소로 방을 고르고, Node 판은 인사를 본다
+    try { ws = new WebSocket(MP.url + (MP.url.includes('?') ? '&' : '?') + 'room=' + encodeURIComponent(MP.room)); } catch (_) { mpBadge('off'); return; }
     MP.ws = ws; MP.full = false; mpBadge('wait');
     ws.onopen = () => { MP.retry = 0; ws.send(JSON.stringify({ t: 'hello', room: MP.room, name: MP.name, look: ME.idx, s: mpState() })); };
     ws.onmessage = e => { let m; try { m = JSON.parse(e.data); } catch (_) { return; } mpMsg(m); };

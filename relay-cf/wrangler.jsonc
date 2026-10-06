@@ -1,0 +1,12 @@
+{
+  // Cloudflare Workers 설정 — 프랑스 한글학교 로비 중계 서버. 무료 플랜에서 돌아간다(SQLite 기반 Durable Object).
+  "name": "hangul-lobby-relay",
+  "main": "src/index.js",
+  "compatibility_date": "2026-01-01",
+  "durable_objects": {
+    "bindings": [{ "name": "ROOMS", "class_name": "Room" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }],
+  "vars": { "MP_ORIGINS": "" },
+  "observability": { "enabled": true }
+}

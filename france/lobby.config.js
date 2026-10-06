@@ -74,9 +74,9 @@ window.LOBBY_CONFIG = {
   look: { sky: '#CDEBF6', sea: '#8DD3EA', base: '#EDE3CC', neighbor: '#DDE5D3', neighborLine: '#B9C4AC' },
   // 지역 코드(INSEE)별 한글·프랑스어 이름과 색. label: 땅에 쓴 이름의 크기(size, 칸)와 자리 옮김(dx 동쪽+, dz 남쪽+)
   regions: {
-    '11': { ko: '일드프랑스', fr: 'Île-de-France', color: '#F7BE8F', label: { size: 6.5, dx: 1.5, dz: -5 } },
+    '11': { ko: '일드프랑스', fr: 'Île-de-France', color: '#F7BE8F', label: { size: 6.5, dx: 2.5, dz: -2.5 } },   // 10-06 검수: 옛 값(dz -5)은 오드프랑스 땅에 걸침
     '24': { ko: '상트르발드루아르', fr: 'Centre-Val de Loire', color: '#E8D3A6' },
-    '27': { ko: '부르고뉴프랑슈콩테', fr: 'Bourgogne-Franche-Comté', color: '#EBA7A1', label: { dx: -4.1, dz: -5.7 } },
+    '27': { ko: '부르고뉴프랑슈콩테', fr: 'Bourgogne-Franche-Comté', color: '#EBA7A1', label: { dx: -6.6, dz: 0.3 } },   // 10-06 검수 제안값
     '28': { ko: '노르망디', fr: 'Normandie', color: '#C9B8EA' },
     '32': { ko: '오드프랑스', fr: 'Hauts-de-France', color: '#A9D9B5' },
     '44': { ko: '그랑테스트', fr: 'Grand Est', color: '#F5DD8C' },
@@ -86,7 +86,7 @@ window.LOBBY_CONFIG = {
     '76': { ko: '옥시타니', fr: 'Occitanie', color: '#F4B49C', label: { dx: 4.4, dz: -2.6 } },
     '84': { ko: '오베르뉴론알프', fr: 'Auvergne-Rhône-Alpes', color: '#B9D7A6', label: { dx: -3.3, dz: 3.7 } },
     '93': { ko: '프로방스알프코트다쥐르', fr: "Provence-Alpes-Côte d'Azur", color: '#F9CF85' },
-    '94': { ko: '코르시카', fr: 'Corse', color: '#A8D99A', label: { size: 4 } }
+    '94': { ko: '코르시카', fr: 'Corse', color: '#A8D99A', label: { size: 7 } }   // 10-06 검수: 4는 전체 지도에서 안 읽힘
   },
   // 학교 목록에서 지역을 보여 주는 순서(북쪽부터)
   regionOrder: ['32', '28', '11', '44', '53', '52', '24', '27', '75', '84', '76', '93', '94'],
@@ -109,7 +109,7 @@ window.LOBBY_CONFIG = {
     pants: ['#2F3A56', '#4A5A78', '#6B5B4B', '#3D6B5A', '#7A4E3A']
   },
   // 멀티플레이: 같은 폴더 relay.json의 중계 서버 주소를 읽는다(없으면 혼자 보기). 주소 ?mp=0 끔, ?mp=ws://…/ws 시험 서버
-  multiplayer: { file: 'relay.json', lobbyRoom: 'fr:lobby', roomPrefix: 'fr:', sendHz: 8 },
+  multiplayer: { file: 'relay.json', lobbyRoom: 'fr:lobby', roomPrefix: 'fr:', sendHz: 6 },   // sendHz: 움직일 때 초당 보내는 횟수(Cloudflare 무료 한도 때문에 낮게)
   // 한글학교 20곳. 실존 확인 2026-10-06(하위 에이전트, 자료\한글학교-실존확인-20261006.md): 주프랑스 대사관 연락처 표(원문)·한국교육원 지도·
   // 스터디코리안 한글학교 정보(2026-01)에 모두 있는 곳 = 등급 ◎. 좌표는 학교 소재지(번지 수준). 연구부 '검증' 딱지는 아직 아님.
   // pending: true = 아직 확인 중(숄레: 2026 스터디코리안 목록에 없고 최근 활동 근거 2025-06). rooms에 같은 id가 있으면 입장할 때 그 교실로 들어간다
