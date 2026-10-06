@@ -1,7 +1,7 @@
 // 프랑스 한글학교 로비 엔진 v0.2 (three.js r147 UMD, 전역 THREE)
 // 글·학교·지역 색·교실 내용: lobby.config.js / 지도 좌표: france-map.js(tools/make_map.py가 만듦) / 교실: room.js
 // 멀티플레이: 같은 폴더 relay.json의 온라인 중계 서버(relay/server.js)에 붙는다. 로비 방 'fr:lobby', 교실 방 'fr:<학교 id>'.
-// 시험 주소: ?bots=50 가짜 참가자 50명(#bots50도 됨), ?fps=1 초당 화면 수, ?mp=0 접속 끔, ?mp=ws://127.0.0.1:8787/ws 시험 서버, ?room=이름 다른 방
+// 시험 주소: ?bots=50 가짜 참가자 50명(#bots50도 됨), ?test=1(#test) 학교 목록에 '시험용 참가자' 버튼, ?fps=1 초당 화면 수, ?mp=0 접속 끔, ?mp=ws://127.0.0.1:8787/ws 시험 서버, ?room=이름 다른 방
 (function () {
   'use strict';
   const C = window.LOBBY_CONFIG, M = window.FRANCE_MAP, T = C.text;
@@ -1037,9 +1037,9 @@
     buildList();
     setTimeout(() => { $('hint').style.opacity = 0; }, 7000);
     if (SHOW_STAT) $('stat').hidden = false;
-    // 시험: 30~50명이 모인 모습을 보는 버튼(가짜 참가자, 접속 아님)
+    // 시험: 30~50명이 모인 모습을 보는 버튼(가짜 참가자, 접속 아님). 공개 화면에서는 숨김(10-06 휴먼쌤), 주소 ?test=1 또는 #test 일 때만
     $('btnBots').textContent = T.botsButton;
-    $('btnBots').hidden = BOTS > 0;
+    $('btnBots').hidden = BOTS > 0 || !(Q.get('test') === '1' || /test/.test(HASH));
     $('btnBots').addEventListener('click', () => {
       spawnBots(50);
       $('btnBots').hidden = true;
