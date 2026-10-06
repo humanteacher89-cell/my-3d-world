@@ -1,5 +1,5 @@
 {
-  "relay": "",
-  "health": "",
-  "note": "온라인 중계 서버 주소. Cloudflare에 relay-cf를 올린 뒤 relay에 wss://<주소>/ws, health에 https://<주소>/health 를 적는다. 비어 있으면 혼자 보기(접속 없음)."
+  "relay": "wss://hangul-lobby-relay.humanteacher89.workers.dev/ws",
+  "health": "https://hangul-lobby-relay.humanteacher89.workers.dev/health",
+  "note": "온라인 중계 서버(Cloudflare Workers, relay-cf). 2026-10-06 휴먼쌤 배포. 비우면 혼자 보기(접속 없음)."
 }
