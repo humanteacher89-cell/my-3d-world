@@ -192,7 +192,7 @@ window.WORLD_CONFIG = {
       moveHintKeys: '키보드 W·A·S·D나 방향키로 걸어요.',
       toPlaza: '광장으로 바로 가기',                               // [확인 전] 시작 화면, 광장에 와 본 사람에게만(주소에 plaza=1이면 모두)
       // 멀티플레이(주소에 ?mp=1일 때만, 이 PC 중계소로 열 때. 아티팩트에서는 꺼짐)
-      mpNameTitle: '광장에서 쓸 이름', mpNameHint: '비워 두면 손님', mpNameGo: '광장에 들어가기',
+      mpNameTitle: '광장에서 쓸 이름과 모습', mpNameHint: '비워 두면 손님', mpNameGo: '광장에 들어가기', mpEdit: '이름·모습 바꾸기',
       mpCount: '광장에 {n}명', mpWait: '연결하는 중', mpOff: '연결 끊김 · 다시 연결 중', mpFullBadge: '광장이 가득 참',
       mpFull: '광장이 가득 찼어요. 잠시 뒤에 다시 와 주세요.', wave: '손 흔들기'
     }

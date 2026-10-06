@@ -19,6 +19,7 @@ const lsGet=(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.pa
 const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}};
 const cleanText=(s,n)=>String(s==null?'':s).replace(/[\u0000-\u001f\u007f-\u009f]/g,'').trim().slice(0,n);
 const IS_TOUCH=matchMedia('(pointer:coarse)').matches;
+const GLOW_Q=(v=>v==null?null:(Number(v)||0))(new URLSearchParams(location.search).get('glow'));   // 3D 캐릭터 밝기 시험용(?glow=0.5)
 const tpl=(s,vars)=>String(s==null?'':s).replace(/\{(\w+)\}/g,(m,k)=>vars&&vars[k]!=null?vars[k]:m);
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
 function distSeg(px,pz,A,B){const vx=B.x-A.x,vz=B.z-A.z;const l2=vx*vx+vz*vz||1e-6;const t=clamp(((px-A.x)*vx+(pz-A.z)*vz)/l2,0,1);return Math.hypot(px-(A.x+vx*t),pz-(A.z+vz*t));}
@@ -41,7 +42,7 @@ const UI_HTML=`
 <div id="joy" hidden aria-label="걷기 조이스틱"><div id="joyKnob"></div></div>
 <section id="say" class="panel" hidden aria-live="polite"><b id="sayName"></b><p id="sayText"></p></section>
 <div id="mpBadge" class="panel" hidden role="status"></div>
-<section id="mpName" class="panel" hidden role="dialog" aria-labelledby="mpNameT"><b id="mpNameT"></b><input id="mpNameIn" maxlength="12" autocomplete="off"><button id="mpNameGo" class="jb hot"></button></section>
+<section id="mpName" class="panel" hidden role="dialog" aria-labelledby="mpNameT"><b id="mpNameT"></b><input id="mpNameIn" maxlength="12" autocomplete="off"><div id="mpLook"></div><button id="mpNameGo" class="jb hot"></button></section>
 <div id="cine" hidden aria-live="polite"><div class="bar top"></div><div class="bar bot"></div><button id="cineSkip"></button><div id="cineTitle"></div>
   <div id="cineSubs"><div id="cineWho"></div><p id="cineText"></p></div><span id="cineNext" hidden></span><div id="cineFade"></div></div>
 <div id="intro"><p class="kicker"></p><h1></h1><p class="sub"></p><button id="introGo"></button><button id="introSkip"></button></div>
@@ -343,16 +344,18 @@ function start(CFG){
     constructor(gltf,o){const root=this.root=new THREE.Group();const inner=this.inner=new THREE.Group();root.add(inner);
       const model=this.model=gltf.scene;this.bones={};this.restPos={};this.applied=[];
       this.fix=Object.assign({armSpread:0.12,shoulderLift:0.08,armLength:0.92,spineBend:0.15,neckBend:-0.3,headBend:0.15},o.poseFix||{});
+      const glow=GLOW_Q!=null?GLOW_Q:(o.glow!=null?o.glow:0.3);   // 설정 glow(0~1), 시험은 주소 ?glow=0.5
       model.traverse(x=>{if(x.isMesh){x.castShadow=true;x.receiveShadow=false;if(x.isSkinnedMesh)x.frustumCulled=false;
-          // 폰에서는 노멀맵을 뺀다: Tripo GLB에 탄젠트가 없어 화면 미분으로 계산하는데, 폰 GPU 정밀도에서는 몸에 때 같은 얼룩이 생긴다(2026-10-03 휴먼쌤 폰)
-          (Array.isArray(x.material)?x.material:[x.material]).forEach(m=>{m.metalness=0;m.metalnessMap=null;if(IS_TOUCH)m.normalMap=null;m.needsUpdate=true;});}
+          // 저녁 광장처럼 어두운 조명에서는 Tripo 텍스처(리니 가방 무늬·등)가 때처럼 보여서, 텍스처 색으로 살짝 스스로 빛나게 한다(2026-10-03 휴먼쌤 "꾸질꾸질")
+          (Array.isArray(x.material)?x.material:[x.material]).forEach(m=>{m.metalness=0;m.metalnessMap=null;
+            if(glow>0&&m.map){m.emissive=new THREE.Color('#ffffff');m.emissiveMap=m.map;m.emissiveIntensity=glow;}m.needsUpdate=true;});}
         if(x.isBone)this.bones[x.name.replace('mixamorig','')]=x;});
       for(const side of['Left','Right'])for(const n of[side+'ForeArm',side+'Hand'])if(this.bones[n])this.restPos[n]=this.bones[n].position.clone();
       // 키를 맞추고, 발 가운데가 원점(0,0,0)에 오도록 모델을 옮긴다(파일 속 원점이 비껴 있으면 카메라 구도가 어긋난다)
       const bb=measureBounds(model);const h=bb?bb.height:1.75;this.height=o.height||1.68;this.baseScale=this.height/h;inner.scale.setScalar(this.baseScale);
       if(bb)model.position.set(-(bb.min.x+bb.max.x)/2,-bb.min.y,-(bb.min.z+bb.max.z)/2);inner.add(model);
       if(o.fixedTexture){new THREE.TextureLoader().load(o.fixedTexture,tex=>{tex.encoding=THREE.sRGBEncoding;tex.flipY=false;tex.wrapS=tex.wrapT=THREE.RepeatWrapping;tex.anisotropy=renderer.capabilities.getMaxAnisotropy();
-        model.traverse(x=>{if(x.isMesh)(Array.isArray(x.material)?x.material:[x.material]).forEach(m=>{m.map=tex;m.needsUpdate=true;});});},undefined,()=>{});}
+        model.traverse(x=>{if(x.isMesh)(Array.isArray(x.material)?x.material:[x.material]).forEach(m=>{m.map=tex;if(m.emissiveMap)m.emissiveMap=tex;m.needsUpdate=true;});});},undefined,()=>{});}
       const mixer=this.mixer=new THREE.AnimationMixer(model);this.actions={};const clip=k=>gltf.animations.find(a=>a.name.toLowerCase().includes(k));
       const idle=clip((o.idle||'a person standing').toLowerCase())||clip('standing_relax')||clip('wait')||gltf.animations[0];if(idle)this.actions.idle=mixer.clipAction(idle);
       const idle2=clip((o.idle2||'standing_relax').toLowerCase());if(idle2&&idle2!==idle)this.actions.idle2=mixer.clipAction(idle2);
@@ -506,7 +509,7 @@ function start(CFG){
      ===================================================================== */
   const DIR={shot:null,t:0,pos:new THREE.Vector3(),look:new THREE.Vector3(),init:false,manual:0};
   const dPos=new THREE.Vector3(),dLook=new THREE.Vector3(),camTarget=new THREE.Vector3();
-  let camYaw=0,camPitch=0.3,camDist=4.8,camDistT=4.8;
+  let camYaw=0,camPitch=0.3,camDist=4.8,camDistT=4.8,camLift=0;   // camLift: 바라보는 점을 올려 캐릭터를 화면 아래쪽에 둔다(생김새 고르기 창)
   function shot(fn,dur,onEnd,skippable){DIR.shot={fn,dur,onEnd,skippable:!!skippable};DIR.t=0;}
   function clearShot(){DIR.shot=null;}
   function endShot(){const s=DIR.shot;if(!s)return;DIR.shot=null;if(s.onEnd){const f=s.onEnd;s.onEnd=null;f();}}
@@ -525,7 +528,7 @@ function start(CFG){
   canvas.addEventListener('pointerup',e=>{if(!drag)return;const moved=drag.moved;drag=null;canvas.classList.remove('dragging');if(!moved)tap();});
   canvas.addEventListener('pointercancel',()=>{drag=null;canvas.classList.remove('dragging');});
   canvas.addEventListener('wheel',e=>{e.preventDefault();camDistT=clamp(camDistT+Math.sign(e.deltaY)*0.5,2.6,9);},{passive:false});
-  function updateCamera(dt){camDist+=(camDistT-camDist)*Math.min(1,dt*8);DIR.manual-=dt;const P=player.pos;camTarget.set(P.x,P.y+1.35,P.z);let rate=3.2;
+  function updateCamera(dt){camDist+=(camDistT-camDist)*Math.min(1,dt*8);DIR.manual-=dt;const P=player.pos;camTarget.set(P.x,P.y+1.35+camLift,P.z);let rate=3.2;
     if(DIR.shot){DIR.t+=dt;const s=DIR.shot,k=Math.min(1,DIR.t/s.dur);s.fn(k,dPos,dLook);rate=3.6;if(DIR.t>=s.dur&&s.onEnd){const f=s.onEnd;s.onEnd=null;f();}}
     else if(talk.open){shotTalk(talk.npc)(0,dPos,dLook);}
     // 걸으면 카메라가 등 뒤로 돈다. 광장에서 직접 걸을 때는 앞쪽(±63°)으로 걸을 때만(옆·뒤로 밀 때 돌면 빙빙 돈다)
@@ -998,6 +1001,7 @@ function start(CFG){
   function plazaLook(){hideChoices();setCut(true);toast(UI.lookHint||'화면을 누르면 둘러보기를 마쳐요.');shot(shotOrbit(player.pos.clone(),11,6.5),8,()=>{clearShot();setCut(false);plazaChoices();},true);}
   function plazaChoices(){if(!PZ.active||PZ.cut)return;const P=PZC,L=[];let where;
     if(PZ.menu){where=T_(P.menu||'메뉴');
+      if(MP.on)L.push({label:T_(P.mpEdit||'이름·모습 바꾸기'),fn:()=>{PZ.menu=false;mpProfile();}});
       L.push({label:T_(UI.restart||'처음부터 다시'),fn:()=>{PZ.menu=false;restartAll();}});
       L.push({label:T_(P.exit||'월드 나가기'),fn:()=>{PZ.menu=false;hideChoices();showEnd();$('#endExit').onclick();}});
       L.push({label:T_(UI.back||'돌아가기'),minor:true,fn:()=>{PZ.menu=false;plazaChoices();}});}
@@ -1077,19 +1081,33 @@ function start(CFG){
   function mpState(){const a=MP.waveT>0?3:player.speed>2.8?2:player.speed>0.3?1:0,r=v=>Math.round(v*100)/100;return[r(player.pos.x-CITY.C.x),0,r(player.pos.z-CITY.C.z),r(player.facing),a,0];}
   function mpBadge(st){const b=$('#mpBadge');if(!MP.on||!PZ.active){b.hidden=true;return;}const P=PZC;st=st||b.dataset.st||'wait';b.dataset.st=st;b.hidden=false;
     b.textContent=st==='on'?T_(P.mpCount||'광장에 {n}명',{n:MP.peers.size+1}):st==='wait'?T_(P.mpWait||'연결하는 중'):st==='full'?T_(P.mpFullBadge||'광장이 가득 참'):T_(P.mpOff||'연결 끊김 · 다시 연결 중');}
-  function mpBegin(){if(!MP.on)return;myLook();const saved=lsGet(KEY+'mpName',null);if(saved!=null){MP.name=saved;mpConnect();return;}
-    const box=$('#mpName'),inp=$('#mpNameIn');$('#mpNameT').textContent=T_(PZC.mpNameTitle||'광장에서 쓸 이름');inp.placeholder=T_(PZC.mpNameHint||'비워 두면 손님');$('#mpNameGo').textContent=T_(PZC.mpNameGo||'광장에 들어가기');
-    inp.value='';box.hidden=false;setCut(true);hideChoices();
-    const go=()=>{const n=cleanText(inp.value,12);lsSet(KEY+'mpName',n);MP.name=n;box.hidden=true;try{inp.blur();}catch(_){}setCut(false);mpConnect();plazaChoices();};
-    $('#mpNameGo').onclick=go;inp.onkeydown=e=>{if(e.key==='Enter')go();};setTimeout(()=>{try{inp.focus();}catch(_){}},60);}
+  // 생김새 고르기(2026-10-03 휴먼쌤 "캐릭터를 선택하게"): [이름, 색 목록, 글자 목록, look 자리]. 누르는 즉시 내 캐릭터에 입힌다
+  const LOOK_ROWS=[['머리',null,['묶음','단발','짧게'],4],['머리색',HAIR,null,1],['피부',SKIN,null,0],['옷',COAT,null,2],['목도리',SCARF,null,3]];
+  function lookUI(){const lk=myLook().slice(),box=$('#mpLook');box.innerHTML='';
+    LOOK_ROWS.forEach(([label,cols,names,k])=>{const row=document.createElement('div');row.className='row';const s=document.createElement('span');s.textContent=T_(label);row.appendChild(s);
+      (cols||names).forEach((v,j)=>{const b=document.createElement('button');b.type='button';
+        if(cols){b.style.background=v;b.setAttribute('aria-label',T_(label)+' '+(j+1));}else{b.className='t';b.textContent=T_(v);}
+        b.classList.toggle('on',lk[k]===j);
+        b.onclick=()=>{lk[k]=j;lsSet(KEY+'look',lk);me.setLook(lk);row.querySelectorAll('button').forEach((x,i)=>x.classList.toggle('on',i===j));};row.appendChild(b);});
+      box.appendChild(row);});}
+  function mpBegin(){if(!MP.on)return;myLook();const saved=lsGet(KEY+'mpName',null);if(saved!=null){MP.name=saved;mpConnect();return;}mpProfile();}
+  // 이름·생김새 정하는 창(처음 들어올 때, 메뉴 '이름·모습 바꾸기'). 고르는 동안 내 캐릭터가 카메라를 보고 카메라가 다가온다
+  function mpProfile(){const box=$('#mpName'),inp=$('#mpNameIn');$('#mpNameT').textContent=T_(PZC.mpNameTitle||'광장에서 쓸 이름과 모습');inp.placeholder=T_(PZC.mpNameHint||'비워 두면 손님');$('#mpNameGo').textContent=T_(PZC.mpNameGo||'광장에 들어가기');
+    inp.value=MP.name||'';box.hidden=false;setCut(true);hideChoices();lookUI();
+    const keep={face:player.facing,dist:camDistT};player.facing=camYaw;camDistT=camera.aspect<0.8?4.4:3.4;camLift=0.55;document.body.classList.add('mpEdit');
+    const go=()=>{const n=cleanText(inp.value,12);lsSet(KEY+'mpName',n);MP.name=n;box.hidden=true;try{inp.blur();}catch(_){}
+      player.facing=keep.face;camDistT=keep.dist;camLift=0;document.body.classList.remove('mpEdit');setCut(false);
+      if(MP.ws)mpStop();mpConnect();plazaChoices();};   // 이미 접속해 있으면 다시 붙어 새 이름·모습을 알린다
+    $('#mpNameGo').onclick=go;inp.onkeydown=e=>{if(e.key==='Enter')go();};if(!IS_TOUCH)setTimeout(()=>{try{inp.focus();}catch(_){}},60);}   // 폰은 자판이 고르기 칸을 가려서 자동으로 열지 않는다
   function mpConnect(){if(!MP.on||MP.ws||!PZ.active)return;let ws;try{ws=new WebSocket(mpURL());}catch(e){mpBadge('off');return;}MP.ws=ws;MP.full=false;mpBadge('wait');
     ws.onopen=()=>{MP.retry=0;ws.send(JSON.stringify({t:'hello',room:MP.room,name:MP.name,look:myLook(),s:mpState()}));};
     ws.onmessage=e=>{let m;try{m=JSON.parse(e.data);}catch(_){return;}mpMsg(m);};
     ws.onclose=()=>{if(MP.ws!==ws)return;MP.ws=null;MP.id=null;mpClear();if(!PZ.active)return;if(MP.full){mpBadge('full');return;}
       mpBadge('off');MP.retry=Math.min(MP.retry+1,6);setTimeout(()=>{if(PZ.active&&!MP.ws)mpConnect();},1500*MP.retry);};
     ws.onerror=()=>{};}
-  function mpStop(){const ws=MP.ws;MP.ws=null;MP.id=null;if(ws){try{ws.close();}catch(_){}}mpClear();$('#mpBadge').hidden=true;$('#mpName').hidden=true;}
-  function mpMsg(m){if(m.t==='welcome'){MP.id=m.id;(m.peers||[]).forEach(mpAdd);mpBadge('on');plazaChoices();}
+  function mpStop(){const ws=MP.ws;MP.ws=null;MP.id=null;if(ws){try{ws.close();}catch(_){}}mpClear();$('#mpBadge').hidden=true;$('#mpName').hidden=true;me.tag.visible=false;}
+  // 접속되면 내 머리 위에도 이름을 띄운다(남들에게 보이는 이름과 같게, 2026-10-03 휴먼쌤)
+  function mpMsg(m){if(m.t==='welcome'){MP.id=m.id;(m.peers||[]).forEach(mpAdd);mpBadge('on');me.setName(MP.name||T_('손님'));me.tag.visible=true;plazaChoices();}
     else if(m.t==='join')mpAdd(m);else if(m.t==='leave')mpRemove(m.id);
     else if(m.t==='snap'){(m.ps||[]).forEach(a=>{const p=MP.peers.get(a[0]);if(p)mpSet(p,a.slice(1));});}
     else if(m.t==='full'){MP.full=true;toast(T_(PZC.mpFull||'광장이 가득 찼어요. 잠시 뒤에 다시 와 주세요.'));}}

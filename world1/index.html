@@ -179,6 +179,15 @@
   #mpName b{font-size:15px;font-weight:700}
   #mpNameIn{font:inherit;font-size:16px;color:var(--paper-ink);background:#fff;border:0;border-radius:12px;padding:11px 14px;outline:none}
   #mpName .jb{justify-content:center;flex:none}
+  /* 생김새 고르기: 내 캐릭터가 보이게 창을 위로 올린다(2026-10-03) */
+  #mpName{top:calc(52px + env(safe-area-inset-top,0px));transform:translateX(-50%);max-height:calc(100vh - 64px);overflow:auto;gap:10px}
+  #mpLook{display:grid;gap:7px}
+  #mpLook .row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  #mpLook .row>span{width:50px;flex:none;font-size:12px;opacity:.8}
+  #mpLook button{width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,.35);padding:0;cursor:pointer;flex:none}
+  #mpLook button.t{width:auto;border-radius:999px;padding:0 11px;font:inherit;font-size:12px;color:inherit;background:rgba(255,255,255,.12)}
+  #mpLook button.on{border-color:#fff;box-shadow:0 0 0 2px var(--accent)}
+  body.mpEdit #sndBtn{visibility:hidden}
   body.plaza #brand{color:#fff6e6;text-shadow:0 1px 10px rgba(0,0,0,.45)}
   body.plaza #journey{left:auto;right:16px;transform:none;width:min(400px,calc(100vw - 170px));bottom:calc(14px + env(safe-area-inset-bottom,0px))}
   body.plaza.pzcut #joy{display:none}
