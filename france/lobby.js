@@ -1243,12 +1243,22 @@
     };
     ws.onerror = () => {};
   }
+  // 연결을 끊고 다시 붙는다(방을 바꾸거나 이름·모습을 새로 알릴 때). onclose가 2.5초 안에 안 오면(서버가 닫기 응답을 늦게 줄 때) 옛 연결을 버리고 새로 붙는다
+  function mpReconnect(room) {
+    const old = MP.ws;
+    MP.pending = room;
+    try { old.close(); } catch (_) { MP.ws = null; MP.pending = null; MP.room = room; mpConnect(); return; }
+    setTimeout(() => {
+      if (MP.ws !== old || MP.pending !== room) return;
+      MP.ws = null; MP.id = null; mpClear(); MP.pending = null; MP.room = room;
+      mpConnect();
+    }, 2500);
+  }
   function mpSetRoom(room) {
     room = room + (ROOM_SUFFIX ? '-' + ROOM_SUFFIX : '');
     if (room === MP.room && MP.ws) return;
     if (!MP.ws) { MP.room = room; return; }
-    MP.pending = room;
-    try { MP.ws.close(); } catch (_) { MP.ws = null; MP.pending = null; MP.room = room; mpConnect(); }
+    mpReconnect(room);
   }
   function mpMsg(m) {
     if (m.t === 'welcome') { MP.id = m.id; (m.peers || []).forEach(mpAdd); mpBadge('on'); ME.name = String(m.name || MP.name || T.guest).slice(0, 12); if (ME.tag) { ME.tag.removeFromParent(); ME.tag = null; } }
@@ -1322,7 +1332,7 @@
       box.hidden = true; PAUSED = false;
       try { inp.blur(); } catch (_) { /* 없어도 됨 */ }
       if (!MP.on) return;
-      if (MP.ws) { MP.pending = MP.room; try { MP.ws.close(); } catch (_) { /* onclose가 다시 붙인다 */ } }   // 새 이름·모습을 알리려고 다시 붙는다
+      if (MP.ws) mpReconnect(MP.room);   // 새 이름·모습을 알리려고 다시 붙는다
       else mpWakeAndConnect();
     };
     $('nameGo').onclick = go;

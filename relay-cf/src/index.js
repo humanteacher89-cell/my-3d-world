@@ -138,8 +138,9 @@ export class Room {
     for (const o of this.ctx.getWebSockets()) if (o !== ws && att(o).id) safeSend(o, msg);
   }
 
-  webSocketClose(ws) { this.leave(ws); }
-  webSocketError(ws) { this.leave(ws); }
+  // 브라우저가 먼저 닫으면 서버도 close를 불러 줘야 닫기 절차가 끝난다(안 그러면 브라우저의 onclose가 한참 뒤에야 온다)
+  webSocketClose(ws, code, reason) { this.leave(ws); try { ws.close(code === 1005 || code === 1006 ? 1000 : code, String(reason || '').slice(0, 100)); } catch { /* 이미 닫힘 */ } }
+  webSocketError(ws) { this.leave(ws); try { ws.close(1011, 'error'); } catch { /* 이미 닫힘 */ } }
 
   // 바뀐 상태만 모아 방 전체에 보낸다. 10초 안에 인사(hello)가 없는 소켓은 끊는다. 아무도 없으면 타이머를 멈춰 객체가 잠들 수 있게 한다
   tick() {
