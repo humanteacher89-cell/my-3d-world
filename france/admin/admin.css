@@ -1,0 +1,82 @@
+/* 프랑스 한글학교 로비 관리자 페이지 (2026-10-06, XR개발부) — 로비와 같은 색·글꼴, 폰 먼저 */
+:root{
+  --ink:#1E2B4A; --ink-2:#4A5874; --paper:#FFFFFF; --soft:#F1F5FB; --line:#DCE3EE;
+  --blue:#2A4D9B; --red:#E0483E; --green:#2F8F5B; --sky:#CDEBF6; --cream:#FFF9EC;
+  --font-display:'Jua','Noto Sans KR',system-ui,sans-serif;
+  --font-body:'Noto Sans KR',system-ui,-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --shadow:0 4px 16px rgba(30,43,74,.10);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#EAF4FA;color:var(--ink);font-family:var(--font-body);-webkit-text-size-adjust:100%}
+body{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 90px)}
+[hidden]{display:none !important}
+a{color:var(--blue)}
+h1{font-family:var(--font-display);font-weight:400;font-size:26px;margin:0 0 14px}
+h2{font-family:var(--font-display);font-weight:400;font-size:20px;margin:0 0 12px}
+.top{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  padding:10px 16px;background:rgba(255,255,255,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:baseline;gap:8px;font-family:var(--font-display);font-size:18px}
+.brand b{font-weight:400}
+.brand span{font-size:14px;color:var(--paper);background:var(--blue);border-radius:999px;padding:2px 10px}
+.who{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2);flex-wrap:wrap}
+.who #whoName{font-weight:700;color:var(--ink);margin-right:2px}
+.wrap{max-width:760px;margin:0 auto;padding:16px}
+.panel{padding:4px 0}
+.panel.narrow{max-width:420px;margin:24px auto}
+.center{text-align:center}
+.muted{color:var(--ink-2)}
+.small{font-size:13px}
+.card{background:var(--paper);border-radius:18px;padding:18px 16px;margin:0 0 14px;box-shadow:var(--shadow)}
+.card.soft{background:var(--soft);box-shadow:none}
+label{display:block;font-size:14px;font-weight:700;margin:0 0 12px}
+label .sub{font-weight:400;color:var(--ink-2);font-size:12.5px;margin-left:6px}
+input:not([type=radio]):not([type=checkbox]):not([type=file]),select,textarea{
+  display:block;width:100%;margin-top:6px;font:16px/1.45 var(--font-body);color:var(--ink);background:#FAFCFF;
+  border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;outline:none}
+textarea{resize:vertical;min-height:90px}
+input:focus,select:focus,textarea:focus{border-color:var(--blue);background:#fff}
+.hint{font-size:12.5px;line-height:1.55;color:var(--ink-2);margin:6px 0 0}
+.hint.center{text-align:center;margin:4px 0 18px}
+.err{color:var(--red);font-size:14px;font-weight:700;margin:10px 0 0}
+.btn{appearance:none;border:0;border-radius:999px;padding:12px 20px;font:700 15px/1.1 var(--font-body);cursor:pointer;background:var(--soft);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn.primary{background:var(--blue);color:#fff}
+.btn.wide{width:100%;margin-top:4px}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.file{margin:0}
+.ghost{appearance:none;border:1.5px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:7px 12px;font:700 13px/1 var(--font-body);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center}
+.ghost.danger{color:var(--red);border-color:#F3C3BF}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}
+.bar{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin-bottom:6px}
+.bar .pick{flex:1;min-width:0;margin:0}
+select{max-width:100%;text-overflow:ellipsis}
+.bar .link{margin-bottom:6px}
+.bar h1{margin:0}
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:10px;margin:4px 0 6px}
+.ph{background:var(--soft);border-radius:14px;padding:8px;display:flex;flex-direction:column;gap:6px}
+.ph img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;background:#dfe7f1}
+.ph input{margin-top:0 !important;font-size:14px !important;padding:7px 9px !important}
+.ph .ops{display:flex;gap:4px;justify-content:space-between}
+.ph .ops button{flex:1;padding:6px 0;justify-content:center}
+.empty{font-size:13px;color:var(--ink-2);background:var(--soft);border-radius:12px;padding:14px;text-align:center;grid-column:1/-1}
+.tvcheck{display:flex;align-items:center;gap:10px;margin-top:-2px;font-size:13px}
+.tvcheck img{width:96px;aspect-ratio:16/9;object-fit:cover;border-radius:8px;background:#000}
+.tvcheck.bad{color:var(--red);font-weight:700}
+.links{display:flex;flex-direction:column;gap:10px;margin-bottom:10px}
+.lk{display:grid;grid-template-columns:1fr 1.6fr auto;gap:8px;align-items:center}
+.lk input{margin-top:0 !important}
+@media (max-width:520px){.lk{grid-template-columns:1fr auto}.lk .u{grid-column:1/2}.lk .x{grid-row:1/3;grid-column:2}}
+.radios label,.checks label{font-weight:500;display:flex;align-items:center;gap:8px;margin:0 0 8px}
+.checks{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:2px 10px;background:var(--soft);border-radius:12px;padding:12px;margin:4px 0 6px}
+.userlist{display:flex;flex-direction:column;gap:8px;margin:10px 0 14px}
+.urow{background:#fff;border-radius:14px;padding:12px 14px;box-shadow:var(--shadow);display:flex;align-items:center;gap:10px}
+.urow .t{flex:1;min-width:0}
+.urow b{font-size:15px}
+.urow .r{font-size:12px;color:var(--ink-2);margin-top:2px;overflow-wrap:anywhere}
+.tag{display:inline-block;font-size:11px;font-weight:700;border-radius:999px;padding:2px 8px;margin-left:6px;background:var(--soft);color:var(--blue)}
+.tag.admin{background:var(--blue);color:#fff}
+.savebar{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:12px 16px calc(env(safe-area-inset-bottom,0px) + 12px);background:rgba(255,255,255,.96);border-top:1px solid var(--line);box-shadow:0 -6px 18px rgba(30,43,74,.08)}
+.savebar.dirty #saveState{color:var(--red);font-weight:700}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);transform:translateX(-50%);z-index:9;max-width:calc(100vw - 32px);
+  background:var(--ink);color:#fff;border-radius:14px;padding:11px 16px;font-size:14px;box-shadow:0 10px 24px rgba(0,0,0,.2)}
+.toast.bad{background:var(--red)}

@@ -122,6 +122,20 @@ window.LOBBY_ROOM = function (core) {
       g.fillStyle = '#1E2B4A'; g.font = `44px ${FONT_D}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(T.albumSign, w / 2, h - 60);
     });
   }
+  // 문 앞 발판(파란 깔개에 '로비로' + 문 쪽을 가리키는 화살표). 카메라가 남쪽에서 보므로 글 위쪽이 북쪽
+  function doorMatTex() {
+    return canvasTex(512, 224, (g, w, h) => {
+      const rr = (x, y, ww, hh, r) => { g.beginPath(); if (g.roundRect) g.roundRect(x, y, ww, hh, r); else g.rect(x, y, ww, hh); };
+      g.fillStyle = 'rgba(42,77,155,0.93)'; rr(8, 8, w - 16, h - 16, 44); g.fill();
+      g.strokeStyle = 'rgba(255,255,255,0.85)'; g.lineWidth = 8; rr(28, 28, w - 56, h - 56, 30); g.stroke();
+      const label = T.exitSign || '로비로';
+      g.fillStyle = '#FFFFFF'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      fitFont(g, label, 'normal', 86, FONT_D, w - 230); g.fillText(label, w / 2 - 34, h / 2 + 4);
+      g.lineWidth = 16; g.lineCap = 'round'; g.lineJoin = 'round';
+      g.beginPath(); g.moveTo(w - 112, h / 2 - 44); g.lineTo(w - 112, h / 2 + 34); g.stroke();
+      g.beginPath(); g.moveTo(w - 146, h / 2 + 6); g.lineTo(w - 112, h / 2 + 42); g.lineTo(w - 78, h / 2 + 6); g.stroke();
+    });
+  }
   function bookTex(title) {
     return canvasTex(512, 320, (g, w, h) => {
       g.fillStyle = '#FFF9EC'; g.fillRect(0, 0, w, h);
@@ -149,6 +163,10 @@ window.LOBBY_ROOM = function (core) {
     floor.position.set(0, Y, 0);
     scene.add(floor);
     box(W + 1.2, 0.5, D + 1.2, '#C8B08C', 0, Y - 0.27, 0, scene);
+    // 문 밖 복도(문 쪽으로 카메라가 내려가도 빈 하늘이 안 보이게)
+    const hall = new THREE.Mesh(new THREE.PlaneGeometry(W + 7, 8).rotateX(-Math.PI / 2), lam('#E6D7BC'));
+    hall.position.set(0, Y - 0.05, HALF_D + 0.6 + 4);
+    scene.add(hall);
     const rug = new THREE.Mesh(new THREE.PlaneGeometry(6.4, 3.2).rotateX(-Math.PI / 2), new THREE.MeshLambertMaterial({ map: rugTex(th.rug || '#9FC7A3') }));
     rug.position.set(0, Y + 0.012, -3.2);
     rug.renderOrder = 1;
@@ -258,17 +276,24 @@ window.LOBBY_ROOM = function (core) {
       g.lineWidth = 8; g.strokeStyle = '#E0483E'; g.setLineDash([22, 16]); g.beginPath(); g.arc(c, c, 78, 0, Math.PI * 2); g.stroke();
     });
     const padMat = new THREE.MeshBasicMaterial({ map: padTex, transparent: true, depthWrite: false });
+    // 문 앞 발판: 밟으면 '로비로 나가기' 카드(휴먼쌤 10-06 "문 앞에 로비로 나가는 버튼"). 들어올 때 서는 자리(spawn)와 겹치지 않게 문 쪽에 둔다
+    const DOORZ = HALF_D - 0.8;
+    const doorMat = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 1.14).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ map: doorMatTex(), transparent: true, depthWrite: false }));
+    doorMat.position.set(0, Y + 0.03, DOORZ); doorMat.renderOrder = 2; scene.add(doorMat);
     const spots = [
       { id: 'principal', name: pr.name || T.principal, sub: cfg.boardLine || '', btn: T.talk, x: 0, z: -2.35, r: 1.35, go: () => talk(), ch: npc },
       { id: 'book', name: (items.book || {}).title || T.bookSign, sub: T.bookSign, btn: T.open, x: -6.1, z: -3.0, r: 1.25, go: () => openBook(items.book || {}) },
       { id: 'album', name: (items.album || {}).title || T.albumSign, sub: T.albumSign, btn: T.photos, x: 6.1, z: -3.0, r: 1.25, go: () => openAlbum(items.album || {}) },
-      { id: 'tv', name: (items.tv || {}).title || T.tvSign, sub: T.tvSign, btn: T.watch, x: 6.5, z: TVZ, r: 1.25, go: () => openTV(items.tv || {}) }
+      { id: 'tv', name: (items.tv || {}).title || T.tvSign, sub: T.tvSign, btn: T.watch, x: 6.5, z: TVZ, r: 1.25, go: () => openTV(items.tv || {}) },
+      { id: 'door', name: T.exitName || '로비로 나가기', sub: T.exitSub || '', btn: T.exitBtn || '나가기', x: 0, z: DOORZ, r: 1.0, pad: doorMat, go: () => { closePop(); core.exit(); } }
     ];
     for (const sp of spots) {
-      const pad = new THREE.Mesh(new THREE.CircleGeometry(0.9, 32).rotateX(-Math.PI / 2), padMat);
-      pad.position.set(sp.x, Y + 0.03, sp.z); pad.renderOrder = 2; scene.add(pad);
-      sp.pad = pad;
-      if (sp.id !== 'principal') {
+      if (!sp.pad) {
+        const pad = new THREE.Mesh(new THREE.CircleGeometry(0.9, 32).rotateX(-Math.PI / 2), padMat);
+        pad.position.set(sp.x, Y + 0.03, sp.z); pad.renderOrder = 2; scene.add(pad);
+        sp.pad = pad;
+      }
+      if (sp.id !== 'principal' && sp.id !== 'door') {
         const sg = signSprite(sp.sub, '', { scene, w: 2.6 });
         sg.userData.anchor = [sp.x + (sp.x < 0 ? -1.2 : 1.2), Y + 1.9, sp.z - 0.9];
         signs.push(sg);
@@ -281,12 +306,13 @@ window.LOBBY_ROOM = function (core) {
       id: 'room:' + school.id, scene, coll, signs, hit, speedK: 0.72, pitch: 0.95,
       walk: (x, z) => x > -HALF_W + 0.35 && x < HALF_W - 0.35 && z > -HALF_D + 0.35 && z < HALF_D - 0.3,
       camD: () => clamp(16.5 / (2 * Math.tan(core.vfovRad() / 2) * core.aspect()), 19, 32) * core.zoom(),
-      // 화면 반폭 hw·반깊이 hd(칸)보다 교실이 크면 나를 따라가되 벽 밖은 보지 않게, 작으면 교실 가운데를 본다
+      // 화면 반폭 hw·반깊이 hd(칸)보다 교실이 크면 나를 따라가되 벽 밖은 보지 않게, 작으면 교실 가운데를 본다.
+      // 문 쪽(남쪽)으로 가면 문 앞 발판이 아래 카드에 가리지 않게 카메라도 따라 내려간다
       camClamp: (me, hw, hd) => [
         hw * 2 >= W + 1.5 ? 0 : clamp(me.x, -HALF_W + hw - 0.6, HALF_W - hw + 0.6),
-        hd * 2 >= D + 2.5 ? -0.4 : clamp(me.z, -HALF_D + hd - 1.4, HALF_D - hd + 1.0)
+        hd * 2 >= D + 2.5 ? -0.4 + Math.max(0, me.z - 3.0) * 0.9 : clamp(me.z, -HALF_D + hd - 1.4, HALF_D - hd + 1.7)
       ],
-      spawn: { x: 0, z: 5.3, yaw: Math.PI }
+      spawn: { x: 0, z: 4.15, yaw: Math.PI }
     };
     R.built = { school, cfg, world, npc, spots };
     return R.built;
@@ -294,13 +320,24 @@ window.LOBBY_ROOM = function (core) {
 
   // ── 들어가기·나가기·매 화면 ──
   function enter(school, cfg) {
-    if (!R.built || R.built.school.id !== school.id) R.built = build(school, cfg);
-    R.school = school; R.cfg = cfg; R.world = R.built.world; R.spots = R.built.spots; R.cur = null;
+    if (R.built && R.built.school.id !== school.id) invalidate();
+    if (!R.built) R.built = build(school, cfg);
+    R.school = school; R.cfg = cfg; R.world = R.built.world; R.spots = R.built.spots; R.cur = null; R.inside = true;
     return R.world;
   }
   function leave() {
     closePop();
-    R.cur = null;
+    R.cur = null; R.inside = false;
+  }
+  // 지어 둔 교실 버리기(관리자 페이지 글이 늦게 왔거나 다른 학교로 갈 때). 들어가 있는 동안은 그대로 둔다
+  function invalidate() {
+    if (!R.built || R.inside) return;
+    removeChar(R.built.npc);
+    R.built.world.scene.traverse(o => {
+      if (o.geometry) o.geometry.dispose();
+      if (o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => { if (m.map) m.map.dispose(); m.dispose(); });
+    });
+    R.built = null;
   }
   function update(dt, me) {
     if (!R.world) return;
@@ -347,6 +384,25 @@ window.LOBBY_ROOM = function (core) {
     body.textContent = '';
     String(b.text || '').split(/\n\s*\n/).forEach(par => { const p = document.createElement('p'); p.textContent = par; body.appendChild(p); });
     $('bookTag').hidden = !b.sample;
+    // 더 알아보기: 학교 홈페이지 + 관리자 페이지에서 넣은 링크
+    const box = $('bookLinks');
+    if (box) {
+      box.textContent = '';
+      const links = [];
+      if (R.school && /^https?:\/\//.test(R.school.web || '')) links.push({ label: T.homepage || '홈페이지', url: R.school.web });
+      for (const l of (R.cfg && R.cfg.links) || []) if (l && /^https?:\/\//.test(l.url)) links.push(l);
+      if (links.length) {
+        const h = document.createElement('div'); h.className = 'lh'; h.textContent = T.moreLinks || '더 알아보기';
+        box.appendChild(h);
+        for (const l of links) {
+          const a = document.createElement('a');
+          a.href = l.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+          a.textContent = l.label || l.url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '').slice(0, 30);
+          box.appendChild(a);
+        }
+      }
+      box.hidden = !links.length;
+    }
     openPop('book');
   }
   function openAlbum(a) {
@@ -354,7 +410,7 @@ window.LOBBY_ROOM = function (core) {
     const grid = $('albumGrid');
     grid.textContent = '';
     const photos = a.photos || [], caps = a.captions || [];
-    const n = Math.max(4, photos.length);
+    const n = photos.length || 4;   // 사진이 있으면 사진만, 없으면 빈 액자 넷
     for (let i = 0; i < n; i++) {
       const fr = document.createElement('figure');
       fr.className = 'photo';
@@ -473,5 +529,5 @@ window.LOBBY_ROOM = function (core) {
   $('talkClose').addEventListener('click', closePop);
   addEventListener('keydown', e => { if (e.key === 'Escape' && R.open) closePop(); });
 
-  return { enter, leave, update, closePop, isOpen: () => R.open, state: R };
+  return { enter, leave, update, closePop, invalidate, isOpen: () => R.open, state: R };
 };

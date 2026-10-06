@@ -897,13 +897,15 @@
     $('cardName').textContent = o.name;
     $('cardSub').textContent = o.sub || '';
     $('cardPend').hidden = !o.pending;
+    const web = $('cardWeb');
+    if (web) { web.hidden = !o.web; if (o.web) web.href = o.web; }
     $('btnEnter').textContent = o.btn || T.enter;
     $('card').hidden = false;
     $('hint').style.opacity = 0;
   }
   function hideCard() { $('card').hidden = true; CUR_SCHOOL = null; CUR_TARGET = null; }
   function schoolCard(s) {
-    showCard({ name: s.name, sub: [s.city, s.regionName].filter(Boolean).join(' · '), pending: s.pending, btn: T.enter, go: () => openEnter(s) });
+    showCard({ name: s.name, sub: [s.city, s.regionName].filter(Boolean).join(' · '), pending: s.pending, web: s.web, btn: T.enter, go: () => openEnter(s) });
   }
   function openEnter(s) {
     if (C.rooms && C.rooms[s.id]) { enterRoom(s); return; }
@@ -918,7 +920,8 @@
   const ROOM = window.LOBBY_ROOM ? window.LOBBY_ROOM({
     THREE, LAND_Y, FONT_D, FONT_B, $, fill, clamp, canvasTex, colored, merge, pill, fitFont, signSprite, addChar, removeChar,
     showCard, hideCard, showToast, T, IS_TOUCH, setPaused: v => { PAUSED = !!v; if (v) { ME.target = null; ME.moving = false; } },
-    vfovRad: () => THREE.MathUtils.degToRad(VFOV), aspect: () => camera.aspect, zoom: () => CAM.zoom
+    vfovRad: () => THREE.MathUtils.degToRad(VFOV), aspect: () => camera.aspect, zoom: () => CAM.zoom,
+    exit: () => leaveRoom()
   }) : null;
   let CUR_ROOM = null;
   function switchWorld(w) {
@@ -1023,6 +1026,7 @@
     $('albumNote').textContent = T.photoSoon;
     $('tvNote').textContent = T.videoSoon;
     $('bookTag').textContent = T.sampleTag;
+    if ($('cardWeb')) $('cardWeb').textContent = T.homepage || '홈페이지';
     $('btnMap').addEventListener('click', () => setMode(CAM.mode === 'over' ? 'follow' : 'over'));
     $('btnList').addEventListener('click', () => { $('list').hidden = !$('list').hidden; });
     $('btnListClose').addEventListener('click', () => { $('list').hidden = true; });
@@ -1099,8 +1103,9 @@
     $('region').textContent = LAST_REGION ? `${T.plaza} · ${LAST_REGION.info.ko}` : T.plaza;
     renderer.setAnimationLoop(frame);
     mpInit();
+    loadContent();
     // 시험용 손잡이(브라우저 콘솔에서 위치·카메라를 바로 바꿔 본다)
-    window.LOBBY = { ME, CHARS, CAM, SCHOOLS, REG, MOUNT, MP, teleport, setZoom, setMode, regionAt, toXZ, walkTo, openEnter, enterRoom, leaveRoom, renderer, camera,
+    window.LOBBY = { ME, CHARS, CAM, SCHOOLS, REG, MOUNT, MP, CONTENT, teleport, setZoom, setMode, regionAt, toXZ, walkTo, openEnter, enterRoom, leaveRoom, renderer, camera,
       world: () => WORLD, room: ROOM, snap: () => updateCam(0, true) };
   }
   let LAST_REGION = null, last = performance.now(), fpsN = 0, fpsT = 0, firstFrame = true;
@@ -1338,6 +1343,62 @@
     $('nameGo').onclick = go;
     inp.onkeydown = e => { if (e.key === 'Enter') go(); };
     if (!IS_TOUCH) setTimeout(() => { try { inp.focus(); } catch (_) { /* 없어도 됨 */ } }, 60);
+  }
+
+  /* ─────────────────────────────────────────────────────────────
+     CONTENT — 관리자 페이지(admin/)에서 고친 학교 홈페이지·교실 글·사진첩·TV 영상·링크(2026-10-06).
+     relay.json의 api(Cloudflare 저장소)에서 /api/content를 한 번 읽어 lobby.config.js 값 위에 덮는다. 빈 값은 기본 글 그대로.
+     서버가 없거나 늦으면(6초) 기본 글로 본다. 시험: ?api=http://127.0.0.1:8791
+     ───────────────────────────────────────────────────────────── */
+  const CONTENT = { api: '', loaded: false, v: 0 };
+  function loadContent() {
+    const go = api => {
+      api = String(api || '').replace(/\/+$/, '');
+      if (!/^https?:\/\//.test(api)) return;
+      CONTENT.api = api;
+      const ctl = typeof AbortController === 'function' ? new AbortController() : null;
+      const tm = setTimeout(() => { if (ctl) ctl.abort(); }, 6000);
+      fetch(api + '/api/content?map=fr', { cache: 'no-store', signal: ctl ? ctl.signal : undefined })
+        .then(r => (r.ok ? r.json() : null)).then(j => { clearTimeout(tm); if (j) applyContent(j); }).catch(() => clearTimeout(tm));
+    };
+    const q = Q.get('api');
+    if (q) { go(q); return; }
+    if (!MPC.file) return;
+    fetch(MPC.file + '?t=' + Date.now(), { cache: 'no-store' }).then(r => (r.ok ? r.json() : null))
+      .then(j => { if (j) go(j.api || (typeof j.health === 'string' ? j.health.replace(/\/health\/?$/, '') : '')); }).catch(() => {});
+  }
+  function applyContent(j) {
+    const has = v => typeof v === 'string' && v.trim() !== '';
+    const S = j.schools || {}, RM = j.rooms || {};
+    for (const s of SCHOOLS) { const d = S[s.id]; if (d && has(d.web) && /^https?:\/\//.test(d.web)) s.web = d.web; }
+    for (const id of Object.keys(RM)) {
+      const cfg = C.rooms && C.rooms[id], d = RM[id];
+      if (!cfg || !d) continue;
+      if (has(d.boardTitle)) cfg.boardTitle = d.boardTitle;
+      if (has(d.boardLine)) cfg.boardLine = d.boardLine;
+      if (has(d.welcome)) cfg.welcome = d.welcome;
+      const pr = cfg.principal = cfg.principal || {}, dp = d.principal || {};
+      if (has(dp.name)) pr.name = dp.name;
+      if (Array.isArray(dp.lines) && dp.lines.length) pr.lines = dp.lines.slice(0, 8);
+      const it = cfg.items = cfg.items || {};
+      const bk = it.book = it.book || {}, db = d.book || {};
+      if (has(db.title)) bk.title = db.title;
+      if (has(db.sub)) bk.sub = db.sub;
+      if (has(db.text)) { bk.text = db.text; bk.sample = false; }
+      const al = it.album = it.album || {}, da = d.album || {};
+      if (has(da.title)) al.title = da.title;
+      if (Array.isArray(da.photos) && da.photos.length) {
+        al.photos = da.photos.map(p => CONTENT.api + '/api/img/' + encodeURIComponent(p.id));
+        al.captions = da.photos.map(p => String(p.cap || ''));
+      }
+      const tv = it.tv = it.tv || {}, dt = d.tv || {};
+      if (has(dt.title)) tv.title = dt.title;
+      if (has(dt.video) && /^https:\/\/www\.youtube\.com\/embed\//.test(dt.video)) { tv.video = dt.video; tv.sample = false; }
+      if (Array.isArray(d.links)) cfg.links = d.links.filter(l => l && /^https?:\/\//.test(l.url)).slice(0, 8);
+    }
+    CONTENT.loaded = true; CONTENT.v = j.v || 0;
+    if (ROOM && ROOM.invalidate) ROOM.invalidate();   // 이미 지어 둔 교실은 다음에 들어갈 때 새 글로 다시 짓는다
+    if (CUR_SCHOOL && !$('card').hidden) schoolCard(CUR_SCHOOL);
   }
 
   $('loading').textContent = T.loading;

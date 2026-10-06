@@ -1,12 +1,24 @@
 {
-  // Cloudflare Workers 설정 — 프랑스 한글학교 로비 중계 서버. 무료 플랜에서 돌아간다(SQLite 기반 Durable Object).
+  // Cloudflare Workers 설정 — 프랑스 한글학교 로비 중계 서버 + 관리자 페이지용 내용 저장소. 무료 플랜에서 돌아간다(SQLite 기반 Durable Object).
   "name": "hangul-lobby-relay",
   "main": "src/index.js",
   "compatibility_date": "2026-01-01",
   "durable_objects": {
-    "bindings": [{ "name": "ROOMS", "class_name": "Room" }]
+    "bindings": [
+      { "name": "ROOMS", "class_name": "Room" },
+      { "name": "CONTENT", "class_name": "Content" }
+    ]
   },
-  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Room"] }],
-  "vars": { "MP_ORIGINS": "" },
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["Room"] },
+    { "tag": "v2", "new_sqlite_classes": ["Content"] }
+  ],
+  "vars": {
+    "MP_ORIGINS": "",
+    // 관리자 1회용 설정 코드의 SHA-256(코드 자체는 저장소에 없다). 새 값으로 바꿔 배포하면 관리자 비밀번호를 다시 정할 수 있다
+    "ADMIN_SETUP_HASH": "975e926d6d530930154f1f93871b55687ea7aa9430214c273b680ef969a0b64e",
+    // 관리 요청을 더 받을 주소(쉼표로). GitHub Pages와 이 PC 시험 주소는 코드에 들어 있다
+    "ADMIN_ORIGINS": ""
+  },
   "observability": { "enabled": true }
 }

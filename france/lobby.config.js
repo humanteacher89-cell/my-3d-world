@@ -24,6 +24,12 @@ window.LOBBY_CONFIG = {
     enterBody: '이 학교의 공간은 준비 중이에요. 먼저 클레르몽페랑 한글학교에 들어가 보세요.',   // [확인 전]
     back: '로비로 돌아가기',
     toLobby: '로비로',
+    exitSign: '로비로',                            // 교실 문 위 이름판·문 앞 발판 글
+    exitName: '로비로 나가기',
+    exitSub: '프랑스 지도 로비로 돌아가요',
+    exitBtn: '나가기',
+    homepage: '홈페이지',                           // 학교 카드·교실 책의 링크(주소는 schools[].web, 관리자 페이지에서 바꿀 수 있다)
+    moreLinks: '더 알아보기',
     overHint: '가고 싶은 곳이나 학교를 누르면 바로 가요',
     me: '나',
     bot: '참가자 {n}',

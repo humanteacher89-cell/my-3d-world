@@ -2,7 +2,10 @@
 // 하는 일: 방(로비 'fr:lobby', 교실 'fr:<학교 id>')마다 Durable Object 하나가 같은 방 사람들의 위치·방향·동작을 초당 10번 묶어 중계한다. 저장하는 것은 없다.
 // 주소: /health (상태), /ws?room=<방 이름> (WebSocket). 메시지 형식은 relay/server.js(Node 판)와 같다.
 // 무료 플랜 한도: 하루 요청 100,000개(받는 WebSocket 메시지 20개 = 요청 1개). 보내는 메시지는 세지 않는다. 00:00 UTC(한국 09:00) 초기화.
+// 2026-10-06: /api/* = 관리자 페이지용 내용 저장소(src/content.js, Durable Object 'Content' 하나에 학교 링크·교실 글·사진·계정).
 'use strict';
+import { handleApi, Content } from './content.js';
+export { Content };
 
 const MAX_PER_ROOM = 50;
 const TICK_MS = 100;
@@ -47,6 +50,7 @@ export default {
       const stub = env.ROOMS.get(env.ROOMS.idFromName(room));
       return stub.fetch(req);
     }
+    if (url.pathname.startsWith('/api/')) return handleApi(req, env);
     return new Response('not found', { status: 404, headers: { 'Access-Control-Allow-Origin': '*' } });
   }
 };

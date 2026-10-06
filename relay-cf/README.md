@@ -14,5 +14,13 @@
 
 같은 저장소의 `relay-cf` 폴더가 바뀌면 자동으로 다시 올라갑니다(Workers Builds).
 
+## 관리자 페이지 저장소 (`/api/*`, 2026-10-06)
+관리자 페이지(`/france/admin/`)에서 고친 학교 홈페이지 주소·교실 글·사진첩 사진·TV 유튜브 주소·링크와 관리자 계정을 Durable Object 하나(`Content`, SQLite)에 둡니다(`src/content.js`).
+- 공개: `GET /api/content?map=fr` (로비가 열릴 때 읽음), `GET /api/img/<id>` (사진)
+- 관리: `/api/admin/*` — 로그인 뒤 받은 토큰(Bearer)으로만. GitHub Pages와 이 PC 시험 주소(localhost)에서만 받습니다.
+- 비밀번호는 브라우저가 PBKDF2로 바꾼 값만 오고, 서버는 계정마다 소금을 붙여 SHA-256으로 다시 바꿔 저장합니다. 5번 틀리면 15분 잠깁니다.
+- 첫 관리자: `wrangler.jsonc`의 `ADMIN_SETUP_HASH`는 1회용 설정 코드의 SHA-256입니다(코드 자체는 저장소에 없음). 코드를 새로 만들어 이 값을 바꿔 올리면 관리자 비밀번호를 다시 정할 수 있습니다.
+- 무료 한도: Durable Object 하나에 1GB(사진은 800MB까지로 막음), 사진 한 장 1.8MB(관리자 페이지가 1600px JPEG로 줄여 올림), 한 학교 60장.
+
 ## 다른 호스팅을 쓰고 싶을 때
 Node 판 `relay/server.js`(ws 패키지)는 Railway(월 5달러)·Fly.io(파리, 월 2.5~4달러, 카드 필요)에 그대로 올릴 수 있습니다. 비교는 `XR자료제작팀장\out\프랑스로비\자료\온라인서버-호스팅-비교-20261006.md`.
