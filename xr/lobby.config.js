@@ -91,7 +91,7 @@ window.LOBBY_CONFIG = {
     { id: 'future', kind: 'tower', name: '미래 전망대', nameFr: '내려다보는 다음 교실', city: 'AI × XR · 디지털 트윈', lon: 27, lat: -11 },
     { id: 'safety', kind: 'lighthouse', name: '안전·윤리 등대', nameFr: '불을 켜는 등대', city: '사용 시간 · 예절 · 개인정보', lon: 30, lat: 10 }
   ],
-  // 관 안 공간. kind: 'concept' = room.js buildConcept(네 칸 교실). 글은 모두 [확인 전](가안, 연구부 검증 전)
+  // 관 안 공간. kind: 'concept' = room.js buildConcept(네 칸 교실), 'cases' = buildCases(교과를 고르면 바뀌는 교실). 글은 모두 [확인 전](가안, 연구부 검증 전)
   rooms: {
     concept: {
       kind: 'concept',
@@ -142,6 +142,49 @@ window.LOBBY_CONFIG = {
         ]
       },
       stampId: 'concept'
+    },
+    // 수업 사례관: room.js buildCases(교과를 고르면 바뀌는 교실). 시안 design/mockup-hall-cases.html. 글은 모두 [확인 전], 사례 내용은 휴먼쌤이 줄 것(지금은 들어갈 틀만)
+    // 사진첩 사진에는 아이 얼굴을 넣지 않는다. 교과마다 book·tv·album을 따로 적으면 caseTemplate 대신 그것을 보여 준다(tv.video = 유튜브 embed 주소, album.photos = 사진 주소)
+    cases: {
+      kind: 'cases',
+      welcome: '수업 사례관이에요. 칠판에서 교과를 고르면 교실이 바뀌어요',   // [확인 전]
+      principal: {
+        name: '리니',
+        lines: [                                                        // [확인 전]
+          '안녕하세요! 수업 사례관 안내를 맡은 리니예요.',
+          '① 칠판 앞 발판에서 교과를 골라 보세요.',
+          '② 가운데 교실 꾸밈이 그 교과로 바뀌어요.',
+          '③ 오른쪽에서 지도안·수업 영상·학생 결과물을 보면 연수 수첩에 도장을 찍어요.'
+        ]
+      },
+      guideSub: '교과부터 골라 보세요',
+      board: { title: '교과를 골라 보세요', tag: '예시' },
+      stage: { title: '② 바뀌는 교실', sub: '고른 교과에 맞게 꾸밈이 바뀌어요' },
+      slot: { title: '사례 들어갈 자리', sub: '휴먼쌤이 주는 사례로 채워요' },
+      steps: {
+        pick: '교과 고르기', pickSub: '칠판 버튼으로 교과를 골라요', pickPad: '교과', pickBtn: '고르기',
+        stage: '바뀐 교실', stageSub: '다른 교과도 골라 보세요', stagePad: '바뀐 교실', stageBtn: '다른 교과',
+        view: '세 가지로 보기', viewSub: '책 · TV · 사진첩으로 사례를 봐요',
+        bookSub: '지도안', tvSub: '수업 영상', albumSub: '학생 결과물',
+        ask: '어떤 교과의 수업 사례를 볼까요?'
+      },
+      // 교과 6개. kind = 무대 꾸밈 모양(korean·math·science·social·english·arts). line = 고를 때 리니 한 줄 [확인 전]
+      subjects: [
+        { id: 'korean', name: '국어', kind: 'korean', color: '#F2B544', line: '국어를 골랐어요. 책장과 떠 있는 글자가 나와요.' },
+        { id: 'math', name: '수학', kind: 'math', color: '#6FA8FF', line: '수학을 골랐어요. 입체도형이 돌아가요.' },
+        { id: 'science', name: '과학', kind: 'science', color: '#7DFFD1', line: '과학을 골랐어요. 실험대와 홀로그램 행성이 나와요.' },
+        { id: 'social', name: '사회', kind: 'social', color: '#FF9F6B', line: '사회를 골랐어요. 지구본과 큰 지도가 나와요.' },
+        { id: 'english', name: '영어', kind: 'english', color: '#FF6FD8', line: '영어를 골랐어요. 알파벳 블록과 말풍선이 나와요.' },
+        { id: 'arts', name: '예체능', kind: 'arts', color: '#C4B5FD', line: '예체능을 골랐어요. 이젤과 피아노가 나와요.' }
+      ],
+      // 교과별 사례가 아직 없을 때 보여 줄 틀. {name} = 교과 이름
+      caseTemplate: {
+        book: { title: '{name} 지도안', sub: '예시 · 사례가 들어갈 자리', sample: true,
+          text: '휴먼쌤이 줄 {name} 가상융합교육 수업 사례가 여기에 들어가요.\n\n들어갈 내용: 학년과 단원 / 수업 목표 / 쓴 도구(VR·AR·MR 중 무엇, 어떤 앱) / 수업 흐름(도입 · 활동 · 정리) / 학생 반응과 다음에 고칠 점' },
+        tv: { title: '{name} 수업 영상 (예시)' },
+        album: { title: '{name} 학생 결과물 (예시)', captions: ['결과물 1', '결과물 2', '결과물 3', '결과물 4'] }
+      },
+      stampId: 'cases'
     }
   }
 };
