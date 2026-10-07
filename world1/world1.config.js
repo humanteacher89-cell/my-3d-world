@@ -199,8 +199,8 @@ window.WORLD_CONFIG = {
         signTitle: '프랑스 한글학교', signSub: 'Bienvenue · 어서 오세요',
         welcomeLines: ['도착했어요. 여기는 프랑스 한글학교 섬이에요.', '이 문을 지나면 프랑스 곳곳의 한글학교를 만날 수 있어요.'],
         leave: '프랑스 한글학교 로비로 이동합니다', leaveLink: '바로 가기', back: '광장으로 돌아가기',
-        url: '../france/',                                                     // GitHub Pages(같은 저장소의 /france/)
-        urlAbs: 'https://humanteacher89-cell.github.io/my-3d-world/france/'    // 그 밖(이 PC 미리보기·아티팩트)
+        url: 'https://humanteacher89-cell.github.io/hangul-france/',           // 2026-10-07 휴먼쌤 결정: 프랑스 로비는 따로 된 저장소 hangul-france(옛 ../france/는 넘김 페이지만)
+        urlAbs: 'https://humanteacher89-cell.github.io/hangul-france/'         // 그 밖(이 PC 미리보기·아티팩트)도 같은 주소
       },
       school: '로봇 학교',                                        // 세계관 정본: 장소 이름 [확정], 도시 배치(광장·학교·정류장)는 [제안·XR]
       moveHintTouch: '왼쪽 아래 동그라미를 밀면 걸어요.',
