@@ -10,6 +10,7 @@
 |---|---|---|
 | `index.html` | `world1/?plaza=1`로 넘기는 시작 페이지 | https://humanteacher89-cell.github.io/my-3d-world/ |
 | `world1/` | 휴먼쌤 월드: 월드 1 「휴먼쌤이 누구인가」 + 리니를 만나는 광장(three.js). `engine.js`(엔진) · `world1.config.js`(글·대사·설정) · `audio.js`(소리 합성) · `index.html`(페이지) · `assets/`(3D 모델 GLB) · `mp.json`(멀티플레이 중계소 주소, PC가 자동으로 씀 — 손대지 않는다) | …/world1/ |
+| `xr/` | **가상융합교육 지도**(두 번째 섬, 2026-10-07): 캠퍼스 2.5D 로비 + 관 내부. 프랑스 로비 엔진을 복사해 고친 것. `lobby.js`(로비 엔진) · `room.js`(관 내부 방) · `lobby.config.js`(글·관·방 설정) · `campus-map.js`(캠퍼스 판) · `relay.json`(온라인 서버 주소 — 손대지 않는다) · `index.html` · `design/`(관 내부 그림 시안과 **설계 `design/README.md`**) | …/xr/ |
 | `france/` | 옛 주소(`…/my-3d-world/france/`, `…/france/admin/`)로 들어온 사람을 새 저장소 `hangul-france`로 넘기는 페이지 두 장(`index.html` · `admin/index.html`)뿐. 로비 코드·서버 코드는 여기 없다 | → https://humanteacher89-cell.github.io/hangul-france/ |
 
 ## 배포가 되는 방식
@@ -20,16 +21,19 @@
 ## 지킬 것
 - 비밀을 커밋하지 않는다: 비밀번호, API 토큰.
 - 글 파일은 모두 UTF-8(한글). 한 줄에 문장이 여러 개인 JS가 많으니 줄 중간에 `//` 주석을 넣지 않는다(`/* */`만).
-- `world1/mp.json` · `assets/`의 GLB는 손대지 않는다.
+- `world1/mp.json` · `assets/`의 GLB · `xr/relay.json`은 손대지 않는다.
+- `xr/index.html`은 PC에서 `<head>`를 붙여 만든 파일이다. 고쳐도 되지만 `<body>`와 `</body>` 줄은 그대로 둔다(PC가 그 사이를 떼어 원본으로 되돌린다).
 - 글·대사는 `world1/world1.config.js`에만 있다. 사실(휴먼쌤 소개 등)은 지어내지 않고, 모르면 `[확인 전]`으로 표시하고 휴먼쌤에게 묻는다.
 - 큰 구조 변경(엔진 교체, 폴더 이동, 파일 이름 바꾸기)은 먼저 휴먼쌤에게 묻는다.
 - 원본 작업 폴더는 휴먼쌤 PC에도 있다. PC 쪽은 작업 전에 이 저장소를 먼저 받아오므로, 여기서 고친 것은 `main`에 합쳐지기만 하면 된다.
 
 ## 지금 상태와 남은 일 (인수인계 — 작업을 마칠 때 이 절을 고쳐 같은 PR에 넣는다)
 PC 쪽 작업 기록은 이 저장소 밖에 있다. 클라우드 세션과 PC가 서로 이어받는 곳은 **이 절 하나**다. 시작할 때 읽고, 끝낼 때 '마지막 작업'과 '남은 일'을 고친다(공개 파일이니 비밀·개인 정보는 쓰지 않는다).
-- 마지막 작업(2026-10-07, PC): **프랑스 한글학교 로비를 저장소 `hangul-france`로 분리**(휴먼쌤 결정). 이 저장소에서 `france/`의 로비 코드와 `relay-cf/`·`relay/`를 빼고, `france/`에는 새 주소로 넘기는 페이지 두 장만 남겼다. 월드 1의 프랑스 섬 링크(`world1/world1.config.js`의 `plaza.franceIsland.url`·`urlAbs`)는 새 주소 https://humanteacher89-cell.github.io/hangul-france/ 로 바꿨다. 프랑스 로비·서버 일은 그쪽 저장소의 `CLAUDE.md`를 본다.
+- **다음 할 일 (휴먼쌤 2026-10-07 지시, 클라우드 세션에서): 가상융합교육 지도의 관 5곳 내부를 만든다.** 휴먼쌤 말: "나머지관 5곳 내부 그림 너무너무 훌륭해. 이 5곳 내부는 클라우드 세션에서 진행하고 싶어." 설계·그림·만드는 방법·순서는 **`xr/design/README.md`**. 관 id: `cases` 수업 사례관 · `devices` 장비관 · `studio` 제작 공방 · `future` 미래 전망대 · `safety` 안전·윤리 등대. 본보기는 이미 끝난 개념관(`xr/room.js`의 `buildConcept`, `xr/lobby.config.js`의 `rooms.concept`). 관 하나씩 PR 하나로(브랜치 예: `xr-hall-cases`), 끝날 때마다 이 절을 고친다. 지금은 관 5곳에 들어가면 '준비 중' 화면이 나온다.
+- 마지막 작업(2026-10-07 오후, PC): **가상융합교육 지도 첫 공개**. 월드 1 광장 섬 출발점에 두 번째 섬 '가상융합교육 섬으로'(설정 `plaza.xrIsland`, 엔진 `buildXrIsland`, 비행 함수는 섬 둘로 일반화 `ISL`·`startFly(key)`) → 도착 → `xr/`. `xr/` = 캠퍼스 판(76×46칸, 현실 교정 · 융합 광장 · 가상 구역) + 관 6곳 건물 + 개념관 내부(현실 → AR → MR → VR 네 칸, 리니 안내, 용어 카드 4장, 퀴즈 3문제, 끝나면 '연수 수첩' 도장 = localStorage `xrStamps`). 글은 모두 `[확인 전]`. 온라인 방 `xr:lobby`·`xr:<관 id>`(프랑스 로비와 같은 서버. 서버는 `*.github.io` 출처만 받아 로컬에서는 혼자 보기). 남은 것: 관 5곳 내부(위), 연수 수첩 화면(도장 6개 → 수료), 실제 폰 확인.
+- 그 전(2026-10-07 오전, PC): **프랑스 한글학교 로비를 저장소 `hangul-france`로 분리**(휴먼쌤 결정). 이 저장소에서 `france/`의 로비 코드와 `relay-cf/`·`relay/`를 빼고, `france/`에는 새 주소로 넘기는 페이지 두 장만 남겼다. 월드 1의 프랑스 섬 링크(`world1/world1.config.js`의 `plaza.franceIsland.url`·`urlAbs`)는 새 주소 https://humanteacher89-cell.github.io/hangul-france/ 로 바꿨다. 프랑스 로비·서버 일은 그쪽 저장소의 `CLAUDE.md`를 본다.
 - 그 전(2026-10-06, PC): 휴먼쌤 월드 광장의 섬 출발점에서 **'프랑스 한글학교 섬'**으로 가는 길(승강장 바닥이 떠올라 약 10초 비행 → 섬 도착 → 프랑스 로비). 설정 `world1/world1.config.js`의 `plaza.franceIsland`, 엔진 `world1/engine.js`의 `buildFrIsland`·`startFly`·`flyStep`·`landFr`·`goFrance`·`backFromFr`.
-- 휴먼쌤 월드 남은 일: 섬 문구·리니 대사는 모두 `[확인 전]`(휴먼쌤이 고칠 문장을 주면 config만 고친다). 섬으로 가는 수단은 미정(지금은 떠오르는 승강장 바닥). 두 번째 섬은 **'가상융합교육'(가칭)** — 들어가면 프랑스 로비처럼 새 2.5D 지도('가상융합교육 지도', 연수 자료: 뜻·장비 등, 미래적 분위기)가 나온다. 지도 컨셉 시안을 PC에서 만들어 휴먼쌤이 검토 중(저장소에는 아직 없음). 승인되면 `world1`에 섬 + 새 폴더(예: `xr/`)에 로비를 만든다. 세 번째 섬은 '준비 중'. 실제 폰 확인 전.
+- 휴먼쌤 월드 남은 일: 섬 문구·리니 대사는 모두 `[확인 전]`(휴먼쌤이 고칠 문장을 주면 config만 고친다). 섬으로 가는 수단은 미정(지금은 떠오르는 승강장 바닥). 두 번째 섬 '가상융합교육'(가칭)은 위 `xr/`. 세 번째 섬은 '준비 중'. 실제 폰 확인 전.
 - 프랑스 로비 남은 일은 `hangul-france` 저장소의 `CLAUDE.md`에 있다.
 
 ## 확인하는 법 (클라우드 환경에는 브라우저가 없을 수 있다)
