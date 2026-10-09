@@ -185,6 +185,7 @@ window.LOBBY_CONFIG = {
         album: { title: '{name} 학생 결과물 (예시)', captions: ['결과물 1', '결과물 2', '결과물 3', '결과물 4'] }
       },
       stampId: 'cases'
-    }
+    },
+    /* @@관 설정 붙이는 자리: 새 관 rooms.<id>는 이 줄 바로 위에 */
   }
 };

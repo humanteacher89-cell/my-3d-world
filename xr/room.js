@@ -13,6 +13,8 @@ window.LOBBY_ROOM = function (core) {
   const Y_AXIS = new THREE.Vector3(0, 1, 0);
 
   const R = { built: null, school: null, cfg: null, world: null, chars: [], spots: [], cur: null, open: false };
+  /* 관 내부 = kind → [짓기, 매 화면]. 관마다 자기 함수 묶음 바로 뒤에서 HALLS.<kind> = [...] 한 줄로 붙인다 */
+  const HALLS = {};
 
   function lam(color) { return new THREE.MeshLambertMaterial({ color }); }
   function box(w, h, d, color, x, y, z, scene) {
@@ -975,6 +977,10 @@ window.LOBBY_ROOM = function (core) {
     /* 세 가지를 다 본 뒤 팝업을 닫으면 도장 */
     if (A.stampDue && !R.open) { A.stampDue = false; stamp(R.built.cfg.stampId); }
   }
+  HALLS.concept = [buildConcept, updateConcept];
+  HALLS.cases = [buildCases, updateCases];
+
+  /* @@관 붙이는 자리: 새 관은 이 줄 바로 위에 함수 묶음 + HALLS.<kind> 한 줄 */
   function stamp(id) {
     try { const s = JSON.parse(localStorage.getItem('xrStamps') || '{}'); if (!s[id]) { s[id] = new Date().toISOString().slice(0, 10); localStorage.setItem('xrStamps', JSON.stringify(s)); } } catch (_) { /* 저장 못 해도 진행 */ }
     showToast(T.stamped || '연수 수첩에 도장을 찍었어요', 4);
@@ -983,7 +989,7 @@ window.LOBBY_ROOM = function (core) {
   // ── 들어가기·나가기·매 화면 ──
   function enter(school, cfg) {
     if (R.built && R.built.school.id !== school.id) invalidate();
-    if (!R.built) R.built = cfg && cfg.kind === 'concept' ? buildConcept(school, cfg) : cfg && cfg.kind === 'cases' ? buildCases(school, cfg) : build(school, cfg);
+    if (!R.built) R.built = cfg && HALLS[cfg.kind] ? HALLS[cfg.kind][0](school, cfg) : build(school, cfg);
     R.school = school; R.cfg = cfg; R.world = R.built.world; R.spots = R.built.spots; R.cur = null; R.inside = true;
     return R.world;
   }
@@ -1004,8 +1010,7 @@ window.LOBBY_ROOM = function (core) {
   function update(dt, me) {
     if (!R.world) return;
     R.me = me;
-    if (R.built.kind === 'concept') updateConcept(dt, me);
-    else if (R.built.kind === 'cases') updateCases(dt, me);
+    if (HALLS[R.built.kind]) HALLS[R.built.kind][1](dt, me);
     else {
       // 교장 선생님은 가까이 오면 방문자를 바라본다
       const npc = R.built.npc;
