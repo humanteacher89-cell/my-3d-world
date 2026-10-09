@@ -299,6 +299,56 @@ window.LOBBY_CONFIG = {
       stampId: 'devices'
     },
     /* ==== hall:devices 끝 ==== */
+    /* ==== hall:studio 시작 ==== */
+    // 제작 공방: room.js buildStudio(섬 판을 꾸미고 사진을 찍어 전시 벽에 거는 곳). 시안 design/mockup-hall-studio.html. 글은 모두 [확인 전](가안, 연구부 검증 전)
+    // 내 작품(사진)은 이 기기 localStorage('xrStudioWorks')에만 둔다. 서버 없음, 다른 사람 작품은 나중에.
+    studio: {
+      kind: 'studio',
+      welcome: '제작 공방이에요. 섬을 꾸미고 사진을 찍어 전시 벽에 걸어 보세요',   /* [확인 전] */
+      principal: {
+        name: '리니',
+        lines: [                                                        /* [확인 전] */
+          '안녕하세요! 제작 공방 안내를 맡은 리니예요.',
+          '① 선반에서 부품을 고르고, ② 섬 판 위에 놓고 돌려서 작은 섬을 꾸며요. 되돌리기도 돼요.',
+          '③ 카메라 발판에서 사진을 찍으면 ④ 전시 벽에 걸려요. 내 작품은 이 기기에만 저장돼요.',
+          '사진을 찍으면 연수 수첩에 도장을 찍어요. 오른쪽 끝에는 학생용 제작 도구 카드 3장이 있어요.'
+        ]
+      },
+      guideSub: '직접 만들고, 찍고, 걸어요',
+      steps: {
+        shelf: { name: '① 공중 선반', sub: '블록 · 나무 · 캐릭터 · 집', pad: '선반', btn: '부품 고르기', sign: '① 골라서 놓기', signSub: '공중 선반 · 블록 나무 캐릭터 집' },
+        island: { name: '② 섬 판', sub: '놓고 돌리며 꾸며요', pad: '섬 판', btn: '꾸미기', sign: '② 돌리며 꾸미기', signSub: '작은 섬 판 위에 놓고 돌려요' },
+        camera: { name: '③ 카메라 발판', sub: '꾸민 섬을 사진으로 찍어요', pad: '카메라', btn: '사진 찍기', sign: '③ 사진 찍기', signSub: '카메라 발판에서 찰칵' },
+        wall: { name: '④ 전시 벽', sub: '내 작품이 걸려요 (이 기기에만 저장)', pad: '전시 벽', btn: '크게 보기', sign: '④ 전시 벽', signSub: '내 작품만 걸려요' },
+        tools: { name: '학생용 제작 도구 카드', sub: '카드 3장 · 예시', pad: '도구', btn: '펼쳐 보기', sign: '학생용 제작 도구 카드', signSub: '도구 카드 1 · 2 · 3' }
+      },
+      items: [
+        { id: 'cube', name: '네모 블록' }, { id: 'tall', name: '기둥 블록' }, { id: 'ball', name: '공' },
+        { id: 'tree', name: '나무' }, { id: 'house', name: '집' }, { id: 'cat', name: '고양이' },
+        { id: 'bear', name: '곰' }, { id: 'robot', name: '로봇' }, { id: 'frog', name: '개구리' }
+      ],
+      maker: {
+        title: '섬 꾸미기', tag: '예시', mapLabel: '섬 판을 위에서 본 지도',
+        hint: '칸을 누르고 부품을 눌러요',
+        placed: '{name} 놓았어요', needItem: '먼저 칸에 부품을 놓아 보세요',
+        rotate: '돌리기', remove: '빼기', undo: '되돌리기', clear: '모두 지우기', shot: '사진 찍기',
+        rotated: '돌렸어요', removed: '뺐어요', undone: '한 단계 되돌렸어요', cleared: '모두 지웠어요. 되돌리기로 살릴 수 있어요',
+        noItem: '먼저 섬 판에서 섬을 꾸며 보세요', shotFail: '사진을 만들지 못했어요. 다시 해 볼까요?',
+        photoDone: '찰칵! 내 작품이 전시 벽에 걸렸어요'
+      },
+      wall: { title: '내 작품 전시 벽', mine: '내 작품', slot: '내 작품 자리', empty: '아직 걸린 작품이 없어요. 섬을 꾸미고 사진을 찍어 보세요' },
+      tools: {
+        title: '학생용 제작 도구 카드', sub: '도구 카드 1 · 2 · 3 · 예시',
+        foot: '도구 이름과 쓰는 법은 연구부 검증 뒤에 채워요. 지금은 도구 종류별 예시예요. [확인 전]',
+        cards: [
+          { name: '도구 카드 1', type: '블록 쌓기형 도구 (예시)', steps: ['① 빈 공간을 열어요', '② 블록을 골라 놓아요', '③ 돌려 보고 저장해요'] },
+          { name: '도구 카드 2', type: '모양 빚기형 도구 (예시)', steps: ['① 기본 모양을 골라요', '② 늘리고 줄여 빚어요', '③ 색을 칠하고 저장해요'] },
+          { name: '도구 카드 3', type: '공간 꾸미기형 도구 (예시)', steps: ['① 공간 틀을 골라요', '② 물건과 캐릭터를 놓아요', '③ 걸어 다니며 확인해요'] }
+        ]
+      },
+      stampId: 'studio'
+    },
+    /* ==== hall:studio 끝 ==== */
     /* @@관 설정 붙이는 자리: 새 관 rooms.<id>는 이 줄 바로 위에 */
   }
 };
