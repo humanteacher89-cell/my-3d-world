@@ -11,7 +11,7 @@
 <link rel="stylesheet" href="admin.css?v=1">
 </head>
 <body>
-<!-- 가상융합교육 지도 관리자 페이지 (2026-10-09, XR개발부). 프랑스 로비 관리자 페이지와 같은 서버·같은 계정(Cloudflare /api/*, map=xr).
+<!-- 가상융합교육 지도 관리자 페이지 (2026-10-09, XR개발부). 프랑스 로비 관리자 페이지와 같은 서버(Cloudflare /api/*, map=xr)지만 계정·로그인은 따로(10-09 밤 분리).
      관을 고르면 ../lobby.config.js의 rooms.<관> 글이 모두 칸으로 나온다(자동). 고친 칸만 저장하고, 로비가 열릴 때 덮어쓴다. -->
 <header class="top" id="top" hidden>
   <div class="brand"><b>가상융합교육 지도</b><span>관리</span></div>
@@ -28,7 +28,7 @@
   <!-- 로그인 -->
   <section id="login" class="panel narrow" hidden>
     <h1>관리자 로그인</h1>
-    <p class="muted small">프랑스 한글학교 로비 관리자와 같은 아이디·비밀번호예요.</p>
+    <p class="muted small">가상융합교육 지도만의 관리자 계정이에요(프랑스 한글학교 로비 관리자와는 따로).</p>
     <form id="loginForm" autocomplete="on">
       <label>아이디<input id="loginUser" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
       <label>비밀번호<input id="loginPw" name="password" type="password" autocomplete="current-password" required></label>
@@ -77,7 +77,7 @@
   <!-- 계정 관리(관리자만) -->
   <section id="users" class="panel" hidden>
     <div class="bar"><h1>계정</h1><button id="usersBack" class="ghost" type="button">내용 고치기로</button></div>
-    <p class="muted small">프랑스 로비와 계정을 같이 써요. '담당'으로 정한 관(또는 학교)만 고칠 수 있어요.</p>
+    <p class="muted small">가상융합교육 지도만의 계정이에요(프랑스 로비 계정과 따로). '담당'으로 정한 관만 고칠 수 있어요.</p>
     <div id="userList" class="userlist"></div>
     <div class="card">
       <h2 id="userFormTitle">새 계정</h2>

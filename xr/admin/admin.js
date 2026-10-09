@@ -1,12 +1,14 @@
 // 가상융합교육 지도 관리자 페이지 (2026-10-09, XR개발부). 프랑스 로비 관리자 페이지(admin.js)를 바탕으로 만들었다.
-// 로그인(같은 서버·같은 계정) → 관 고르기 → ../lobby.config.js의 rooms.<관> 글이 모두 칸으로 나온다(자동 폼) → 고친 칸만
-//   { text: { "경로": "글" } } 로 Cloudflare 저장소(/api/admin/hall?map=xr)에 저장. 수업 사례관은 교과마다 책·TV·사진첩·링크(media.<교과>).
+// 로그인(프랑스 로비 관리자와 **같은 서버, 다른 계정** — 모든 관리 요청에 ?map=xr, 2026-10-09 휴먼쌤 "프랑스랑 관리자페이지는 분리해줘") → 관 고르기
+//   → ../lobby.config.js의 rooms.<관> 글이 모두 칸으로 나온다(자동 폼) → 고친 칸만 { text: { "경로": "글" } } 로 Cloudflare 저장소(/api/admin/hall?map=xr)에 저장.
+//   수업 사례관은 교과마다 책·TV·사진첩·링크(media.<교과>).
 // 비밀번호는 이 브라우저에서 PBKDF2(SHA-256, 310,000번)로 바꾼 값만 서버로 보낸다. 서버 주소는 ../relay.json(시험: ?api=http://127.0.0.1:8791).
 (function () {
   'use strict';
   const $ = id => document.getElementById(id);
   const Q = new URLSearchParams(location.search);
-  const MAP = 'xr', ITER = 310000, LS = 'frLobbyAdmin', LS_HALL = 'xrAdminHall';   // LS = 프랑스 관리자 페이지와 같은 로그인(같은 출처)
+  const MAP = 'xr', ITER = 310000, LS = 'xrLobbyAdmin', LS_HALL = 'xrAdminHall';   // LS = 이 페이지만의 로그인 저장(프랑스 관리자 페이지와 따로)
+  const A = p => p + (p.includes('?') ? '&' : '?') + 'map=' + MAP;   // 관리 요청 주소에 영역(map=xr)을 붙인다
   const S = { api: '', token: '', me: null, cfg: null, content: { halls: {} }, hall: '', fields: [], media: {}, dirty: false, busy: false, editing: null };
   const enc = new TextEncoder();
 
@@ -141,10 +143,10 @@
     const saved = lsGet(LS, null);
     if (saved && saved.token) {
       S.token = saved.token;
-      try { const me = await api('GET', '/api/admin/me'); S.me = me; await enterMain(); return; } catch (_) { S.token = ''; lsSet(LS, null); }
+      try { const me = await api('GET', A('/api/admin/me')); S.me = me; await enterMain(); return; } catch (_) { S.token = ''; lsSet(LS, null); }
     }
     let st;
-    try { st = await api('GET', '/api/admin/state'); } catch (e) { bootMsg(errText(e)); return; }
+    try { st = await api('GET', A('/api/admin/state')); } catch (e) { bootMsg(errText(e)); return; }
     show(!st.ready && st.setup ? 'setup' : 'login');
   }
 
@@ -167,7 +169,7 @@
     setErr('loginErr', '');
     const user = normUser($('loginUser').value), pw = $('loginPw').value;
     busy('loginGo', true, '확인 중…');
-    try { const key = await deriveKey(user, pw); afterLogin(await api('POST', '/api/admin/login', { user, key })); }
+    try { const key = await deriveKey(user, pw); afterLogin(await api('POST', A('/api/admin/login'), { user, key })); }
     catch (er) { setErr('loginErr', errText(er)); }
     finally { busy('loginGo', false); }
   });
@@ -179,7 +181,7 @@
     if (pw.length < 8) { setErr('setupErr', '비밀번호는 8자 이상으로 해 주세요.'); return; }
     if (pw !== $('setupPw2').value) { setErr('setupErr', '비밀번호 확인이 달라요.'); return; }
     busy('setupGo', true, '만드는 중…');
-    try { const key = await deriveKey(user, pw); afterLogin(await api('POST', '/api/admin/setup', { code: $('setupCode').value, user, key })); toast('관리자를 만들었어요.'); }
+    try { const key = await deriveKey(user, pw); afterLogin(await api('POST', A('/api/admin/setup'), { code: $('setupCode').value, user, key })); toast('관리자를 만들었어요.'); }
     catch (er) { setErr('setupErr', errText(er)); }
     finally { busy('setupGo', false); }
   });
@@ -187,7 +189,7 @@
   $('toLogin').addEventListener('click', e => { e.preventDefault(); show('login'); });
   $('btnOut').addEventListener('click', async () => {
     if (S.dirty && !confirm('저장하지 않은 고침이 있어요. 그래도 로그아웃할까요?')) return;
-    try { await api('POST', '/api/admin/logout'); } catch (_) { /* 이미 풀렸으면 그대로 */ }
+    try { await api('POST', A('/api/admin/logout')); } catch (_) { /* 이미 풀렸으면 그대로 */ }
     logoutLocal();
   });
 
@@ -578,7 +580,7 @@
   }
   $('btnSave').addEventListener('click', () => save());
 
-  // ── 계정(관리자만) — 프랑스 로비와 같은 계정. '담당'은 관 id(여기)나 학교 id(프랑스 페이지)로 정한다 ──
+  // ── 계정(관리자만) — 가상융합 지도만의 계정(프랑스 로비와 따로). '담당'은 관 id로 정한다 ──
   $('btnUsers').addEventListener('click', async () => {
     if (S.dirty && !confirm('저장하지 않은 고침이 있어요. 버리고 갈까요?')) return;
     setDirty(false);
@@ -596,8 +598,6 @@
       l.append(c, document.createTextNode(' ' + s.name));
       box.appendChild(l);
     }
-    // 프랑스 페이지에서 정한 학교 담당은 여기 목록에 없어도 그대로 둔다
-    box.dataset.keep = JSON.stringify((sel || []).filter(id => !(S.cfg.schools || []).some(s => s.id === id)));
   }
   const roleNow = () => (document.querySelector('input[name=uRole]:checked') || {}).value || 'editor';
   function syncRole() { $('uSchools').hidden = roleNow() === 'admin'; }
@@ -627,13 +627,13 @@
     const list = $('userList');
     list.textContent = '';
     let j;
-    try { j = await api('GET', '/api/admin/users'); } catch (er) { toast(errText(er), true); return; }
+    try { j = await api('GET', A('/api/admin/users')); } catch (er) { toast(errText(er), true); return; }
     for (const u of j.users) {
       const row = el('div', 'urow');
       const t = el('div', 't');
       const b = el('b', null, u.user);
       const tag = el('span', 'tag' + (u.role === 'admin' ? ' admin' : ''), u.role === 'admin' ? '관리자' : '담당');
-      const r = el('div', 'r', (u.role === 'admin' ? '모든 관·학교' : (u.schools.map(hallName).join(', ') || '담당 없음')) + (u.last ? ' · 마지막 로그인 ' + fmt(u.last) : ' · 아직 로그인 안 함'));
+      const r = el('div', 'r', (u.role === 'admin' ? '모든 관' : (u.schools.map(hallName).join(', ') || '담당 없음')) + (u.last ? ' · 마지막 로그인 ' + fmt(u.last) : ' · 아직 로그인 안 함'));
       t.append(b, tag, r);
       row.append(t, mkBtn('고치기', () => editUser(u)));
       if (u.user !== S.me.user) row.append(mkBtn('지우기', () => delUser(u), 'danger'));
@@ -642,7 +642,7 @@
   }
   async function delUser(u) {
     if (!confirm(`'${u.user}' 계정을 지울까요?`)) return;
-    try { await api('DELETE', '/api/admin/users?user=' + encodeURIComponent(u.user)); toast('계정을 지웠어요.'); if (S.editing === u.user) resetUserForm(); await loadUsers(); }
+    try { await api('DELETE', A('/api/admin/users?user=' + encodeURIComponent(u.user))); toast('계정을 지웠어요.'); if (S.editing === u.user) resetUserForm(); await loadUsers(); }
     catch (er) { toast(errText(er), true); }
   }
   $('uReset').addEventListener('click', resetUserForm);
@@ -652,10 +652,7 @@
     setErr('uErr', '');
     const user = normUser($('uName').value), pw = $('uPw').value, role = roleNow();
     let schools = [];
-    if (role !== 'admin') {
-      schools = [...$('uSchools').querySelectorAll('input:checked')].map(c => c.value);
-      try { schools = schools.concat(JSON.parse($('uSchools').dataset.keep || '[]')); } catch (_) { /* 없으면 그대로 */ }
-    }
+    if (role !== 'admin') schools = [...$('uSchools').querySelectorAll('input:checked')].map(c => c.value);
     if (!S.editing && pw.length < 8) { setErr('uErr', '비밀번호는 8자 이상으로 해 주세요.'); return; }
     if (S.editing && pw && pw.length < 8) { setErr('uErr', '비밀번호는 8자 이상으로 해 주세요.'); return; }
     if (role !== 'admin' && !schools.length) { setErr('uErr', '담당 관을 하나 이상 골라 주세요.'); return; }
@@ -663,7 +660,7 @@
     try {
       const body = { user, role, schools };
       if (pw) body.key = await deriveKey(user, pw);
-      const j = await api('POST', '/api/admin/users', body);
+      const j = await api('POST', A('/api/admin/users'), body);
       toast(j.created ? '계정을 만들었어요. 아이디와 비밀번호를 그 선생님께 알려 주세요.' : '계정을 고쳤어요.');
       resetUserForm();
       await loadUsers();
@@ -690,7 +687,7 @@
     busy('pwGo', true, '바꾸는 중…');
     try {
       const key = await deriveKey(S.me.user, a), newKey = await deriveKey(S.me.user, b);
-      await api('POST', '/api/admin/password', { key, newKey });
+      await api('POST', A('/api/admin/password'), { key, newKey });
       for (const id of ['pwOld', 'pwNew', 'pwNew2']) $(id).value = '';
       toast('비밀번호를 바꿨어요. 다른 기기의 로그인은 풀렸어요.');
       show('main');
