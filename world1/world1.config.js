@@ -214,6 +214,18 @@ window.WORLD_CONFIG = {
         url: '../xr/',                                                          // GitHub Pages(my-3d-world/xr/, 가칭)
         urlAbs: 'https://humanteacher89-cell.github.io/my-3d-world/xr/'
       },
+      // AI가 지은 섬(2026-10-09 휴먼쌤 "좋아 이대로 진행해줘", 기획안 핸드오프\20261009-AI가상세계.md 2판). 같은 비행·도착 뒤 AI가 지은 섬(2.5D)으로. 이름·문구 모두 [확인 전](가칭)
+      aiIsland: {
+        index: 2,
+        name: 'AI가 지은 섬',
+        go: 'AI가 지은 섬으로', goSub: 'AI가 생각하고 사는 방식',
+        flyLines: ['AI가 지은 섬으로 출발할게요!'],
+        signTitle: 'AI가 지은 섬', signSub: '사람 손님, 어서 오세요',
+        welcomeLines: ['도착했어요. 여기는 우리 AI들이 지은 섬이에요.', '이 빛 아치를 지나면 AI가 사는 마을과 생각하는 곳이 나와요.'],
+        leave: 'AI가 지은 섬으로 이동합니다', leaveLink: '바로 가기', back: '광장으로 돌아가기',
+        url: '../ai/',                                                          // GitHub Pages(my-3d-world/ai/, 가칭)
+        urlAbs: 'https://humanteacher89-cell.github.io/my-3d-world/ai/'
+      },
       school: '로봇 학교',                                       // 세계관 정본: 장소 이름 [확정], 도시 배치(광장·학교·정류장)는 [제안·XR]
       moveHintTouch: '왼쪽 아래 동그라미를 밀면 걸어요.',
       moveHintKeys: '키보드 W·A·S·D나 방향키로 걸어요.',
