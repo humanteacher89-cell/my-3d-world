@@ -16,7 +16,7 @@ window.LOBBY_CONFIG = {
     mapClose: '내 위치로',
     list: '관 목록',
     listTitle: '구역별 관',
-    listNote: '관마다 들어가 연수를 마치면 연수 수첩에 도장을 찍어요(준비 중). 관 이름과 내용은 아직 가안이에요.',   // [확인 전]
+    listNote: '관마다 들어가 연수를 마치면 연수 수첩에 도장을 찍어요. 6개를 다 모으면 수료증이 나와요. 관 이름과 내용은 아직 가안이에요.',   // [확인 전]
     noSchools: '아직 표시할 관이 없습니다.',
     close: '닫기',
     enter: '입장하기',
@@ -56,7 +56,19 @@ window.LOBBY_CONFIG = {
     choose: '알맞은 것을 골라 보세요', good: '좋아요!', tryAgain: '다시 골라 볼까요?', done: '완료!', doneBody: '{title}을(를) 마쳤어요.', again: '다시 하기',
     progress: '{i} / {n}', sampleTag: '예시', photoSoon: '사진은 나중에 넣어요', videoSoon: '영상은 나중에 넣어요',
     principal: '안내자', bookSign: '책', albumSign: '사진첩', tvSign: 'TV',
-    nextZone: '다음 칸으로', stamped: '연수 수첩에 도장을 찍었어요 (수첩은 준비 중)'   // [확인 전]
+    nextZone: '다음 칸으로', stamped: '연수 수첩에 도장을 찍었어요',   // [확인 전]
+    // 연수 수첩(오른쪽 위 버튼 → 시트). 도장은 이 기기(localStorage xrStamps)에만 남는다. 글은 모두 [확인 전]
+    pass: '연수 수첩', passCount: '{c}/{n}', passTitle: '연수 수첩', passSub: '관 6곳을 돌며 도장을 모아요',
+    passName: '이름', passRename: '이름 바꾸기', passNoName: '이름을 정하지 않았어요',
+    passDone: '찍었어요', passNot: '아직', passGo: '가기', passGoRoom: '지도로 나가면 갈 수 있어요',
+    passLeft: '도장 {left}개를 더 모으면 수료증이 나와요', passAll: '도장 6개를 다 모았어요! 수료증을 확인해요',
+    passAllToast: '도장 6개를 다 모았어요! 연수 수첩에서 수료증을 확인해요',
+    passReset: '처음부터 다시', passResetAsk: '도장 6개를 모두 지우고 처음부터 할까요?', passResetDone: '도장을 모두 지웠어요',
+    certTitle: '수료증', certEn: 'Certificate of Completion', certCourse: '가상융합교육 지도 연수',
+    certBody: '위 사람은 가상융합교육 지도의 관 6곳\n(개념관 · 수업 사례관 · 장비관 · 제작 공방 · 미래 전망대 · 안전·윤리 등대)을\n모두 둘러보고 연수를 마쳤기에 이 증서를 드립니다.',
+    certIssuer: '휴먼쌤 가상융합교육 지도', certTag: '가안 · [확인 전]', certDate: '{date}',
+    certView: '수료증 보기', certSave: '그림으로 저장', certSaveHint: '폰에서는 그림을 길게 눌러 사진에 저장해요', certFile: '수료증.png',
+    certHello: '{name} 님, 수료를 축하해요!'
   },
   // 밤하늘 캠퍼스: sky = 배경·안개, sea = 판 밖 우주(별), base = 판 테두리
   look: { sky: '#1A2050', sea: '#10153A', base: '#3A3F74', neighbor: '#20264F', neighborLine: '#3A4178', grid: '#7FD6FF', fusionLine: '#9FF0DC' },
@@ -78,18 +90,19 @@ window.LOBBY_CONFIG = {
   },
   // 같은 Cloudflare 중계 서버를 방 이름만 'xr:'로 나눠 쓴다(하루 요청 한도는 프랑스 로비와 함께 씀)
   multiplayer: { file: 'relay.json', lobbyRoom: 'xr:lobby', roomPrefix: 'xr:', sendHz: 4 },
-  contentMap: null,                    // 관리자 저장소(map=fr)는 아직 안 씀
+  contentMap: 'xr',                    // 관리자 페이지(admin/)가 저장한 글·사례를 /api/content?map=xr 에서 읽어 rooms.<관> 위에 덮는다(2026-10-09)
   hallScale: 1.5,                      // 관 건물 크기 배율(판이 넓어 1.5배)
   hallPad: 5.4,                        // 관 건물 가운데에서 입장 발판까지(남쪽, 칸)
   // 관 6곳(lon = 동쪽 x, lat = 북쪽 -z 칸). kind = 건물 모양. 이름·주제 [확인 전]
   // 관 사이 14~27칸(건물 너비의 두 배쯤) — 겹쳐 보이지 않을 만큼만(10-07 14:30 휴먼쌤)
+  // stampMark·stampColor = 연수 수첩 도장 그림(두 글자·색). 도장 id는 rooms.<id>.stampId(= 관 id)
   schools: [
-    { id: 'concept', kind: 'dome', name: '개념관', nameFr: '걸을수록 가상이 되는 교실', city: '가상융합교육 · VR·AR·MR·XR', lon: 0, lat: 14 },
-    { id: 'cases', kind: 'school', name: '수업 사례관', nameFr: '교과를 고르면 바뀌는 교실', city: '교과별 수업 사례', lon: -25, lat: 9 },
-    { id: 'devices', kind: 'headset', name: '장비관', nameFr: '써 보는 쇼룸', city: '헤드셋·AR 안경·360 카메라', lon: -17, lat: -11 },
-    { id: 'studio', kind: 'workshop', name: '제작 공방', nameFr: '직접 만드는 작업대', city: '가상 공간 만들기', lon: 17, lat: 9 },
-    { id: 'future', kind: 'tower', name: '미래 전망대', nameFr: '내려다보는 다음 교실', city: 'AI × XR · 디지털 트윈', lon: 27, lat: -11 },
-    { id: 'safety', kind: 'lighthouse', name: '안전·윤리 등대', nameFr: '불을 켜는 등대', city: '사용 시간 · 예절 · 개인정보', lon: 30, lat: 10 }
+    { id: 'concept', kind: 'dome', name: '개념관', nameFr: '걸을수록 가상이 되는 교실', city: '가상융합교육 · VR·AR·MR·XR', lon: 0, lat: 14, stampMark: '개념', stampColor: '#7C6CE0' },
+    { id: 'cases', kind: 'school', name: '수업 사례관', nameFr: '교과를 고르면 바뀌는 교실', city: '교과별 수업 사례', lon: -25, lat: 9, stampMark: '사례', stampColor: '#2F8F5B' },
+    { id: 'devices', kind: 'headset', name: '장비관', nameFr: '써 보는 쇼룸', city: '헤드셋·AR 안경·360 카메라', lon: -17, lat: -11, stampMark: '장비', stampColor: '#2A4D9B' },
+    { id: 'studio', kind: 'workshop', name: '제작 공방', nameFr: '직접 만드는 작업대', city: '가상 공간 만들기', lon: 17, lat: 9, stampMark: '공방', stampColor: '#D9822B' },
+    { id: 'future', kind: 'tower', name: '미래 전망대', nameFr: '내려다보는 다음 교실', city: 'AI × XR · 디지털 트윈', lon: 27, lat: -11, stampMark: '미래', stampColor: '#1E9AA8' },
+    { id: 'safety', kind: 'lighthouse', name: '안전·윤리 등대', nameFr: '불을 켜는 등대', city: '사용 시간 · 예절 · 개인정보', lon: 30, lat: 10, stampMark: '안전', stampColor: '#E0483E' }
   ],
   // 관 안 공간. kind: 'concept' = room.js buildConcept(네 칸 교실), 'cases' = buildCases(교과를 고르면 바뀌는 교실). 글은 모두 [확인 전](가안, 연구부 검증 전)
   rooms: {

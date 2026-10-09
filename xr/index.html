@@ -134,14 +134,42 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--sky);color:var(-
 .fade{position:fixed;inset:0;background:var(--paper);opacity:0;pointer-events:none;transition:opacity .22s;z-index:11}
 .fade.on{opacity:1}
 .loading{position:fixed;inset:0;display:grid;place-items:center;background:var(--sky);font-family:var(--font-display);font-size:20px;color:#FFFFFF;z-index:12;transition:opacity .4s;padding:16px;text-align:center}
-@media (max-width:480px){.btns{flex-direction:column;align-items:flex-end}.toast{top:calc(env(safe-area-inset-top,0px) + 126px)}.chipwrap{max-width:58vw}}
+/* 연수 수첩(도장 6개 → 수료증) */
+.pill .cnt{display:inline-block;margin-left:6px;font-size:12px;font-weight:700;color:var(--paper);background:var(--red);border-radius:999px;padding:2px 7px;vertical-align:1px;font-variant-numeric:tabular-nums}
+.pill .cnt.all{background:var(--green)}
+.pass .who{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--soft);border-radius:14px;padding:10px 14px}
+.pass .who b{font-size:15px;overflow-wrap:anywhere}
+.pass .who small{display:block;font-size:12px;color:var(--ink-2);font-weight:500}
+.pass .who .pill{box-shadow:none;background:var(--paper);font-size:12.5px;padding:7px 12px;font-weight:500}
+.stamps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stampc{background:var(--soft);border-radius:16px;padding:12px 6px 10px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
+.stampc .ring{width:64px;height:64px;border-radius:50%;border:3px dashed #C7D0DE;display:grid;place-items:center;font-family:var(--font-display);font-size:18px;color:#B4BECE;position:relative}
+.stampc.on .ring{border:4px solid var(--c);color:var(--c);transform:rotate(-12deg);background:#fff;box-shadow:inset 0 0 0 3px #fff,inset 0 0 0 5px var(--c)}
+.stampc.on .ring::after{content:"✓";position:absolute;right:-6px;bottom:-6px;width:22px;height:22px;border-radius:50%;background:var(--c);color:#fff;font:700 13px/22px var(--font-body);transform:rotate(12deg)}
+.stampc .nm{font-size:13px;font-weight:700;line-height:1.25}
+.stampc .dt{font-size:11.5px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.stampc .pill{box-shadow:none;background:var(--paper);font-size:12px;padding:6px 11px;font-weight:700;color:var(--blue)}
+.pass .prog{height:8px;border-radius:999px;background:var(--soft);overflow:hidden}
+.pass .prog i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--green));width:var(--w,0%);transition:width .5s}
+.pass .cert{background:var(--cream);border:3px double #C9A96A;border-radius:14px;padding:16px 14px;text-align:center}
+.pass .cert h3{margin:0;font-family:var(--font-display);font-weight:400;font-size:26px;color:#8C6A4F}
+.pass .cert .en{font-size:11px;letter-spacing:2px;color:#A98C66;text-transform:uppercase}
+.pass .cert .nm{font-family:var(--font-display);font-size:24px;margin:10px 0 2px}
+.pass .cert p{margin:8px 0 0;font-size:12.5px;line-height:1.6;color:var(--ink-2);white-space:pre-line}
+.pass .cert .btns2{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.pass .cert .btns2 .pill{box-shadow:none;font-size:13px}
+.certbox .box{width:min(720px,100%);padding:16px 12px 14px}
+.certbox img{display:block;width:100%;height:auto;border-radius:12px;box-shadow:0 10px 30px rgba(30,43,74,.25)}
+.certbox .row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.certbox .row a.pill{text-decoration:none;display:inline-block}
+@media (max-width:480px){.btns{flex-direction:column;align-items:flex-end}.toast{top:calc(env(safe-area-inset-top,0px) + 166px)}.chipwrap{max-width:58vw}.stamps{gap:8px}.stampc .ring{width:56px;height:56px;font-size:16px}}
 @media (prefers-reduced-motion:reduce){.fade,.hint,.loading{transition:none}}
 </style>
 
 <div id="view"></div>
 <div class="top">
   <div class="chipwrap"><div class="chip"><h1 id="title"></h1><p id="region"></p></div><span id="mpBadge" class="badge" hidden></span></div>
-  <div class="btns"><button id="btnLobby" class="pill" type="button" hidden></button><button id="btnMap" class="pill" type="button"></button><button id="btnList" class="pill" type="button"></button></div>
+  <div class="btns"><button id="btnPass" class="pill" type="button"><span id="passLabel"></span><span id="passCnt" class="cnt"></span></button><button id="btnLobby" class="pill" type="button" hidden></button><button id="btnMap" class="pill" type="button"></button><button id="btnList" class="pill" type="button"></button></div>
 </div>
 <div id="toast" class="toast" hidden></div>
 <div id="hint" class="hint"></div>
@@ -155,6 +183,14 @@ html,body{height:100%;margin:0;overflow:hidden;background:var(--sky);color:var(-
   <header><h2 id="listTitle"></h2><button id="btnListClose" class="pill" type="button"></button></header>
   <div id="listBody" class="body"></div>
   <div class="foot"><button id="btnProfile" class="pill" type="button"></button><button id="btnBots" class="pill" type="button"></button></div>
+</div>
+<div id="pass" class="sheet pass" hidden role="dialog" aria-labelledby="passTitle">
+  <header><h2 id="passTitle"></h2><button id="btnPassClose" class="pill" type="button"></button></header>
+  <div id="passBody" class="body"></div>
+  <div class="foot"><button id="btnPassReset" class="pill" type="button"></button></div>
+</div>
+<div id="certBox" class="overlay certbox" hidden role="dialog" aria-label="certificate">
+  <div class="box"><img id="certImg" alt=""><p id="certHint" class="sub"></p><div class="row"><a id="certDl" class="pill primary" download></a><button id="certClose" class="pill" type="button"></button></div></div>
 </div>
 <div id="enter" class="overlay" hidden role="dialog" aria-labelledby="enterName">
   <div class="box"><h2 id="enterName"></h2><div id="enterSub" class="sub"></div><p id="enterBody"></p><button id="btnBack" class="pill primary" type="button"></button></div>

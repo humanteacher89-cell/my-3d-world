@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="color-scheme" content="light">
+<title>가상융합교육 지도 관리</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<link rel="stylesheet" href="admin.css?v=1">
+</head>
+<body>
+<!-- 가상융합교육 지도 관리자 페이지 (2026-10-09, XR개발부). 프랑스 로비 관리자 페이지와 같은 서버·같은 계정(Cloudflare /api/*, map=xr).
+     관을 고르면 ../lobby.config.js의 rooms.<관> 글이 모두 칸으로 나온다(자동). 고친 칸만 저장하고, 로비가 열릴 때 덮어쓴다. -->
+<header class="top" id="top" hidden>
+  <div class="brand"><b>가상융합교육 지도</b><span>관리</span></div>
+  <div class="who"><span id="whoName"></span>
+    <button id="btnUsers" class="ghost" type="button" hidden>계정</button>
+    <button id="btnPw" class="ghost" type="button">비밀번호</button>
+    <button id="btnOut" class="ghost" type="button">로그아웃</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="boot" class="panel center"><p class="muted">불러오는 중…</p></section>
+
+  <!-- 로그인 -->
+  <section id="login" class="panel narrow" hidden>
+    <h1>관리자 로그인</h1>
+    <p class="muted small">프랑스 한글학교 로비 관리자와 같은 아이디·비밀번호예요.</p>
+    <form id="loginForm" autocomplete="on">
+      <label>아이디<input id="loginUser" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required></label>
+      <label>비밀번호<input id="loginPw" name="password" type="password" autocomplete="current-password" required></label>
+      <button class="btn primary wide" type="submit" id="loginGo">로그인</button>
+      <p class="err" id="loginErr" hidden></p>
+    </form>
+    <p class="muted small"><a href="#" id="toSetup">설정 코드가 있어요(처음 설정·비밀번호 다시 정하기)</a></p>
+  </section>
+
+  <!-- 처음 설정 -->
+  <section id="setup" class="panel narrow" hidden>
+    <h1>처음 설정</h1>
+    <p class="muted">받은 1회용 설정 코드를 넣고, 앞으로 쓸 관리자 아이디와 비밀번호를 정해 주세요. 코드는 한 번만 쓸 수 있어요.</p>
+    <form id="setupForm" autocomplete="off">
+      <label>설정 코드<input id="setupCode" autocapitalize="characters" spellcheck="false" placeholder="XXXXX-XXXXX-XXXXX-XXXXX" required></label>
+      <label>관리자 아이디<input id="setupUser" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="2~20자: 영문·숫자·한글" required></label>
+      <label>비밀번호<input id="setupPw" type="password" autocomplete="new-password" placeholder="8자 이상" required></label>
+      <label>비밀번호 확인<input id="setupPw2" type="password" autocomplete="new-password" required></label>
+      <button class="btn primary wide" type="submit" id="setupGo">관리자 만들기</button>
+      <p class="err" id="setupErr" hidden></p>
+    </form>
+    <p class="muted small"><a href="#" id="toLogin">로그인 화면으로</a></p>
+  </section>
+
+  <!-- 내용 고치기 -->
+  <section id="main" hidden>
+    <div class="bar">
+      <label class="pick">관<select id="hall"></select></label>
+      <a id="viewLobby" class="ghost link" href="../" target="_blank" rel="noopener">지도에서 보기</a>
+    </div>
+    <p class="muted small" id="lastSaved"></p>
+    <div class="searchrow"><input id="search" type="search" placeholder="칸 찾기(예: 리니, 퀴즈, 발판)" autocapitalize="none"><span id="searchN" class="muted small"></span></div>
+
+    <div id="noHall" class="card soft" hidden>
+      <h2>관</h2>
+      <p class="muted">맡은 관이 없어요. 관리자에게 담당 관을 정해 달라고 해 주세요.</p>
+    </div>
+
+    <div id="hallForm" hidden>
+      <p class="hint">관 안의 글이 모두 칸으로 나와요. 고친 칸은 <b>고침</b>으로 표시되고, 저장하면 지도를 새로 열 때부터 보여요. 칸을 비우고 저장하면 처음 글로 돌아가요. 글은 모두 가안([확인 전])이에요.</p>
+      <div id="fields"></div>
+      <div id="mediaBox" hidden></div>
+    </div>
+  </section>
+
+  <!-- 계정 관리(관리자만) -->
+  <section id="users" class="panel" hidden>
+    <div class="bar"><h1>계정</h1><button id="usersBack" class="ghost" type="button">내용 고치기로</button></div>
+    <p class="muted small">프랑스 로비와 계정을 같이 써요. '담당'으로 정한 관(또는 학교)만 고칠 수 있어요.</p>
+    <div id="userList" class="userlist"></div>
+    <div class="card">
+      <h2 id="userFormTitle">새 계정</h2>
+      <form id="userForm" autocomplete="off">
+        <label>아이디<input id="uName" autocapitalize="none" spellcheck="false" required></label>
+        <label>비밀번호<span class="sub" id="uPwSub">8자 이상</span><input id="uPw" type="password" autocomplete="new-password"></label>
+        <div class="radios">
+          <label><input type="radio" name="uRole" value="editor" checked> 관 담당(고른 관만)</label>
+          <label><input type="radio" name="uRole" value="admin"> 관리자(모든 관·계정)</label>
+        </div>
+        <div id="uSchools" class="checks"></div>
+        <div class="row"><button class="btn primary" type="submit" id="uGo">저장</button><button class="ghost" type="button" id="uReset">새로 쓰기</button></div>
+        <p class="err" id="uErr" hidden></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- 비밀번호 바꾸기 -->
+  <section id="pw" class="panel narrow" hidden>
+    <h1>비밀번호 바꾸기</h1>
+    <form id="pwForm">
+      <input type="text" autocomplete="username" id="pwUser" hidden>
+      <label>지금 비밀번호<input id="pwOld" type="password" autocomplete="current-password" required></label>
+      <label>새 비밀번호<input id="pwNew" type="password" autocomplete="new-password" placeholder="8자 이상" required></label>
+      <label>새 비밀번호 확인<input id="pwNew2" type="password" autocomplete="new-password" required></label>
+      <div class="row"><button class="btn primary" type="submit" id="pwGo">바꾸기</button><button class="ghost" type="button" id="pwBack">돌아가기</button></div>
+      <p class="err" id="pwErr" hidden></p>
+    </form>
+  </section>
+</main>
+
+<div class="savebar" id="saveBar" hidden>
+  <span id="saveState" class="muted small">고친 것이 없어요</span>
+  <button id="btnSave" class="btn primary" type="button">저장하기</button>
+</div>
+<div id="toast" class="toast" hidden></div>
+<script src="admin.js?v=1" charset="utf-8"></script>
+</body>
+</html>

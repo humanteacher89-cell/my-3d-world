@@ -3362,8 +3362,10 @@ window.LOBBY_ROOM = function (core) {
   /* ==== hall:safety 끝 ==== */
   /* @@관 붙이는 자리: 새 관은 이 줄 바로 위에 함수 묶음 + HALLS.<kind> 한 줄 */
   function stamp(id) {
-    try { const s = JSON.parse(localStorage.getItem('xrStamps') || '{}'); if (!s[id]) { s[id] = new Date().toISOString().slice(0, 10); localStorage.setItem('xrStamps', JSON.stringify(s)); } } catch (_) { /* 저장 못 해도 진행 */ }
+    let fresh = false;
+    try { const s = JSON.parse(localStorage.getItem('xrStamps') || '{}'); if (!s[id]) { s[id] = new Date().toISOString().slice(0, 10); localStorage.setItem('xrStamps', JSON.stringify(s)); fresh = true; } } catch (_) { /* 저장 못 해도 진행 */ }
     showToast(T.stamped || '연수 수첩에 도장을 찍었어요', 4);
+    if (core.onStamp) core.onStamp(id, fresh);   // 로비의 연수 수첩(버튼 숫자·6개면 수료증)
   }
 
   // ── 들어가기·나가기·매 화면 ──
@@ -3442,7 +3444,7 @@ window.LOBBY_ROOM = function (core) {
       box.textContent = '';
       const links = [];
       if (R.school && /^https?:\/\//.test(R.school.web || '')) links.push({ label: T.homepage || '홈페이지', url: R.school.web });
-      for (const l of (R.cfg && R.cfg.links) || []) if (l && /^https?:\/\//.test(l.url)) links.push(l);
+      for (const l of (Array.isArray(b.links) ? b.links : (R.cfg && R.cfg.links) || [])) if (l && /^https?:\/\//.test(l.url)) links.push(l);   // 책마다 링크(관리자 페이지 교과별) 또는 관 공통 링크
       if (links.length) {
         const h = document.createElement('div'); h.className = 'lh'; h.textContent = T.moreLinks || '더 알아보기';
         box.appendChild(h);

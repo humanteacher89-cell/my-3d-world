@@ -1100,7 +1100,8 @@
     THREE, LAND_Y, FONT_D, FONT_B, $, fill, clamp, canvasTex, colored, merge, pill, fitFont, signSprite, addChar, removeChar,
     showCard, hideCard, showToast, T, IS_TOUCH, setPaused: v => { PAUSED = !!v; if (v) { ME.target = null; ME.moving = false; } },
     vfovRad: () => THREE.MathUtils.degToRad(VFOV), aspect: () => camera.aspect, zoom: () => CAM.zoom,
-    exit: () => leaveRoom()
+    exit: () => leaveRoom(),
+    onStamp: (id, fresh) => passStamped(id, fresh)
   }) : null;
   let CUR_ROOM = null;
   function switchWorld(w) {
@@ -1127,7 +1128,7 @@
       $('title').textContent = s.name;
       $('region').textContent = [s.city, s.regionName].filter(Boolean).join(' · ');
       $('btnMap').hidden = true; $('btnList').hidden = true; $('btnLobby').hidden = false;
-      $('list').hidden = true;
+      $('list').hidden = true; $('pass').hidden = true;
       $('hint').textContent = T.hintRoom; $('hint').style.opacity = 1;
       setTimeout(() => { $('hint').style.opacity = 0; }, 7000);
       showToast(cfg.welcome || fill(T.roomEnter, { school: s.name }), 3.2);
@@ -1207,8 +1208,9 @@
     $('bookTag').textContent = T.sampleTag;
     if ($('cardWeb')) $('cardWeb').textContent = T.homepage || '홈페이지';
     $('btnMap').addEventListener('click', () => setMode(CAM.mode === 'over' ? 'follow' : 'over'));
-    $('btnList').addEventListener('click', () => { $('list').hidden = !$('list').hidden; });
+    $('btnList').addEventListener('click', () => { $('pass').hidden = true; $('list').hidden = !$('list').hidden; });
     $('btnListClose').addEventListener('click', () => { $('list').hidden = true; });
+    passSetup();
     $('btnEnter').addEventListener('click', () => { if (CUR_TARGET && !PAUSED) CUR_TARGET.go(); });
     $('btnBack').addEventListener('click', () => { $('enter').hidden = true; });
     $('btnLobby').addEventListener('click', () => { if (ROOM) ROOM.closePop(); leaveRoom(); });
@@ -1285,7 +1287,7 @@
     loadContent();
     // 시험용 손잡이(브라우저 콘솔에서 위치·카메라를 바로 바꿔 본다)
     window.LOBBY = { ME, CHARS, CAM, SCHOOLS, REG, MOUNT, MP, CONTENT, teleport, setZoom, setMode, regionAt, toXZ, walkTo, openEnter, enterRoom, leaveRoom, renderer, camera,
-      world: () => WORLD, room: ROOM, snap: () => updateCam(0, true) };
+      world: () => WORLD, room: ROOM, snap: () => updateCam(0, true), pass: { open: passOpen, stamped: passStamped, cert: certShow } };
   }
   let LAST_REGION = null, last = performance.now(), fpsN = 0, fpsT = 0, firstFrame = true;
   function frame(now) {
@@ -1514,6 +1516,7 @@
       ME.name = n || T.me;
       if (ME.tag) { ME.tag.removeFromParent(); ME.tag = null; }
       box.hidden = true; PAUSED = false;
+      if (!$('pass').hidden) passRender();
       try { inp.blur(); } catch (_) { /* 없어도 됨 */ }
       if (!MP.on) return;
       if (MP.ws) mpReconnect(MP.room);   // 새 이름·모습을 알리려고 다시 붙는다
@@ -1525,20 +1528,168 @@
   }
 
   /* ─────────────────────────────────────────────────────────────
+     PASS — 연수 수첩(2026-10-09). 오른쪽 위 '연수 수첩 n/6' 버튼 → 시트에 관 6곳 도장 칸. 도장은 room.js stamp()가
+     localStorage 'xrStamps'({관 id: 'YYYY-MM-DD'})에 적고 core.onStamp로 알려 준다. 6개를 다 모으면 수료증(시트 맨 위 + 그림 저장).
+     ───────────────────────────────────────────────────────────── */
+  const PASS_IDS = () => SCHOOLS.filter(s => C.rooms && C.rooms[s.id] && C.rooms[s.id].stampId).map(s => ({ s, sid: C.rooms[s.id].stampId }));
+  const passLoad = () => { const v = lsGet('xrStamps', {}); return v && typeof v === 'object' ? v : {}; };
+  function passCount() { const st = passLoad(); return PASS_IDS().filter(o => st[o.sid]).length; }
+  const passTotal = () => PASS_IDS().length;
+  const myName = () => (MP.name || lsGet('frLobbyName', '') || '').trim();
+  function passBadge() {
+    const c = passCount(), n = passTotal();
+    const el = $('passCnt');
+    el.textContent = fill(T.passCount || '{c}/{n}', { c, n });
+    el.classList.toggle('all', n > 0 && c >= n);
+  }
+  function passStamped(id, fresh) {
+    passBadge();
+    if (!$('pass').hidden) passRender();
+    if (fresh && passTotal() > 0 && passCount() >= passTotal()) {
+      setTimeout(() => { showToast(T.passAllToast || T.passAll, 5); passOpen(); }, 1600);
+    }
+  }
+  function passOpen() { $('list').hidden = true; passRender(); $('pass').hidden = false; }
+  function passRender() {
+    const st = passLoad(), ids = PASS_IDS(), c = ids.filter(o => st[o.sid]).length, n = ids.length, all = n > 0 && c >= n;
+    const body = $('passBody');
+    body.textContent = '';
+    const name = myName();
+    // 이름 줄
+    const who = document.createElement('div'); who.className = 'who';
+    const wt = document.createElement('div');
+    const wb = document.createElement('b'); wb.textContent = name || (T.passNoName || '');
+    const ws = document.createElement('small'); ws.textContent = T.passSub || '';
+    wt.append(wb, ws);
+    const wbtn = document.createElement('button'); wbtn.type = 'button'; wbtn.className = 'pill'; wbtn.textContent = T.passRename || '';
+    wbtn.addEventListener('click', () => { $('pass').hidden = true; profileUI(); });
+    who.append(wt, wbtn);
+    body.appendChild(who);
+    // 수료증(다 모았을 때 맨 위)
+    if (all) {
+      const last = ids.map(o => st[o.sid]).sort().pop() || '';
+      const ce = document.createElement('div'); ce.className = 'cert';
+      const en = document.createElement('div'); en.className = 'en'; en.textContent = T.certEn || '';
+      const h3 = document.createElement('h3'); h3.textContent = T.certTitle || '수료증';
+      const nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = name || T.guest || '';
+      const p = document.createElement('p'); p.textContent = (T.certCourse || '') + '\n' + fill(T.certDate || '{date}', { date: last }) + '\n' + (T.certTag || '');
+      const bs = document.createElement('div'); bs.className = 'btns2';
+      const b1 = document.createElement('button'); b1.type = 'button'; b1.className = 'pill primary'; b1.textContent = T.certView || '수료증 보기';
+      b1.addEventListener('click', () => certShow(name || T.guest || '', last));
+      bs.append(b1);
+      ce.append(en, h3, nm, p, bs);
+      body.appendChild(ce);
+    }
+    // 진행 막대
+    const pr = document.createElement('div'); pr.className = 'prog'; const pi = document.createElement('i'); pi.style.setProperty('--w', (n ? c / n * 100 : 0) + '%'); pr.appendChild(pi);
+    body.appendChild(pr);
+    // 도장 6칸
+    const grid = document.createElement('div'); grid.className = 'stamps';
+    const inLobby = WORLD === LOBBY_WORLD;
+    for (const o of ids) {
+      const on = !!st[o.sid];
+      const cell = document.createElement('div'); cell.className = 'stampc' + (on ? ' on' : ''); cell.style.setProperty('--c', o.s.stampColor || '#2A4D9B');
+      const ring = document.createElement('div'); ring.className = 'ring'; ring.textContent = o.s.stampMark || o.s.name.slice(0, 2);
+      const nmv = document.createElement('div'); nmv.className = 'nm'; nmv.textContent = o.s.name;
+      const dt = document.createElement('div'); dt.className = 'dt'; dt.textContent = on ? String(st[o.sid]).replace(/^\d{4}-/, '').replace('-', '.') : (T.passNot || '');
+      cell.append(ring, nmv, dt);
+      if (!on && inLobby) {
+        const go = document.createElement('button'); go.type = 'button'; go.className = 'pill'; go.textContent = T.passGo || '가기';
+        go.addEventListener('click', () => { $('pass').hidden = true; travelTo(o.s); });
+        cell.appendChild(go);
+      }
+      grid.appendChild(cell);
+    }
+    body.appendChild(grid);
+    const note = document.createElement('p'); note.className = 'note';
+    note.textContent = all ? (T.passAll || '') : (fill(T.passLeft || '', { left: n - c }) + (inLobby ? '' : ' · ' + (T.passGoRoom || '')));
+    body.appendChild(note);
+    $('btnPassReset').hidden = c === 0;
+  }
+  function passSetup() {
+    $('passLabel').textContent = T.pass || '연수 수첩';
+    $('passTitle').textContent = T.passTitle || T.pass || '';
+    $('btnPassClose').textContent = T.close;
+    $('btnPassReset').textContent = T.passReset || '';
+    $('certClose').textContent = T.close;
+    $('certDl').textContent = T.certSave || '';
+    $('certHint').textContent = T.certSaveHint || '';
+    passBadge();
+    $('btnPass').addEventListener('click', () => { if ($('pass').hidden) passOpen(); else $('pass').hidden = true; });
+    $('btnPassClose').addEventListener('click', () => { $('pass').hidden = true; });
+    $('btnPassReset').addEventListener('click', () => {
+      if (!confirm(T.passResetAsk || '?')) return;
+      try { localStorage.removeItem('xrStamps'); } catch (_) { /* 없어도 됨 */ }
+      passBadge(); passRender(); showToast(T.passResetDone || '', 3);
+    });
+    $('certClose').addEventListener('click', () => { $('certBox').hidden = true; const u = $('certDl').dataset.url; if (u) { try { URL.revokeObjectURL(u); } catch (_) { /* 없어도 됨 */ } $('certDl').dataset.url = ''; } });
+  }
+  // 수료증 그림(canvas 1400×1000)
+  function certCanvas(name, date) {
+    const W = 1400, H = 1000, c = document.createElement('canvas'); c.width = W; c.height = H;
+    const g = c.getContext('2d');
+    g.fillStyle = '#FFF9EC'; g.fillRect(0, 0, W, H);
+    // 테두리 둘(청·홍)과 모서리 장식
+    g.lineWidth = 10; g.strokeStyle = '#2A4D9B'; g.strokeRect(40, 40, W - 80, H - 80);
+    g.lineWidth = 3; g.strokeStyle = '#E0483E'; g.strokeRect(62, 62, W - 124, H - 124);
+    g.fillStyle = '#C9A96A';
+    for (const [x, y] of [[62, 62], [W - 62, 62], [62, H - 62], [W - 62, H - 62]]) { g.beginPath(); g.arc(x, y, 14, 0, Math.PI * 2); g.fill(); }
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillStyle = '#A98C66'; g.font = `500 22px ${FONT_B}`; g.fillText((T.certEn || '').toUpperCase().split('').join(' '), W / 2, 130);
+    g.fillStyle = '#8C6A4F'; g.font = `normal 92px ${FONT_D}`; g.fillText(T.certTitle || '수료증', W / 2, 215);
+    g.fillStyle = '#4A5874'; g.font = `700 30px ${FONT_B}`; g.fillText(T.certCourse || '', W / 2, 292);
+    // 이름
+    g.fillStyle = '#1E2B4A'; fitFont(g, name, 'normal', 76, FONT_D, 900); g.fillText(name, W / 2, 400);
+    g.fillStyle = '#C9A96A'; g.fillRect(W / 2 - 240, 448, 480, 3);
+    // 본문
+    g.fillStyle = '#2B3650'; g.font = `500 27px ${FONT_B}`;
+    String(T.certBody || '').split('\n').forEach((ln, i) => g.fillText(ln, W / 2, 510 + i * 42));
+    // 도장 6개
+    const ids = PASS_IDS(), st = passLoad(), n = ids.length, gap = 170, x0 = W / 2 - (n - 1) * gap / 2, y = 716;
+    ids.forEach((o, i) => {
+      const x = x0 + i * gap, col = o.s.stampColor || '#2A4D9B';
+      g.save(); g.translate(x, y); g.rotate(-0.2 + (i % 3) * 0.13);
+      g.lineWidth = 6; g.strokeStyle = col; g.beginPath(); g.arc(0, 0, 54, 0, Math.PI * 2); g.stroke();
+      g.lineWidth = 2; g.beginPath(); g.arc(0, 0, 44, 0, Math.PI * 2); g.stroke();
+      g.fillStyle = col; g.font = `normal 34px ${FONT_D}`; g.fillText(o.s.stampMark || o.s.name.slice(0, 2), 0, -4);
+      g.font = `700 14px ${FONT_B}`; g.fillText(String(st[o.sid] || '').replace(/^\d{4}-/, '').replace('-', '.'), 0, 26);
+      g.restore();
+      g.fillStyle = '#4A5874'; g.font = `700 19px ${FONT_B}`; g.fillText(o.s.name, x, y + 86);
+    });
+    // 날짜·발급
+    g.fillStyle = '#1E2B4A'; g.font = `700 28px ${FONT_B}`; g.fillText(fill(T.certDate || '{date}', { date }), W / 2, 856);
+    g.font = `normal 32px ${FONT_D}`; g.fillText(T.certIssuer || '', W / 2, 900);
+    g.fillStyle = '#E0483E'; g.font = `700 16px ${FONT_B}`; g.textAlign = 'right'; g.fillText(T.certTag || '', W - 84, H - 86);
+    return c;
+  }
+  function certShow(name, date) {
+    let cv;
+    try { cv = certCanvas(name, date); } catch (_) { showToast(T.loadFail, 3); return; }
+    const img = $('certImg'), dl = $('certDl');
+    img.src = cv.toDataURL('image/png');
+    img.alt = T.certTitle || '';
+    dl.hidden = true;
+    dl.download = T.certFile || 'certificate.png';
+    if (cv.toBlob) cv.toBlob(b => { if (!b) return; const u = URL.createObjectURL(b); dl.href = u; dl.dataset.url = u; dl.hidden = false; }, 'image/png');
+    $('certBox').hidden = false;
+    showToast(fill(T.certHello || '', { name }), 3.5);
+  }
+
+  /* ─────────────────────────────────────────────────────────────
      CONTENT — 관리자 페이지(admin/)에서 고친 학교 홈페이지·교실 글·사진첩·TV 영상·링크(2026-10-06).
      relay.json의 api(Cloudflare 저장소)에서 /api/content를 한 번 읽어 lobby.config.js 값 위에 덮는다. 빈 값은 기본 글 그대로.
      서버가 없거나 늦으면(6초) 기본 글로 본다. 시험: ?api=http://127.0.0.1:8791
      ───────────────────────────────────────────────────────────── */
   const CONTENT = { api: '', loaded: false, v: 0 };
   function loadContent() {
-    if (C.contentMap === null) return;   // 캠퍼스: 관리자 저장소를 아직 안 씀
+    if (!C.contentMap) return;   // 관리자 저장소를 안 쓰는 판
     const go = api => {
       api = String(api || '').replace(/\/+$/, '');
       if (!/^https?:\/\//.test(api)) return;
       CONTENT.api = api;
       const ctl = typeof AbortController === 'function' ? new AbortController() : null;
       const tm = setTimeout(() => { if (ctl) ctl.abort(); }, 6000);
-      fetch(api + '/api/content?map=fr', { cache: 'no-store', signal: ctl ? ctl.signal : undefined })
+      fetch(api + '/api/content?map=' + encodeURIComponent(C.contentMap), { cache: 'no-store', signal: ctl ? ctl.signal : undefined })
         .then(r => (r.ok ? r.json() : null)).then(j => { clearTimeout(tm); if (j) applyContent(j); }).catch(() => clearTimeout(tm));
     };
     const q = Q.get('api');
@@ -1547,7 +1698,51 @@
     fetch(MPC.file + '?t=' + Date.now(), { cache: 'no-store' }).then(r => (r.ok ? r.json() : null))
       .then(j => { if (j) go(j.api || (typeof j.health === 'string' ? j.health.replace(/\/health\/?$/, '') : '')); }).catch(() => {});
   }
+  // 가상융합 관(map xr): halls.<관>.text = { "경로": "글" } 를 rooms.<관>의 같은 자리에 덮는다(원래 글(문자열·글 배열)이 있는 자리만).
+  // media.<교과 id> = 책·TV·사진첩·링크 → rooms.cases.subjects[i]에 넣어 기본 틀 대신 보이게 한다.
+  function applyHalls(j) {
+    const has = v => typeof v === 'string' && v.trim() !== '';
+    const own = (o, k) => o != null && typeof o === 'object' && Object.prototype.hasOwnProperty.call(o, k);
+    const setPath = (root, path, val) => {
+      const segs = path.replace(/\[(\d+)\]/g, '.$1').split('.');
+      let o = root;
+      for (let i = 0; i < segs.length - 1; i++) { if (!own(o, segs[i])) return; o = o[segs[i]]; }
+      const k = segs[segs.length - 1];
+      if (!own(o, k)) return;
+      const cur = o[k];
+      if (typeof cur === 'string') o[k] = val;
+      else if (Array.isArray(cur) && cur.every(x => typeof x === 'string')) o[k] = val.split('\n').map(x => x.trim()).filter(Boolean);
+    };
+    const HL = j.halls || {};
+    for (const id of Object.keys(HL)) {
+      const cfg = C.rooms && C.rooms[id], d = HL[id];
+      if (!cfg || !d) continue;
+      const tx = d.text && typeof d.text === 'object' ? d.text : {};
+      for (const p of Object.keys(tx)) if (has(tx[p])) setPath(cfg, p, tx[p]);
+      const md = d.media && typeof d.media === 'object' ? d.media : {};
+      if (Array.isArray(cfg.subjects)) for (const s of cfg.subjects) {
+        const m = md[s.id];
+        if (!m) continue;
+        const b = m.book || {}, t = m.tv || {}, a = m.album || {};
+        // 실제 글·영상·사진이 오면 틀의 '(예시)' 제목·부제는 쓰지 않는다
+        if (has(b.title) || has(b.sub) || has(b.text)) { s.book = Object.assign({}, s.book); if (has(b.title)) s.book.title = b.title; if (has(b.sub)) s.book.sub = b.sub; if (has(b.text)) { s.book.text = b.text; s.book.sample = false; if (!has(b.sub)) s.book.sub = ''; if (!has(b.title)) s.book.title = s.name + ' 지도안'; } }
+        if (has(t.title) || has(t.video)) { s.tv = Object.assign({}, s.tv); if (has(t.title)) s.tv.title = t.title; if (has(t.video) && /^https:\/\/www\.youtube\.com\/embed\//.test(t.video)) { s.tv.video = t.video; s.tv.sample = false; if (!has(t.title)) s.tv.title = s.name + ' 수업 영상'; } }
+        if (has(a.title) || (Array.isArray(a.photos) && a.photos.length)) {
+          s.album = Object.assign({}, s.album);
+          if (has(a.title)) s.album.title = a.title; else if (a.photos && a.photos.length) s.album.title = s.name + ' 학생 결과물';
+          if (Array.isArray(a.photos) && a.photos.length) { s.album.photos = a.photos.map(p => CONTENT.api + '/api/img/' + encodeURIComponent(p.id)); s.album.captions = a.photos.map(p => String(p.cap || '')); }
+        }
+        if (Array.isArray(m.links) && m.links.length) { s.book = Object.assign({}, s.book); s.book.links = m.links.filter(l => l && /^https?:\/\//.test(l.url)).slice(0, 8); }
+      }
+    }
+  }
   function applyContent(j) {
+    if (j.map === 'xr' || j.halls) {
+      applyHalls(j);
+      CONTENT.loaded = true; CONTENT.v = j.v || 0;
+      if (ROOM && ROOM.invalidate) ROOM.invalidate();
+      return;
+    }
     const has = v => typeof v === 'string' && v.trim() !== '';
     const S = j.schools || {}, RM = j.rooms || {};
     for (const s of SCHOOLS) { const d = S[s.id]; if (d && has(d.web) && /^https?:\/\//.test(d.web)) s.web = d.web; }
