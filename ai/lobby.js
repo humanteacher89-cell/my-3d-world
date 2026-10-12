@@ -1616,6 +1616,7 @@
   }
   function mpWakeAndConnect() {
     if (!MP.on || MP.ws || MP.waking) return;
+    MP.begun = true;
     MP.waking = true;
     mpBadge('wake');
     const tryHealth = n => {
@@ -1640,6 +1641,7 @@
   }
   function mpConnect() {
     if (!MP.on || MP.ws) return;
+    if (MP.asleep || document.hidden) { MP.asleep = true; mpBadge('off'); return; }   // 탭이 가려져 있으면 붙지 않는다(돌아오면 mpAwake)
     let ws;
     // 방 이름은 주소(?room=)와 첫 인사(hello) 둘 다에 넣는다: Cloudflare 판은 주소로 방을 고르고, Node 판은 인사를 본다
     try { ws = new WebSocket(MP.url + (MP.url.includes('?') ? '&' : '?') + 'room=' + encodeURIComponent(MP.room)); } catch (_) { mpBadge('off'); return; }
@@ -1649,12 +1651,13 @@
     ws.onclose = () => {
       if (MP.ws !== ws) return;
       MP.ws = null; MP.id = null; mpClear();
+      if (MP.asleep) { mpBadge('off'); return; }   // 일부러 끊은 것(탭 가림·입력 없음): 다시 잇지 않는다
       if (MP.pending) { const r = MP.pending; MP.pending = null; MP.room = r; mpConnect(); return; }   // 방을 바꾸려고 끊은 것
       if (!MP.on) { mpBadge('solo'); return; }
       if (MP.full) { mpBadge('full'); return; }
       mpBadge('off');
       MP.retry = Math.min(MP.retry + 1, 6);
-      setTimeout(() => { if (MP.on && !MP.ws) mpWakeAndConnect(); }, 1500 * MP.retry);
+      setTimeout(() => { if (MP.on && !MP.ws && !MP.asleep) mpWakeAndConnect(); }, 1500 * MP.retry);
     };
     ws.onerror = () => {};
   }
@@ -1704,6 +1707,23 @@
     mpBadge(MP.state);
   }
   function mpClear() { [...MP.peers.keys()].forEach(mpRemove); }
+
+  // 실행 시간 절약(2026-10-12): 탭이 가려지거나 5분 동안 아무 입력이 없으면 접속을 끊고, 돌아오면 다시 잇는다. 가만히 있을 땐 45초마다 ping만 보낸다(서버가 깨우지 않고 pong으로 답한다)
+  MP.asleep = false; MP.begun = false; MP.lastIn = Date.now();
+  function mpSleep() {
+    if (MP.asleep || !MP.on) return;
+    MP.asleep = true; MP.pending = null;
+    if (MP.ws) { try { MP.ws.close(1000, 'sleep'); } catch (_) { /* 없어도 됨 */ } }
+  }
+  function mpAwake() {
+    MP.lastIn = Date.now();
+    if (!MP.asleep) return;
+    MP.asleep = false;
+    if (MP.on && MP.begun && !MP.ws) { MP.retry = 0; mpWakeAndConnect(); }
+  }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) mpSleep(); else mpAwake(); });
+  ['pointerdown', 'pointermove', 'keydown', 'wheel', 'touchstart'].forEach(ev => addEventListener(ev, () => { MP.lastIn = Date.now(); if (MP.asleep && !document.hidden) mpAwake(); }, { passive: true, capture: true }));
+  setInterval(() => { if (MP.ws && Date.now() - MP.lastIn > 300000) mpSleep(); }, 15000);
   // 다른 사람: 받은 자리로 부드럽게 옮기고, 걷는 중이면 발을 움직인다
   function updatePeer(ch, dt) {
     const p = ch.peer;
@@ -1723,7 +1743,8 @@
     MP.sendT += dt;
     if (MP.sendT >= 1 / (MPC.sendHz || 8)) {
       const s = mpState(), k = s.join(',');
-      if (k !== MP.last || MP.sendT > 2) { try { MP.ws.send(JSON.stringify({ t: 's', s })); } catch (_) { /* 끊기면 onclose가 처리 */ } MP.last = k; MP.sendT = 0; }
+      if (k !== MP.last) { try { MP.ws.send(JSON.stringify({ t: 's', s })); } catch (_) { /* 끊기면 onclose가 처리 */ } MP.last = k; MP.sendT = 0; }   // 움직였을 때만 보낸다
+      else if (MP.sendT > 45) { try { MP.ws.send('ping'); } catch (_) { /* 끊기면 onclose가 처리 */ } MP.sendT = 0; }   // 가만히 있으면 45초마다 ping만(서버 자동 응답)
     }
   }
   // 이름·모습 정하기(처음 접속할 때, 학교 목록 맨 아래 '내 이름·모습 바꾸기')

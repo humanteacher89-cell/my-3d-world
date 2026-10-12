@@ -1312,10 +1312,10 @@ function start(CFG){
       player.facing=keep.face;camDistT=keep.dist;camLift=0;document.body.classList.remove('mpEdit');setCut(false);
       if(MP.ws)mpStop();mpConnect();plazaChoices();};   // 이미 접속해 있으면 다시 붙어 새 이름·모습을 알린다
     $('#mpNameGo').onclick=go;inp.onkeydown=e=>{if(e.key==='Enter')go();};if(!IS_TOUCH)setTimeout(()=>{try{inp.focus();}catch(_){}},60);}   // 폰은 자판이 고르기 칸을 가려서 자동으로 열지 않는다
-  function mpConnect(){if(!MP.on||MP.ws||!PZ.active)return;let ws;try{ws=new WebSocket(mpURL());}catch(e){mpBadge('off');return;}MP.ws=ws;MP.full=false;mpBadge('wait');
+  function mpConnect(){if(!MP.on||MP.ws||!PZ.active)return;MP.begun=true;if(MP.asleep||document.hidden){MP.asleep=true;mpBadge('off');return;}let ws;try{ws=new WebSocket(mpURL());}catch(e){mpBadge('off');return;}MP.ws=ws;MP.full=false;mpBadge('wait');
     ws.onopen=()=>{MP.retry=0;ws.send(JSON.stringify({t:'hello',room:MP.room,name:MP.name,look:myLook(),s:mpState()}));};
     ws.onmessage=e=>{let m;try{m=JSON.parse(e.data);}catch(_){return;}mpMsg(m);};
-    ws.onclose=()=>{if(MP.ws!==ws)return;MP.ws=null;MP.id=null;mpClear();if(!PZ.active)return;if(MP.full){mpBadge('full');return;}
+    ws.onclose=()=>{if(MP.ws!==ws)return;MP.ws=null;MP.id=null;mpClear();if(!PZ.active)return;if(MP.asleep){mpBadge('off');return;}if(MP.full){mpBadge('full');return;}
       mpBadge('off');MP.retry=Math.min(MP.retry+1,6);setTimeout(()=>{if(PZ.active&&!MP.ws)mpConnect();},1500*MP.retry);};
     ws.onerror=()=>{};}
   function mpStop(){const ws=MP.ws;MP.ws=null;MP.id=null;if(ws){try{ws.close();}catch(_){}}mpClear();$('#mpBadge').hidden=true;$('#mpName').hidden=true;me.tag.visible=false;}
@@ -1336,10 +1336,17 @@ function start(CFG){
     const a=s[4]|0;if(a===3&&p.anim!==3&&p.ch)p.ch.emote('wave');p.anim=a;}
   function mpRemove(id){const p=MP.peers.get(id);if(!p)return;scene.remove(p.cap);if(p.ch)scene.remove(p.ch.root);MP.peers.delete(id);mpBadge('on');}
   function mpClear(){[...MP.peers.keys()].forEach(mpRemove);}
+  // 실행 시간 절약(2026-10-12): 탭이 가려지거나 5분 동안 아무 입력이 없으면 접속을 끊고, 돌아오면 다시 잇는다. 가만히 있을 땐 45초마다 ping만(서버가 깨우지 않고 pong으로 답한다)
+  MP.asleep=false;MP.begun=false;MP.lastIn=Date.now();
+  function mpSleep(){if(MP.asleep||!MP.on)return;MP.asleep=true;if(MP.ws){try{MP.ws.close(1000,'sleep');}catch(_){}}}
+  function mpAwake(){MP.lastIn=Date.now();if(!MP.asleep)return;MP.asleep=false;if(MP.on&&MP.begun&&PZ.active&&!MP.ws){MP.retry=0;mpConnect();}}
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)mpSleep();else mpAwake();});
+  ['pointerdown','pointermove','keydown','wheel','touchstart'].forEach(ev=>addEventListener(ev,()=>{MP.lastIn=Date.now();if(MP.asleep&&!document.hidden)mpAwake();},{passive:true,capture:true}));
+  setInterval(()=>{if(MP.ws&&Date.now()-MP.lastIn>300000)mpSleep();},15000);
   function mpWave(){if(MP.waveT>0)return;me.emote('wave');MP.waveT=2.4;MP.last='';}
   function mpUpdate(dt){if(!MP.on)return;if(MP.waveT>0)MP.waveT-=dt;
-    // 내 상태: 초당 10번까지, 바뀌었을 때만(가만히 있어도 2초마다 한 번)
-    MP.sendT+=dt;if(MP.ws&&MP.ws.readyState===1&&MP.id!=null&&MP.sendT>=0.1){const s=mpState(),k=s.join(',');if(k!==MP.last||MP.sendT>2){try{MP.ws.send(JSON.stringify({t:'s',s}));}catch(_){}MP.last=k;MP.sendT=0;}}
+    // 내 상태: 초당 10번까지, 바뀌었을 때만(가만히 있으면 45초마다 ping만)
+    MP.sendT+=dt;if(MP.ws&&MP.ws.readyState===1&&MP.id!=null&&MP.sendT>=0.1){const s=mpState(),k=s.join(',');if(k!==MP.last){try{MP.ws.send(JSON.stringify({t:'s',s}));}catch(_){}MP.last=k;MP.sendT=0;}else if(MP.sendT>45){try{MP.ws.send('ping');}catch(_){}MP.sendT=0;}}
     // 가까운 사람 고르기: 0.5초마다, 이미 캐릭터인 사람은 2m 덤(경계에서 깜빡이지 않게)
     MP.pickT-=dt;if(MP.pickT<=0){MP.pickT=0.5;const P=player.pos,arr=[...MP.peers.values()];
       arr.forEach(p=>p.d=Math.hypot(p.pos.x-P.x,p.pos.z-P.z)-(p.near?2:0));arr.sort((a,b)=>a.d-b.d);arr.forEach((p,i)=>p.near=i<MP_NEAR);}
