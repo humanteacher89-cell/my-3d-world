@@ -294,6 +294,14 @@ window.HW = (function () {
     rig.position.sub(hp).applyAxisAngle(UP, delta).add(hp); rig.rotation.y += delta; rig.updateMatrixWorld(true);
     const h2 = headPos(); rig.position.x += feet.x - h2.x; rig.position.z += feet.z - h2.z; rig.position.y = 0; rig.updateMatrixWorld(true);
   }
+  // 화면 모드: 눈 자리(eye)에서 target을 똑바로 보게(맵이 단계마다 카메라를 옮길 때). 헤드셋·휴대폰 혼합현실에서는 아무것도 안 함
+  function flatView(eye, target) {
+    if (inXR()) return;
+    rig.rotation.y = 0; rig.position.set(eye.x, eye.y - camera.position.y, eye.z);
+    const d = target.clone().sub(eye);
+    flatYaw = Math.atan2(-d.x, -d.z); flatPitch = Math.atan2(d.y, Math.hypot(d.x, d.z));
+    camera.rotation.set(flatPitch, flatYaw, 0); rig.updateMatrixWorld(true);
+  }
   const fadeMesh = new THREE.Mesh(new THREE.SphereGeometry(0.25, 16, 12), new THREE.MeshBasicMaterial({ color: 0x0a0810, transparent: true, opacity: 0, side: THREE.BackSide, depthTest: false, depthWrite: false, fog: false }));
   fadeMesh.renderOrder = 999; camera.add(fadeMesh);
   const setFade = a => { fadeMesh.material.opacity = a; fadeMesh.visible = a > 0.001; };
@@ -687,13 +695,45 @@ window.HW = (function () {
   let koVoice = null;
   function pickVoice() { try { const vs = speechSynthesis.getVoices(); koVoice = vs.find(v => /^ko/i.test(v.lang) && /google|yuna|heami|sunhi|injoon|natural/i.test(v.name)) || vs.find(v => /^ko/i.test(v.lang)) || null; } catch (e) {} }
   if ('speechSynthesis' in window) { pickVoice(); try { speechSynthesis.addEventListener('voiceschanged', pickVoice); } catch (e) {} }
-  const hasKoVoice = () => { if (!koVoice) pickVoice(); return !!koVoice && !AUTOTEST; };
+  // 미리 만든 목소리 파일(10-19, 휴먼쌤 "한국어 말이 엄청 어색해"): 맵이 voicePack(기준 주소, 목록)으로 주면 문장마다 mp3를 튼다.
+  // 목록 = { '문장': { f: '파일.mp3', d: 길이(초) } }. 긴 말은 문장(. ! ?)으로 나눠 이어 튼다. 한 문장이라도 없으면 브라우저 음성 합성으로.
+  // 소리는 효과음과 같은 길(WorldAudio)로 나가서 소리 끄기 버튼을 따른다.
+  let pack = null, speakTok = 0, curSrc = null;
+  const clipBytes = {}, clipBuf = {};
+  const normSay = s => String(s).replace(/\s+/g, ' ').trim();
+  const splitSay = t => (normSay(t).match(/[^.!?]+[.!?]*/g) || []).map(s => s.trim()).filter(Boolean);   // 뒤보기 정규식은 옛 아이폰에서 안 돼 쓰지 않는다
+  function voicePack(base, index) {
+    pack = { base, index };
+    let started = false;   // 첫 터치로 소리가 열리면 파일을 차례로 미리 받아 둔다(와이파이가 약해도 누를 때 바로 나게)
+    every(() => { if (started) return false; if (!audio._ctx) return true; started = true; (async () => { for (const e of Object.values(index)) { await fetchClip(e); } log('voice prefetched', Object.keys(index).length); })(); return false; });
+  }
+  const fetchClip = e => clipBytes[e.f] || (clipBytes[e.f] = fetch(pack.base + e.f).then(r => r.ok ? r.arrayBuffer() : null).catch(() => null));
+  function decodeClip(e) {
+    if (clipBuf[e.f]) return clipBuf[e.f];
+    const ctx = audio._ctx; if (!ctx) return Promise.resolve(null);
+    return (clipBuf[e.f] = fetchClip(e).then(b => b ? new Promise(ok => ctx.decodeAudioData(b.slice(0), ok, () => ok(null))) : null));
+  }
+  function stopSpeak() { speakTok++; if (curSrc) { try { curSrc.stop(); } catch (e) {} curSrc = null; } try { if ('speechSynthesis' in window) speechSynthesis.cancel(); } catch (e) {} }
+  async function speakClips(clips) {
+    stopSpeak(); const my = speakTok;
+    if (AUTOTEST || !audio._ctx) { await wait(clips.reduce((a, c) => a + c.d + 0.12, 0)); return; }
+    for (const c of clips) {
+      const buf = await decodeClip(c); if (my !== speakTok) return;
+      if (!buf) { await wait(c.d); continue; }
+      await new Promise(res => { const ctx = audio._ctx, s = ctx.createBufferSource(); s.buffer = buf; s.connect(audio._out || ctx.destination); s.onended = res; curSrc = s; try { s.start(); } catch (e) { res(); } setTimeout(res, (buf.duration + 0.6) * 1000); });
+      if (my !== speakTok) return;
+      await wait(0.1);
+    }
+    curSrc = null;
+  }
+  const hasKoVoice = () => { if (!koVoice) pickVoice(); return !AUTOTEST && (!!pack || !!koVoice); };
   function speak(text, o = {}) {
     text = String(text || '');
+    if (pack && text) { const clips = splitSay(text).map(s => pack.index[s]); if (clips.length && clips.every(Boolean)) return speakClips(clips); log('voice missing', text); }
     return new Promise(res => {
-      if (!hasKoVoice() || !text) { wait(Math.min(2.5, 0.3 + text.length * 0.08)).then(res); return; }
+      if (!hasKoVoice() || !koVoice || !text) { wait(Math.min(2.5, 0.3 + text.length * 0.08)).then(res); return; }
       try {
-        speechSynthesis.cancel();
+        stopSpeak();
         const u = new SpeechSynthesisUtterance(text); u.lang = 'ko-KR'; u.voice = koVoice; u.rate = o.rate || 0.88; u.pitch = o.pitch || 1.05;
         let done = false; const fin = () => { if (!done) { done = true; res(); } };
         u.onend = fin; u.onerror = fin;
@@ -756,7 +796,7 @@ window.HW = (function () {
   // 프레임마다 맨 먼저 이번 프레임의 머리(휴대폰) 위치를 카메라에 넣고, 붙은 판까지 갱신한 뒤 그린다.
   renderer.xr.cameraAutoUpdate = false;
   renderer.setAnimationLoop((time, frame) => {
-    const dt = Math.min(0.05, clock.getDelta()); now += dt;
+    const dt = Math.min(AUTOTEST ? 0.25 : 0.05, clock.getDelta()); now += dt;   // 자동 시험(화면 없는 느린 브라우저)은 시간이 실제와 같이 흐르게
     if (renderer.xr.isPresenting) { rig.updateMatrixWorld(true); renderer.xr.updateCamera(camera); camera.updateMatrixWorld(true); }
     updatePlacement(frame);
     for (let i = waits.length - 1; i >= 0; i--) { const w = waits[i]; if ((w.t != null && now >= w.t) || (w.f && w.f())) { waits.splice(i, 1); w.r(); } }
@@ -832,10 +872,10 @@ window.HW = (function () {
     geo, std, glowMat, mesh, torus, ease, glowTex, glowSprite,
     wait, until, tween, every, get now() { return now; }, onUpdate: f => hooks.push(f),
     Panel, INK, DIM, PAPER, nameTag, ui, setWrist,
-    loadChar, headPos, headDir, feetPos, inXR, place, moveTo, fadeTo, setFade, fadeMesh, vig, bounds,
+    loadChar, headPos, headDir, feetPos, inXR, place, flatView, moveTo, fadeTo, setFade, fadeMesh, vig, bounds,
     get canMove() { return canMove; }, set canMove(v) { canMove = v; },
     get emptyAction() { return emptyAction; }, set emptyAction(f) { emptyAction = f; },
-    speak, hasKoVoice,
+    speak, hasKoVoice, voicePack, stopSpeak,
     hud, unHud, useHud, get handheld() { return handheld; }, addPickable, removePickable, addGrabbable, removeGrabbable, grabbers, anyHolding, hands, face, placeToward, placeAhead, typeText, waitPick, nameRow, say, showToast, showTitle, burst, start
   };
 })();
