@@ -395,18 +395,19 @@ window.HW = (function () {
   function updateGrab(dt) {
     for (const g of grabbers) {
       const h = g.h; g.ok = false; g.tip = null;
-      if (!inXR() || !h.src) { if (g.held) release(g); continue; }
+      if (!inXR() || !h.src) { if (g.held) release(g); g.pinch = false; g.pending = null; continue; }
       let pinchNow = false;
       if (h.src.targetRayMode === 'screen') {
         const o = h.ray.getWorldPosition(V3()), dir = V3(0, 0, -1).applyQuaternion(h.ray.getWorldQuaternion(new THREE.Quaternion()));
         pinchNow = !!h.touch; g.ok = true;
-        if (pinchNow && !g.pinch) {
+        if (pinchNow && !g.pinch) {   // 누르기 시작: 바로 집지 않고 무엇을 눌렀는지만 기억한다(톡 = 누르기, 끌거나 꾹 = 집기)
           raycaster.set(o, dir); raycaster.far = 15; const pc = castFrom();   // 버튼을 누른 거면 끌기 안 함
-          const hit = pc && pc.kind === 'panel' ? null : rayGrabbable(o, dir); g.holdDist = hit ? hit.t : 0; g.pending = hit ? hit.ob : null;
+          const hit = pc && pc.kind === 'panel' ? null : rayGrabbable(o, dir); g.holdDist = hit ? hit.t : 0; g.pending = hit ? hit.ob : null; g.tapObj = g.pending;
+          g.downT = now; g.downDir = dir.clone();
         }
         g.point.copy(o).addScaledVector(dir, g.holdDist || 0.5);
-        if (pinchNow && !g.pinch && g.pending) { const ob = g.pending; g.pending = null; g.held = ob; ob.userData.grab.held = g; h.dragged = true; g.prev.copy(g.point); g.vel.set(0, 0, 0); sfx('click'); if (ob.userData.grab.onGrab) ob.userData.grab.onGrab(g); }
-        else if (!pinchNow && g.pinch && g.held) release(g);
+        if (pinchNow && g.pending && (now - g.downT > 0.25 || dir.angleTo(g.downDir) > 0.035)) { const ob = g.pending; g.pending = null; g.tapObj = null; g.held = ob; ob.userData.grab.held = g; h.dragged = true; g.prev.copy(g.point); g.vel.set(0, 0, 0); sfx('click'); if (ob.userData.grab.onGrab) ob.userData.grab.onGrab(g); }
+        else if (!pinchNow && g.pinch) { g.pending = null; if (g.held) release(g); }
         const v = g.point.clone().sub(g.prev).divideScalar(Math.max(dt, 1e-3)); g.vel.lerp(v, 0.35); g.prev.copy(g.point);
         if (g.held && g.held.userData.grab.onMove) g.held.userData.grab.onMove(g, g.point, g.vel);
         g.pinch = pinchNow;
@@ -698,6 +699,9 @@ window.HW = (function () {
       placeWorldAt(pos); reticle.visible = false; world.visible = true; sfx('appear');
       const p = placing; placing = null; ui.info.show(false); p(); return;
     }
+    // 톡: 빛줄기가 물건 모양을 살짝 빗나가도, 누르기 시작할 때 집기 범위에 있던 물건이면 그 물건을 누른 것으로
+    const g = grabbers.find(x => x.h === h), ob = g && g.tapObj; if (g) g.tapObj = null;
+    if (!h.hit && ob && ob.userData.pick && ob.userData.pick.enabled) { sfx('select'); ob.userData.pick.onPick(ob); return; }
     onSelect(h);
   }
   async function placeStep(session) {

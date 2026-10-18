@@ -336,7 +336,7 @@
     await riniSay(A.m5.ask, null, '만들어 볼게'); missionInfo(A.m5.ask);
     if (H.AUTOTEST) (async () => { await wait(1); const os = parts.filter(p => p.kind === 'O'); combine(os[0], os[1], 'O2'); await wait(1); const o2 = parts.find(p => p.kind === 'O2' && !p.dead), c = parts.find(p => p.kind === 'C'); combine(o2, c, 'CO2'); })();
     await until(() => madeKinds.has('O2')); missionInfo(A.m5.madeO2);
-    await until(() => madeKinds.has('CO2')); missionInfo(A.m5.madeCO2 + ' ' + A.m5.putIn);
+    await until(() => madeKinds.has('CO2')); missionInfo(A.m5.madeCO2 + ' ' + (H.handheld || !H.inXR() ? A.m5.putInTap : A.m5.putIn));
     // 화면 모드: 이산화탄소를 누르면 상자로 들어간다
     const co2 = () => parts.find(p => p.kind === 'CO2' && !p.dead);
     if (co2()) { const pc = co2(); pc.g.userData.pick.onPick = () => { pc.g.position.copy(tray.worldToLocal(H.world.localToWorld(C.clone()))); placePart(pc); }; }
