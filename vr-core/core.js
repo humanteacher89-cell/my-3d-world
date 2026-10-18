@@ -713,14 +713,19 @@ window.HW = (function () {
   // ───────────── 루프·시작 ─────────────
   const hooks = [];
   const clock = new THREE.Clock();
+  // 카메라에 붙인 판(자막·계기판·눈앞 막)이 한 프레임 늦게 따라와 떨리지 않게:
+  // 프레임마다 맨 먼저 이번 프레임의 머리(휴대폰) 위치를 카메라에 넣고, 붙은 판까지 갱신한 뒤 그린다.
+  renderer.xr.cameraAutoUpdate = false;
   renderer.setAnimationLoop((time, frame) => {
     const dt = Math.min(0.05, clock.getDelta()); now += dt;
+    if (renderer.xr.isPresenting) { rig.updateMatrixWorld(true); renderer.xr.updateCamera(camera); camera.updateMatrixWorld(true); }
     updatePlacement(frame);
     for (let i = waits.length - 1; i >= 0; i--) { const w = waits[i]; if ((w.t != null && now >= w.t) || (w.f && w.f())) { waits.splice(i, 1); w.r(); } }
     for (let i = updaters.length - 1; i >= 0; i--) if (!updaters[i]()) updaters.splice(i, 1);
     updateFlat(dt); updateSticks(dt); updateVignette(dt); updateHands(); updateGrab(dt); updatePointers(); updateChars(dt); updateBursts(dt);
     for (const f of hooks) f(dt);
     for (const p of panels) p.tick(dt);
+    if (renderer.xr.isPresenting) { rig.updateMatrixWorld(true); renderer.xr.updateCamera(camera); camera.updateMatrixWorld(true); }   // 막대로 걸어 rig가 움직였을 때도 같은 프레임에 맞춘다
     renderer.render(scene, camera);
   });
 
