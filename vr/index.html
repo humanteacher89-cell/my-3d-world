@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>휴먼쌤이 누구인가 · VR</title>
+<style>
+  :root { --ink:#29263a; --dim:#6f6a80; --paper:#fffaf2; --accent:#f2a94f; }
+  html, body { margin:0; height:100%; overflow:hidden; background:#dfe9f3; font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif; color:var(--ink); }
+  canvas { display:block; touch-action:none; }
+  #cover { position:fixed; inset:0; display:grid; place-items:center; background:linear-gradient(#5f87c9,#dfe9f3 62%,#f4efe6); z-index:5; padding:16px; box-sizing:border-box; }
+  #cover .card { background:var(--paper); border-radius:22px; padding:28px 26px 24px; max-width:440px; width:100%; box-shadow:0 18px 50px rgba(40,40,80,.18); text-align:center; }
+  #cover .kicker { color:#b5873e; font-weight:700; font-size:14px; letter-spacing:.02em; }
+  #cover h1 { margin:6px 0 10px; font-size:30px; }
+  #cover p { margin:0 0 18px; color:var(--dim); font-size:15px; line-height:1.55; }
+  #cover button { display:block; width:100%; border:0; border-radius:14px; padding:15px 12px; font:inherit; font-size:18px; font-weight:700; cursor:pointer; margin-top:10px; }
+  #vrBtn { background:var(--accent); color:#2a2010; }
+  #vrBtn[disabled] { background:#e7e1d6; color:#9a93a6; cursor:default; }
+  #flatBtn { background:#ece5d8; color:var(--ink); }
+  #note { margin-top:12px; font-size:13px; color:var(--dim); min-height:1em; }
+  #loading { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); background:rgba(30,28,44,.78); color:#fff; padding:8px 14px; border-radius:20px; font-size:13px; z-index:6; }
+</style>
+</head>
+<body>
+<div id="cover">
+  <div class="card">
+    <div class="kicker">휴먼쌤 월드 · 첫 번째 월드 · VR</div>
+    <h1>휴먼쌤이 누구인가</h1>
+    <p>약 3분. 헤드셋에서는 손에서 나가는 빛줄기로 가리키고 방아쇠를 당겨 골라요.</p>
+    <button id="vrBtn" type="button" disabled>VR 확인 중…</button>
+    <button id="flatBtn" type="button">화면으로 보기</button>
+    <div id="note"></div>
+  </div>
+</div>
+<div id="loading">불러오는 중…</div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="audio.js" charset="utf-8"></script>
+<script src="content.js" charset="utf-8"></script>
+<script src="vr.js" charset="utf-8"></script>
+</body>
+</html>
