@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="only light">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>손 위의 태양계 · 혼합현실</title>
+<style>
+  :root { --ink:#29263a; --dim:#6f6a80; --paper:#fffaf2; }
+  html, body { margin:0; height:100%; overflow:hidden; background:#e9e2d4; font-family:"Noto Sans KR","Malgun Gothic",system-ui,sans-serif; color:var(--ink); }
+  canvas { display:block; touch-action:none; }
+  #cover { position:fixed; inset:0; display:grid; place-items:center; background:linear-gradient(#141a3a,#3b4378 55%,#e8e2f0); z-index:5; padding:16px; box-sizing:border-box; }
+  #cover .card { box-sizing:border-box; background:var(--paper); border-radius:22px; padding:28px 26px 24px; max-width:440px; width:100%; box-shadow:0 18px 50px rgba(40,40,80,.18); text-align:center; }
+  #cover .kicker { color:#b5873e; font-weight:700; font-size:14px; }
+  #cover h1 { margin:6px 0 10px; font-size:30px; }
+  #cover p { margin:0 0 18px; color:var(--dim); font-size:15px; line-height:1.55; }
+  #cover button { display:block; width:100%; border:0; border-radius:14px; padding:15px 12px; font:inherit; font-size:18px; font-weight:700; cursor:pointer; margin-top:10px; }
+  #vrBtn { background:#f2a94f; color:#2a2010; }
+  #vrBtn[disabled] { background:#e7e1d6; color:#9a93a6; cursor:default; }
+  #mrBtn { background:#5cc3b4; color:#0f2a26; }
+  #flatBtn { background:#ece5d8; color:var(--ink); }
+  #note { margin-top:12px; font-size:13px; color:var(--dim); min-height:1em; }
+  #sndBtn { top:auto !important; left:auto !important; right:14px !important; bottom:calc(14px + env(safe-area-inset-bottom,0px)) !important; }   /* 소리 버튼: 계기판과 겹치지 않게 오른쪽 아래 */
+  #loading { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); background:rgba(30,28,44,.78); color:#fff; padding:8px 14px; border-radius:20px; font-size:13px; z-index:6; }
+</style>
+</head>
+<body>
+<div id="cover">
+  <div class="card">
+    <div class="kicker">휴먼쌤 월드 · 손으로 하는 과학</div>
+    <h1>손 위의 태양계</h1>
+    <p>내 방에 태양과 여덟 행성을 띄워요. 손으로 행성을 집어 크기를 견주고, 진짜 거리로 펼치고, 시간을 빨리 돌려 1년을 봐요. 약 5분.<br>퀘스트 3(손 인식)이나 <b>안드로이드 휴대폰</b>에서 내 방에 띄워 볼 수 있어요.</p>
+    <button id="mrBtn" type="button" style="display:none">내 방에서 시작 (혼합현실)</button>
+    <button id="vrBtn" type="button" disabled>VR 확인 중…</button>
+    <button id="flatBtn" type="button">화면으로 보기</button>
+    <div id="note"></div>
+  </div>
+</div>
+<div id="loading">불러오는 중…</div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="../world1/audio.js" charset="utf-8"></script>
+<script src="../vr-core/core.js" charset="utf-8"></script>
+<script src="content.js" charset="utf-8"></script>
+<script src="solar.js" charset="utf-8"></script>
+</body>
+</html>
