@@ -626,7 +626,8 @@ window.HW = (function () {
   // speaker = { pos, name, role, dot, char } · options = 고를 것 목록(없으면 single 버튼 하나)
   async function say(speaker, text, options, single = '다음', o = {}) {
     const p = ui.talk; p.clear(); nameRow(p, speaker.dot, speaker.name, speaker.role);
-    const body = p.text(text, 40, INK, { gap: 26 });
+    const body = p.text(text, 40, INK, { gap: o.sub ? 10 : 26 });
+    if (o.sub) p.text(o.sub, 28, DIM, { gap: 24 });   // 작은 글(뜻풀이 등)
     if (options) options.forEach(t => p.button(t, null, '#3b3550', null, 96)); else p.button(single, null, '#ece5d8', null, 84);
     p.finish();
     const sp = speaker.char ? speaker.char.root.getWorldPosition(V3()) : speaker.pos;
@@ -667,6 +668,27 @@ window.HW = (function () {
       b.pts.geometry.attributes.position.needsUpdate = true; b.pts.material.opacity = Math.max(0, 1 - b.t / b.life);
       if (b.t > b.life) { scene.remove(b.pts); b.pts.geometry.dispose(); b.pts.material.dispose(); bursts.splice(j, 1); }
     }
+  }
+
+  // ───────────── 소리 읽어 주기(브라우저 내장 음성 합성, 한국어) ─────────────
+  // 아이폰·안드로이드·PC 크롬은 한국어 음성이 있다. 퀘스트 브라우저는 확인 전. 음성이 없거나 자동 시험이면 글 길이만큼 기다리고 넘어간다.
+  let koVoice = null;
+  function pickVoice() { try { const vs = speechSynthesis.getVoices(); koVoice = vs.find(v => /^ko/i.test(v.lang) && /google|yuna|heami|sunhi|injoon|natural/i.test(v.name)) || vs.find(v => /^ko/i.test(v.lang)) || null; } catch (e) {} }
+  if ('speechSynthesis' in window) { pickVoice(); try { speechSynthesis.addEventListener('voiceschanged', pickVoice); } catch (e) {} }
+  const hasKoVoice = () => { if (!koVoice) pickVoice(); return !!koVoice && !AUTOTEST; };
+  function speak(text, o = {}) {
+    text = String(text || '');
+    return new Promise(res => {
+      if (!hasKoVoice() || !text) { wait(Math.min(2.5, 0.3 + text.length * 0.08)).then(res); return; }
+      try {
+        speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text); u.lang = 'ko-KR'; u.voice = koVoice; u.rate = o.rate || 0.88; u.pitch = o.pitch || 1.05;
+        let done = false; const fin = () => { if (!done) { done = true; res(); } };
+        u.onend = fin; u.onerror = fin;
+        setTimeout(() => { try { speechSynthesis.speak(u); } catch (e) { fin(); } }, 0);   // 취소 직후 바로 말하면 안드로이드에서 안 나올 때가 있어 한 틱 띄운다
+        setTimeout(fin, 1500 + text.length * 260);   // 소리가 안 나도 흐름이 멈추지 않게
+      } catch (e) { res(); }
+    });
   }
 
   // ───────────── 휴대폰 혼합현실: 바닥·책상을 비춰 놓을 곳 정하기 ─────────────
@@ -801,6 +823,7 @@ window.HW = (function () {
     loadChar, headPos, headDir, feetPos, inXR, place, moveTo, fadeTo, setFade, fadeMesh, vig, bounds,
     get canMove() { return canMove; }, set canMove(v) { canMove = v; },
     get emptyAction() { return emptyAction; }, set emptyAction(f) { emptyAction = f; },
+    speak, hasKoVoice,
     hud, unHud, useHud, get handheld() { return handheld; }, addPickable, removePickable, addGrabbable, removeGrabbable, grabbers, anyHolding, hands, face, placeToward, placeAhead, typeText, waitPick, nameRow, say, showToast, showTitle, burst, start
   };
 })();
