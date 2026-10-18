@@ -84,7 +84,7 @@ window.HW = (function () {
   })();
   function glowSprite(color, size, opacity) {
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: hex(color), transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false }));
-    s.scale.setScalar(size); return s;
+    s.scale.setScalar(size); s.raycast = () => {}; return s;   // 빛 번짐은 가리키기 계산에서 뺀다(XR에서 카메라 없이 계산하면 매 프레임 오류)
   }
 
   // ───────────── 시간·기다림(렌더 루프에서 푼다) ─────────────
@@ -465,6 +465,7 @@ window.HW = (function () {
   function removePickable(obj) { const i = pickables.indexOf(obj); if (i >= 0) pickables.splice(i, 1); if (obj.userData.pick && obj.userData.pick.onHover) obj.userData.pick.onHover(false); }
   function pickRoot(o) { while (o && !o.userData.pick) o = o.parent; return o; }
   function castFrom() {
+    raycaster.camera = camera;   // 스프라이트 등 카메라가 필요한 물체 대비
     const list = panels.filter(p => p.active && !p.static && p.buttons.length).map(p => p.mesh);
     const ph = raycaster.intersectObjects(list, false)[0];
     let best = null;
@@ -746,7 +747,8 @@ window.HW = (function () {
     sup('immersive-ar').then(ok => { if (ok && mrBtn) mrBtn.style.display = 'block'; });
     if (opts.anchor) placeAnchor.copy(opts.anchor);
     // 오류가 나면 화면에 잠깐 보여 준다(휴대폰·헤드셋에서 시험할 때 원인 찾기용)
-    const showErr = m => { try { if (started || renderer.xr.isPresenting) showToast('오류: ' + String(m).slice(0, 120), 6); else note.textContent = '오류: ' + m; } catch (e) {} };
+    let lastErr = '', lastErrT = -99;   // 같은 오류는 다시 안 띄우고, 3초에 한 번만(매 프레임 오류 → 판을 계속 만들어 먹통 되는 것 방지)
+    const showErr = m => { try { m = String(m).slice(0, 120); console.error('[HW] error', m); if (m === lastErr || now - lastErrT < 3) return; lastErr = m; lastErrT = now; if (started || renderer.xr.isPresenting) showToast('오류: ' + m, 6); else note.textContent = '오류: ' + m; } catch (e) {} };
     addEventListener('error', e => showErr(e.message));
     addEventListener('unhandledrejection', e => showErr(e.reason && e.reason.message || e.reason));
     let starting = false;
