@@ -208,7 +208,8 @@ window.HW = (function () {
   }
 
   // ───────────── 혼합현실 ─────────────
-  let isMR = false;
+  let isMR = false, handheld = false;   // handheld = 휴대폰 혼합현실(화면을 손가락으로 누른다)
+  const useHud = () => !inXR() || handheld;   // 화면에 붙는 자막·계기판을 쓸 때
   const shadowCatcher = mesh(new THREE.PlaneGeometry(40, 40), new THREE.ShadowMaterial({ opacity: 0.3 }), world, [0, 0.002, 0], null, [-Math.PI / 2, 0, 0]);
   shadowCatcher.castShadow = false; shadowCatcher.visible = false;
   function setMR(on) {
@@ -342,7 +343,10 @@ window.HW = (function () {
       if (h.hand === 'left') attachWrist();
     });
     ray.addEventListener('disconnected', () => { h.src = null; });
-    ray.addEventListener('selectstart', () => onSelect(h));
+    // 휴대폰 화면 누르기(screen): 누르는 동안 끌기, 떼었을 때 끌지 않았으면 '톡'
+    ray.addEventListener('selectstart', () => { if (h.src && h.src.targetRayMode === 'screen') { h.touch = true; h.dragged = false; return; } onSelect(h); });
+    ray.addEventListener('selectend', () => { if (h.src && h.src.targetRayMode === 'screen') h.touch = false; });
+    ray.addEventListener('select', () => { if (h.src && h.src.targetRayMode === 'screen') { if (!h.dragged) onScreenTap(h); h.dragged = false; } });
     ray.addEventListener('squeezestart', () => { h.squeeze = true; });   // 컨트롤러 옆 버튼 = 잡기
     ray.addEventListener('squeezeend', () => { h.squeeze = false; });
     hands.push(h);
@@ -376,11 +380,38 @@ window.HW = (function () {
     }
     return best;
   }
+  // 휴대폰 혼합현실: 화면을 누른 채 끌면, 손가락이 가리키는 빛줄기 위 같은 거리에서 물체가 따라온다
+  function rayGrabbable(o, dir) {
+    let best = null, bt = Infinity;
+    for (const ob of grabbables) {
+      const gd = ob.userData.grab; if (!gd.enabled || gd.held) continue;
+      let vis = true; for (let q = ob; q; q = q.parent) if (!q.visible) { vis = false; break; } if (!vis) continue;
+      const c = ob.getWorldPosition(V3()), t = c.clone().sub(o).dot(dir); if (t <= 0) continue;
+      const d2 = c.distanceToSquared(o) - t * t, r = gd.radius * 1.15;
+      if (d2 < r * r && t < bt) { bt = t; best = { ob, t }; }
+    }
+    return best;
+  }
   function updateGrab(dt) {
     for (const g of grabbers) {
       const h = g.h; g.ok = false; g.tip = null;
       if (!inXR() || !h.src) { if (g.held) release(g); continue; }
       let pinchNow = false;
+      if (h.src.targetRayMode === 'screen') {
+        const o = h.ray.getWorldPosition(V3()), dir = V3(0, 0, -1).applyQuaternion(h.ray.getWorldQuaternion(new THREE.Quaternion()));
+        pinchNow = !!h.touch; g.ok = true;
+        if (pinchNow && !g.pinch) {
+          raycaster.set(o, dir); raycaster.far = 15; const pc = castFrom();   // 버튼을 누른 거면 끌기 안 함
+          const hit = pc && pc.kind === 'panel' ? null : rayGrabbable(o, dir); g.holdDist = hit ? hit.t : 0; g.pending = hit ? hit.ob : null;
+        }
+        g.point.copy(o).addScaledVector(dir, g.holdDist || 0.5);
+        if (pinchNow && !g.pinch && g.pending) { const ob = g.pending; g.pending = null; g.held = ob; ob.userData.grab.held = g; h.dragged = true; g.prev.copy(g.point); g.vel.set(0, 0, 0); sfx('click'); if (ob.userData.grab.onGrab) ob.userData.grab.onGrab(g); }
+        else if (!pinchNow && g.pinch && g.held) release(g);
+        const v = g.point.clone().sub(g.prev).divideScalar(Math.max(dt, 1e-3)); g.vel.lerp(v, 0.35); g.prev.copy(g.point);
+        if (g.held && g.held.userData.grab.onMove) g.held.userData.grab.onMove(g, g.point, g.vel);
+        g.pinch = pinchNow;
+        continue;
+      }
       if (h.isHand) {
         const th = joint(g.i, 'thumb-tip'), ix = joint(g.i, 'index-finger-tip');
         if (th && ix) {
@@ -421,8 +452,8 @@ window.HW = (function () {
   function attachWrist() {
     if (!wristPanel) return;
     const left = hands.find(h => h.hand === 'left' && h.src);
-    if (inXR() && left) { unHud(wristPanel); left.grip.add(wristPanel.mesh); wristPanel.mesh.position.set(0, 0.07, -0.04); wristPanel.mesh.rotation.set(-0.95, 0, 0); }
-    else if (inXR()) { unHud(wristPanel); camera.add(wristPanel.mesh); wristPanel.mesh.position.set(0.42, 0.26, -1.0); wristPanel.mesh.rotation.set(0, 0, 0); }
+    if (inXR() && !handheld && left) { unHud(wristPanel); left.grip.add(wristPanel.mesh); wristPanel.mesh.position.set(0, 0.07, -0.04); wristPanel.mesh.rotation.set(-0.95, 0, 0); }
+    else if (inXR() && !handheld) { unHud(wristPanel); camera.add(wristPanel.mesh); wristPanel.mesh.position.set(0.42, 0.26, -1.0); wristPanel.mesh.rotation.set(0, 0, 0); }
     else placeHud(wristPanel, 'topRight', 0.34);   // 화면 모드: 오른쪽 위 계기판
   }
   function setWrist(p) { wristPanel = p; attachWrist(); }
@@ -450,7 +481,7 @@ window.HW = (function () {
     if (inXR()) {
       for (const h of hands) {
         if (!h.src) { h.line.visible = false; continue; }
-        h.line.visible = true; for (const m of h.model) m.visible = !isMR;
+        h.line.visible = h.src.targetRayMode !== 'screen'; for (const m of h.model) m.visible = !isMR;
         const o = h.ray.getWorldPosition(V3()), q = h.ray.getWorldQuaternion(new THREE.Quaternion());
         raycaster.set(o, V3(0, 0, -1).applyQuaternion(q)); raycaster.far = 15;
         const r = castFrom();
@@ -539,7 +570,8 @@ window.HW = (function () {
   const FLAT_HUD = true;
   function unHud(p) { p.hudSlot = null; p.hudScale = 1; p.mat.depthTest = true; p.mesh.renderOrder = 10; }
   function placeHud(p, slot = 'bottom', maxW = 0.94) {
-    const d = 1.0, vh = 2 * d * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)), vw = vh * camera.aspect;
+    const d = 1.0; let vh = 2 * d * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)), vw = vh * camera.aspect;
+    if (inXR()) { const e = camera.projectionMatrix.elements; if (e[5] > 0 && e[0] > 0) { vh = 2 * d / e[5]; vw = 2 * d / e[0]; } }   // 휴대폰 카메라 화면 크기
     const pw = p.w * p.scale, ph = (p.h || 200) * p.scale;
     const s = Math.min(1.1, (vw * maxW) / pw, (vh * (slot === 'center' ? 0.8 : 0.42)) / ph);
     p.hudSlot = slot; p.hudMaxW = maxW; p.hudScale = s;
@@ -558,13 +590,13 @@ window.HW = (function () {
   const eyeY = () => headPos().y;
   function face(p, pos) { p.mesh.position.copy(pos); p.mesh.lookAt(headPos()); }
   function placeToward(p, target, dist, side, dy) {
-    if (!inXR() && FLAT_HUD) return placeHud(p, 'center');
+    if (useHud()) return placeHud(p, 'center');
     const f = feetPos(), dir = target.clone().sub(f); dir.y = 0; if (dir.lengthSq() < 0.01) dir.copy(headDir()); dir.normalize();
     const right = V3().crossVectors(dir, UP);
     const pos = f.addScaledVector(dir, dist).addScaledVector(right, side); pos.y = eyeY() + dy; face(p, pos);
   }
   function placeAhead(p, dist, side, dy) {
-    if (!inXR() && FLAT_HUD) return placeHud(p, 'center');
+    if (useHud()) return placeHud(p, 'center');
     const dir = headDir(), right = V3().crossVectors(dir, UP);
     const pos = feetPos().addScaledVector(dir, dist).addScaledVector(right, side); pos.y = eyeY() + dy; face(p, pos);
   }
@@ -596,7 +628,7 @@ window.HW = (function () {
     if (options) options.forEach(t => p.button(t, null, '#3b3550', null, 96)); else p.button(single, null, '#ece5d8', null, 84);
     p.finish();
     const sp = speaker.char ? speaker.char.root.getWorldPosition(V3()) : speaker.pos;
-    if (!inXR() && FLAT_HUD) placeHud(p, 'bottom');             // 화면 모드: 아래 자막
+    if (useHud()) placeHud(p, 'bottom');             // 화면 모드: 아래 자막
     else if (o.at) face(p, o.at);                                   // 정해 둔 자리
     else if (o.ahead || !sp) placeAhead(p, 1.25, o.side != null ? o.side : 0, o.dy != null ? o.dy : -0.3);   // 눈앞
     else { const dist = Math.max(1.0, Math.min(1.4, feetPos().distanceTo(V3(sp.x, 0, sp.z)) - 0.8)); placeToward(p, sp, dist, o.side != null ? o.side : 0.45, o.dy != null ? o.dy : -0.3); }
@@ -611,11 +643,11 @@ window.HW = (function () {
   let toastTimer = 0;
   function showToast(text, hold = 3.4) {
     const t = ui.toast; t.clear(); t.pad = 30; t.text(text, 34, '#ffffff', { align: 'center', gap: 0 }); t.finish();
-    if (!inXR() && FLAT_HUD) placeHud(t, 'mid', 0.9); else placeAhead(t, 1.5, 0, -0.55);
+    if (useHud()) placeHud(t, 'mid', 0.9); else placeAhead(t, 1.5, 0, -0.55);
     t.show(true);
     const my = ++toastTimer; wait(hold).then(() => { if (my === toastTimer) t.show(false); });
   }
-  function showTitle(text, at) { const t = ui.title; t.clear(); t.pad = 30; t.text(text, 64, '#ffffff', { bold: true, align: 'center', gap: 0 }); t.finish(); if (!inXR() && FLAT_HUD) placeHud(t, 'mid', 0.9); else if (at) face(t, at); else placeAhead(t, 2.2, 0, 0.35); t.show(true); }
+  function showTitle(text, at) { const t = ui.title; t.clear(); t.pad = 30; t.text(text, 64, '#ffffff', { bold: true, align: 'center', gap: 0 }); t.finish(); if (useHud()) placeHud(t, 'mid', 0.9); else if (at) face(t, at); else placeAhead(t, 2.2, 0, 0.35); t.show(true); }
 
   // 알갱이 터짐
   const bursts = [];
@@ -635,11 +667,55 @@ window.HW = (function () {
     }
   }
 
+  // ───────────── 휴대폰 혼합현실: 바닥·책상을 비춰 놓을 곳 정하기 ─────────────
+  // 카메라가 비추는 면에 동그라미(레티클)가 뜨고, 화면을 톡 누르면 그 자리에 맵(anchor 점)이 놓인다.
+  let hitSource = null, placing = null, placeAnchor = V3(0, 0, 0);
+  const reticle = new THREE.Group(); reticle.matrixAutoUpdate = false; reticle.visible = false; scene.add(reticle);
+  { const r1 = new THREE.Mesh(new THREE.RingGeometry(0.07, 0.09, 40).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x5cc3b4, transparent: true, opacity: 0.95, depthTest: false }));
+    const r2 = new THREE.Mesh(new THREE.CircleGeometry(0.02, 20).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false }));
+    r1.renderOrder = r2.renderOrder = 30; reticle.add(r1, r2); }
+  function updatePlacement(frame) {
+    if (!placing || !frame) return;
+    if (!hitSource) { reticle.visible = false; return; }
+    const res = frame.getHitTestResults(hitSource);
+    if (res.length) { const pose = res[0].getPose(renderer.xr.getReferenceSpace()); if (pose) { reticle.visible = true; reticle.matrix.fromArray(pose.transform.matrix); return; } }
+    reticle.visible = false;
+  }
+  function placeWorldAt(pos) {
+    const cam = headPos(), yaw = Math.atan2(cam.x - pos.x, cam.z - pos.z);   // 맵 앞(+Z)이 휴대폰을 보게
+    world.rotation.set(0, yaw, 0); world.updateMatrixWorld(true);
+    const off = placeAnchor.clone().applyAxisAngle(UP, yaw);
+    world.position.copy(pos).sub(off); world.updateMatrixWorld(true);
+    shadowCatcher.position.y = placeAnchor.y + 0.002;
+  }
+  function onScreenTap(h) {
+    audio.unlock();
+    if (placing) {
+      let pos;
+      if (reticle.visible) pos = V3().setFromMatrixPosition(reticle.matrix);
+      else { const d = headDir(); pos = headPos().addScaledVector(d, 1.6); pos.y -= 0.6; }   // 면을 못 찾으면 앞 1.6m
+      placeWorldAt(pos); reticle.visible = false; world.visible = true; sfx('appear');
+      const p = placing; placing = null; ui.info.show(false); p(); return;
+    }
+    onSelect(h);
+  }
+  async function placeStep(session) {
+    try { const vs = await session.requestReferenceSpace('viewer'); hitSource = await session.requestHitTestSource({ space: vs }); } catch (e) { hitSource = null; log('hit-test 없음', e && e.message); }
+    world.visible = false;
+    const p = ui.info; p.clear(); p.pad = 28;
+    p.text('바닥이나 책상을 천천히 비춰 보세요.', 34, '#ffffff', { bold: true, align: 'center', gap: 8 });
+    p.text('초록 동그라미가 뜨면 화면을 톡 눌러 놓아요.', 30, '#c9e3d4', { align: 'center', gap: 0 });
+    p.finish(); placeHud(p, 'bottom'); p.show(true);
+    await new Promise(r => { placing = r; });
+    if (hitSource) { try { hitSource.cancel(); } catch (e) {} hitSource = null; }
+  }
+
   // ───────────── 루프·시작 ─────────────
   const hooks = [];
   const clock = new THREE.Clock();
-  renderer.setAnimationLoop(() => {
+  renderer.setAnimationLoop((time, frame) => {
     const dt = Math.min(0.05, clock.getDelta()); now += dt;
+    updatePlacement(frame);
     for (let i = waits.length - 1; i >= 0; i--) { const w = waits[i]; if ((w.t != null && now >= w.t) || (w.f && w.f())) { waits.splice(i, 1); w.r(); } }
     for (let i = updaters.length - 1; i >= 0; i--) if (!updaters[i]()) updaters.splice(i, 1);
     updateFlat(dt); updateSticks(dt); updateVignette(dt); updateHands(); updateGrab(dt); updatePointers(); updateChars(dt); updateBursts(dt);
@@ -663,16 +739,40 @@ window.HW = (function () {
       else { vrBtn.textContent = '이 기기는 VR 미지원'; note.textContent = window.isSecureContext ? '메타 퀘스트 브라우저에서 이 주소를 열면 VR로 들어갈 수 있어요.' : 'VR은 https 주소에서만 열려요.'; }
     });
     sup('immersive-ar').then(ok => { if (ok && mrBtn) mrBtn.style.display = 'block'; });
+    if (opts.anchor) placeAnchor.copy(opts.anchor);
+    // 오류가 나면 화면에 잠깐 보여 준다(휴대폰·헤드셋에서 시험할 때 원인 찾기용)
+    const showErr = m => { try { if (started || renderer.xr.isPresenting) showToast('오류: ' + String(m).slice(0, 120), 6); else note.textContent = '오류: ' + m; } catch (e) {} };
+    addEventListener('error', e => showErr(e.message));
+    addEventListener('unhandledrejection', e => showErr(e.reason && e.reason.message || e.reason));
+    let starting = false;
+    const btns = [vrBtn, mrBtn, flatBtn].filter(Boolean);
     async function startXR(mode) {
+      if (starting || renderer.xr.isPresenting) return;
+      starting = true; btns.forEach(b => b.style.opacity = 0.5); note.textContent = '여는 중…';
+      let session = null;
       try {
-        const session = await navigator.xr.requestSession(mode, { optionalFeatures: ['local-floor', 'bounded-floor', 'hand-tracking'] });
+        const feats = ['local-floor', 'bounded-floor', 'hand-tracking'];
+        if (mode === 'immersive-ar') feats.push('hit-test');
+        session = await navigator.xr.requestSession(mode, { optionalFeatures: feats });
+        handheld = mode === 'immersive-ar' && session.interactionMode === 'screen-space';   // 휴대폰
+        // 좌표 기준: 헤드셋은 바닥 기준(local-floor), 휴대폰·바닥 기준이 없으면 local
+        let ref = 'local-floor';
+        if (handheld) ref = 'local';
+        else { try { await session.requestReferenceSpace('local-floor'); } catch (e) { ref = 'local'; } }
+        renderer.xr.setReferenceSpaceType(ref);
         if (mode === 'immersive-ar') setMR(true);
         await renderer.xr.setSession(session);
         session.addEventListener('end', () => location.reload());
-        await wait(0.6); place(P(s0.pos), P(s0.look)); attachWrist();
-        log('xr start', mode, 'blend', session.environmentBlendMode || '-');
+        log('xr start', mode, 'interaction', session.interactionMode || '-', 'ref', ref);
+        if (handheld) { rig.position.set(0, 0, 0); rig.rotation.set(0, 0, 0); cover.style.display = 'none'; await wait(0.3); await placeStep(session); }
+        else { await wait(0.6); place(P(s0.pos), P(s0.look)); }
+        attachWrist();
         begin();
-      } catch (e) { setMR(false); note.textContent = (mode === 'immersive-ar' ? '혼합현실을' : 'VR을') + ' 열지 못했어요: ' + e.message; log('xr fail', mode, e); }
+      } catch (e) {
+        if (session) { try { await session.end(); } catch (e2) {} }   // 반쯤 열린 세션은 닫는다(다시 누를 때 '이미 켜진 세션' 오류 방지)
+        setMR(false); handheld = false; starting = false; btns.forEach(b => b.style.opacity = 1);
+        note.textContent = (mode === 'immersive-ar' ? '혼합현실을' : 'VR을') + ' 열지 못했어요: ' + e.message; log('xr fail', mode, e);
+      }
     }
     vrBtn.addEventListener('click', () => startXR('immersive-vr'));
     if (mrBtn) mrBtn.addEventListener('click', () => startXR('immersive-ar'));
@@ -690,6 +790,6 @@ window.HW = (function () {
     loadChar, headPos, headDir, feetPos, inXR, place, moveTo, fadeTo, setFade, fadeMesh, vig, bounds,
     get canMove() { return canMove; }, set canMove(v) { canMove = v; },
     get emptyAction() { return emptyAction; }, set emptyAction(f) { emptyAction = f; },
-    hud, unHud, addPickable, removePickable, addGrabbable, removeGrabbable, grabbers, anyHolding, hands, face, placeToward, placeAhead, typeText, waitPick, nameRow, say, showToast, showTitle, burst, start
+    hud, unHud, useHud, get handheld() { return handheld; }, addPickable, removePickable, addGrabbable, removeGrabbable, grabbers, anyHolding, hands, face, placeToward, placeAhead, typeText, waitPick, nameRow, say, showToast, showTitle, burst, start
   };
 })();

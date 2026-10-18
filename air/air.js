@@ -170,7 +170,8 @@
     const knob = mesh(geo.sphere, std('#ffffff', 0.3, { emissive: new THREE.Color('#ffffff'), emissiveIntensity: 0.3 }), g, [TH.x, TH.y0, TH.z], 0.075);
     g.userData.knob = knob;
     thLabel = new Panel('thLabel', 300, 'rgba(33,31,46,0.85)', 0.0008); thLabel.pad = 12; g.add(thLabel.mesh);
-    H.addGrabbable(knob, { radius: 0.09, onMove: (gr, p) => setTemp((p.y - TH.y0) / (TH.y1 - TH.y0)) });
+    H.addGrabbable(knob, { radius: 0.09, onMove: (gr, p) => { const lp = H.world.worldToLocal(p.clone()); setTemp((lp.y - TH.y0) / (TH.y1 - TH.y0)); } });
+    thLabel.mesh.onBeforeRender = () => thLabel.mesh.lookAt(H.headPos());
     H.addPickable(knob, () => { const seq = [-100, 25, 500]; const i = seq.indexOf(tempC); setTempC(seq[(i + 1) % 3]); }, on => knob.scale.setScalar(on ? 0.09 : 0.075));
     setTempC(25);
   }
@@ -181,7 +182,7 @@
     thFill.scale.y = Math.max(0.001, y - TH.y0); thFill.position.y = TH.y0 + (y - TH.y0) / 2;
     const col = new THREE.Color('#3f8ce8').lerp(new THREE.Color('#e8423f'), f); thFillMat.color.copy(col); thFillMat.emissive.copy(col);
     thLabel.clear(); thLabel.text(c + '°C', 44, '#ffffff', { bold: true, align: 'center', gap: 0 }); thLabel.finish(); thLabel.pin();
-    thLabel.mesh.position.set(TH.x, y + 0.1, TH.z); thLabel.mesh.lookAt(V3(POS.start[0], 1.5, POS.start[1]));
+    thLabel.mesh.position.set(TH.x, y + 0.1, TH.z);
   }
 
   // ───────────── 분자 만들기 쟁반(오른쪽 더 멀리) ─────────────
@@ -275,7 +276,7 @@
     p.text(A.title, 76, INK, { bold: true, align: 'center', gap: 18 });
     p.text(A.sub, 32, DIM, { align: 'center', gap: 12 });
     const handMode = H.inXR() && H.hands.some(h => h.isHand);
-    p.text(H.inXR() ? (handMode ? A.howHand : A.howHand + ' ' + A.howCtrl) : A.howFlat, 28, '#b5873e', { align: 'center', gap: 30 });
+    p.text(H.handheld ? A.howPhone : H.inXR() ? (handMode ? A.howHand : A.howHand + ' ' + A.howCtrl) : A.howFlat, 28, '#b5873e', { align: 'center', gap: 30 });
     p.button(A.start, null, '#7f8fd6', null, 110);
     if (!H.inXR()) {   // 화면 모드: 화면 비율에 맞춰 상자(+온도계·쟁반)가 다 보이는 거리에 선다
       const hf = Math.atan(Math.tan(THREE.MathUtils.degToRad(H.camera.fov / 2)) * H.camera.aspect);
@@ -283,15 +284,15 @@
       H.place(P([0, C.z + 0.45 + dist]), V3(0, 1.35, 0));
     }
     p.finish(); H.placeAhead(p, 0.9, 0, -0.2); p.show(true);
-    await wait(0.4); log('state intro', H.isMR ? 'MR' : H.inXR() ? 'VR' : 'flat');
+    await wait(0.4); log('state intro', H.handheld ? 'phone-MR' : H.isMR ? 'MR' : H.inXR() ? 'VR' : 'flat');
     await waitPick(p, 0, 1.0); p.show(false);
     H.audio.music('day'); await wait(0.4);
   }
   async function showBox() {
     log('state box');
-    box.visible = true; H.sfx('appear'); H.burst(C.clone(), '#bfe6ff', 120, 2.0, 1.3, 0.035);
+    box.visible = true; H.sfx('appear'); H.burst(box.getWorldPosition(V3()), '#bfe6ff', 120, 2.0, 1.3, 0.035);
     await H.tween(1.4, k => box.scale.setScalar(Math.max(0.001, H.ease(k))));
-    if (!H.inXR()) H.hud(gauge, 'topLeft', H.camera.aspect < 1 ? 0.6 : 0.36);   // 화면 모드: 왼쪽 위 계기판
+    if (H.useHud()) H.hud(gauge, 'topLeft', (H.handheld ? innerWidth / innerHeight : H.camera.aspect) < 1 ? 0.6 : 0.36);   // 화면 모드: 왼쪽 위 계기판
     gauge.mesh.visible = true; drawWrist();
   }
   async function m1() {
@@ -321,7 +322,7 @@
   }
   async function m4() {
     curMission = 3; log('state m4');
-    thKnob.visible = true; H.burst(V3(TH.x, (TH.y0 + TH.y1) / 2, TH.z), '#ffffff', 40, 1, 1, 0.03);
+    thKnob.visible = true; H.burst(H.world.localToWorld(V3(TH.x, (TH.y0 + TH.y1) / 2, TH.z)), '#ffffff', 40, 1, 1, 0.03);
     await riniSay(A.m4.ask, null, '해 볼게'); missionInfo(A.m4.ask);
     if (H.AUTOTEST) wait(1).then(() => setTempC(500));
     await until(() => tempC >= 300 || tempC <= -60); await wait(2.0);
@@ -331,15 +332,15 @@
   }
   async function m5() {
     curMission = 4; log('state m5');
-    tray.visible = true; H.burst(TRAY.clone(), '#ffffff', 50, 1, 1, 0.03);
+    tray.visible = true; H.burst(tray.getWorldPosition(V3()), '#ffffff', 50, 1, 1, 0.03);
     await riniSay(A.m5.ask, null, '만들어 볼게'); missionInfo(A.m5.ask);
     if (H.AUTOTEST) (async () => { await wait(1); const os = parts.filter(p => p.kind === 'O'); combine(os[0], os[1], 'O2'); await wait(1); const o2 = parts.find(p => p.kind === 'O2' && !p.dead), c = parts.find(p => p.kind === 'C'); combine(o2, c, 'CO2'); })();
     await until(() => madeKinds.has('O2')); missionInfo(A.m5.madeO2);
     await until(() => madeKinds.has('CO2')); missionInfo(A.m5.madeCO2 + ' ' + A.m5.putIn);
     // 화면 모드: 이산화탄소를 누르면 상자로 들어간다
     const co2 = () => parts.find(p => p.kind === 'CO2' && !p.dead);
-    if (co2()) { const pc = co2(); pc.g.userData.pick.onPick = () => { pc.g.position.copy(tray.worldToLocal(C.clone())); placePart(pc); }; }
-    if (H.AUTOTEST) wait(1.2).then(() => { const pc = co2(); if (pc) { pc.g.position.copy(tray.worldToLocal(C.clone())); placePart(pc); } });
+    if (co2()) { const pc = co2(); pc.g.userData.pick.onPick = () => { pc.g.position.copy(tray.worldToLocal(H.world.localToWorld(C.clone()))); placePart(pc); }; }
+    if (H.AUTOTEST) wait(1.2).then(() => { const pc = co2(); if (pc) { pc.g.position.copy(tray.worldToLocal(H.world.localToWorld(C.clone()))); placePart(pc); } });
     await until(() => putInKinds.has('CO2'));
     missionInfo(''); finish(4);
     await riniSay(A.m5.inBox);
@@ -365,6 +366,7 @@
     }
   }
   async function main() {
+    if (H.handheld && rini) rini.root.position.y = C.y - S / 2;
     await intro(); await lines(A.hello); await showBox();
     await m1(); await m2(); await m3(); await m4(); await m5(); await ending();
   }
@@ -376,6 +378,7 @@
   wrist = new Panel('wrist', 440, 'rgba(33,31,46,0.88)', 0.0005); wrist.pad = 26; H.setWrist(wrist);
   const ready = H.loadChar({ url: '../world1/assets/rini-glb.wasm', height: 1.2, pos: P(POS.rini),
     clips: { idle: 'idle', talk: 'talk', walk: 'walk', wave: 'wave2' }, trim: { wave: [1.4, 5.0] }, glow: 0.25 }).then(c => { rini = c; });
-  H.start({ main, ready, start: { pos: POS.start, look: [C.x, C.z] } });
+  // 휴대폰 혼합현실: 톡 누른 바닥·책상에 상자 밑면이 놓이게(anchor), 리니도 같은 면 위에 선다
+  H.start({ main, ready, start: { pos: POS.start, look: [C.x, C.z] }, anchor: V3(C.x, C.y - S / 2, C.z) });
   window.AIRX = { mols, setLid, setTempC, parts, pressure };
 })();
