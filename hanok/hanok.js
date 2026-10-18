@@ -120,7 +120,7 @@
     }
   }
   // 이름표: 한글 크게 + 로마자 + 뜻
-  const label = new Panel('wordLabel', 560, 'rgba(33,31,46,0.9)'); label.pad = 22; H.scene.add(label.mesh);
+  const label = new Panel('wordLabel', 560, 'rgba(33,31,46,0.9)', 0.0006); label.pad = 22; H.scene.add(label.mesh);   // 34cm: 혼합현실에서 그릇(15cm) 옆에 떠도 다른 물건을 가리지 않게
   label.mat.depthTest = false; label.mesh.renderOrder = 25;   // 선반·물건에 가려지지 않게 늘 위에
   let labelFor = null, labelHideAt = 0;
   function showLabel(it) {
@@ -132,7 +132,7 @@
   }
   function placeLabel() {
     const wp = labelFor.g.getWorldPosition(V3()); wp.y += (labelFor.g.userData.size ? labelFor.g.userData.size.y : 0.1) + 0.12; H.face(label, wp);
-    label.hudScale = H.inXR() ? 1 : Math.max(1, H.headPos().distanceTo(wp) / 2.4);   // 화면 모드에서 멀리 서 있어도 읽히게
+    label.hudScale = H.inXR() ? 1 : Math.max(1, H.headPos().distanceTo(wp) / 1.45);   // 화면 모드에서 멀리 서 있어도 읽히게
   }
   H.onUpdate(() => {
     if (labelFor) { placeLabel(); if (H.now > labelHideAt && !labelFor.held) { label.show(false); labelFor = null; } }
@@ -164,14 +164,31 @@
     }
     if (wp.distanceTo(H.world.localToWorld(it.home.clone())) > 0.2) returnHome(it);
   }
-  function returnHome(it) { const from = it.g.position.clone(); H.tween(0.45, k => it.g.position.lerpVectors(from, it.home, H.ease(k))); }
+  function returnHome(it) { if (it.moving) return; it.moving = true; const from = it.g.position.clone(); H.tween(0.45, k => it.g.position.lerpVectors(from, it.home, H.ease(k))).then(() => { it.moving = false; }); }
+  // 안전장치: 물건이 엉뚱한 곳에 남으면 제자리로 — 잡힌 채 8초 넘게(손을 뗀 신호를 놓친 경우), 좌표가 깨짐, 제자리에서 30cm 넘게 떨어진 채 놓임
+  H.onUpdate(dt => {
+    for (const it of items) {
+      if (it.onTable || it.moving) continue;
+      const p = it.g.position; it.g.visible = true;
+      if (![p.x, p.y, p.z].every(Number.isFinite)) { p.copy(it.home); continue; }
+      if (it.held) {
+        it.heldT = (it.heldT || 0) + dt;
+        if (it.heldT > 8) { for (const gr of H.grabbers) if (gr.held === it.g) gr.held = null; if (it.g.userData.grab) it.g.userData.grab.held = null; it.held = false; it.heldT = 0; log('force release', it.w.id); returnHome(it); }
+        continue;
+      }
+      it.heldT = 0;
+      if (p.distanceTo(it.home) > 0.3) returnHome(it);
+    }
+  });
   function putOnTable(it, fly) {
     if (it.onTable || !it.w.slot) return;
     it.onTable = true; H.removeGrabbable(it.g); it.g.scale.setScalar(1); it.halo.material.opacity = 0;
+    for (const gr of H.grabbers) if (gr.held === it.g) gr.held = null;   // 잡힌 채 올라가도 손에서 놓는다
+    it.held = false;
     const to = V3(T.x + it.w.slot[0], T.y, T.z + it.w.slot[1]), from = it.g.position.clone();
     const mid = from.clone().lerp(to, 0.5); mid.y += fly ? 0.35 : 0.1;
     H.tween(fly ? 0.7 : 0.3, k => { const e = H.ease(k); const a = from.clone().lerp(mid, e), b = mid.clone().lerp(to, e); it.g.position.copy(a.lerp(b, e)); })
-      .then(() => { H.sfx('complete'); H.burst(it.g.getWorldPosition(V3()).add(V3(0, 0.05, 0)), '#bfe6ff', 30, 0.7, 0.8, 0.025); log('on table', it.w.id); });
+      .then(() => { it.g.position.copy(to); H.sfx('complete'); H.burst(it.g.getWorldPosition(V3()).add(V3(0, 0.05, 0)), '#bfe6ff', 30, 0.7, 0.8, 0.025); log('on table', it.w.id); });
   }
   function wrongPick(it) { wrongCount++; const msg = fill(A.set.wrong, target.w, it.w); riniToast(msg, 3.5); riniSpeak(msg); showLabel(it); hint(true); }
   function hint(on) { if (target) target.halo.material.opacity = on ? 0.7 : 0; }
@@ -216,7 +233,7 @@
     p.finish(); H.placeAhead(p, 0.9, 0, -0.2); p.show(true);
     await wait(0.4); log('state intro', H.handheld ? 'phone-MR' : H.isMR ? 'MR' : H.inXR() ? 'VR' : 'flat', 'lang', LANG);
     await waitPick(p, 0, 1.0); p.show(false);
-    H.audio.music('day'); await wait(0.3);
+    await wait(0.3);   // 배경음악 없음(휴먼쌤 10-18 "배경음악은 빼줘") — 효과음과 읽어 주는 소리만
     if (!H.hasKoVoice() && !H.AUTOTEST) showToast('이 기기에는 한국어 음성이 없어요. 글로만 보여 줄게요.', 4);
   }
   async function hello() { log('state hello'); if (rini) rini.wave(); for (const l of A.hello) await riniSay(l.text, l.choices, null, l.gloss); }
@@ -325,5 +342,5 @@
     clips: { idle: 'idle', talk: 'talk', walk: 'walk', wave: 'wave2' }, trim: { wave: [1.4, 5.0] }, glow: 0.25 }).then(c => { rini = c; });
   const ready = Promise.all([riniReady, ...loads]).then(() => log('assets loaded', loads.length));
   H.start({ main, ready, start: { pos: POS.start, look: [T.x, T.z] }, anchor: V3(0, 0, 0) });
-  window.HANOKX = { items, byId, tap, putOnTable, get stage() { return stage; } };
+  window.HANOKX = { items, byId, tap, putOnTable, get stage() { return stage; }, get target() { return target; }, get rini() { return rini; } };
 })();

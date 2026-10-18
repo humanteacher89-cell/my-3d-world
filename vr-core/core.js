@@ -332,7 +332,7 @@ window.HW = (function () {
     const dot = new THREE.Mesh(new THREE.SphereGeometry(0.007, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffffff })); dot.visible = false; ray.add(dot);
     const h = { ray, grip, line, dot, src: null, hand: '', hit: null, turnHeld: false, model: [] };
     ray.addEventListener('connected', e => {
-      h.src = e.data; h.hand = e.data.handedness; h.isHand = !!e.data.hand;
+      h.src = e.data; h.hand = e.data.handedness; h.isHand = !!e.data.hand; h.touch = false; h.dragged = false; h.squeeze = false;
       for (const m of h.model) grip.remove(m); h.model = [];
       if (!h.isHand) {
         const gm = mesh(geo.sphere, std('#2d2b38', 0.5), grip, [0, -0.01, 0.02], [0.042, 0.05, 0.12], [0.35, 0, 0]); gm.castShadow = false;
@@ -342,11 +342,13 @@ window.HW = (function () {
       log('input connected', h.hand, h.isHand ? 'hand' : 'controller');
       if (h.hand === 'left') attachWrist();
     });
-    ray.addEventListener('disconnected', () => { h.src = null; });
+    ray.addEventListener('disconnected', () => { h.src = null; h.touch = false; h.squeeze = false; });
     // 휴대폰 화면 누르기(screen): 누르는 동안 끌기, 떼었을 때 끌지 않았으면 '톡'
-    ray.addEventListener('selectstart', () => { if (h.src && h.src.targetRayMode === 'screen') { h.touch = true; h.dragged = false; return; } onSelect(h); });
-    ray.addEventListener('selectend', () => { if (h.src && h.src.targetRayMode === 'screen') h.touch = false; });
-    ray.addEventListener('select', () => { if (h.src && h.src.targetRayMode === 'screen') { if (!h.dragged) onScreenTap(h); h.dragged = false; } });
+    // 화면을 빠르게 여러 번 누르면 손가락마다 입력이 잠깐 생겼다 사라져 h.src가 먼저 비기도 한다 → 이벤트에 실린 입력(e.data)으로 판단하고, 손을 떼면 무조건 touch를 끈다
+    const isScreen = e => { const s = (e && e.data) || h.src; return !!s && s.targetRayMode === 'screen'; };
+    ray.addEventListener('selectstart', e => { if (isScreen(e)) { h.touch = true; h.dragged = false; return; } onSelect(h); });
+    ray.addEventListener('selectend', () => { h.touch = false; });
+    ray.addEventListener('select', e => { if (isScreen(e)) { if (!h.dragged) onScreenTap(h); h.dragged = false; } });
     ray.addEventListener('squeezestart', () => { h.squeeze = true; });   // 컨트롤러 옆 버튼 = 잡기
     ray.addEventListener('squeezeend', () => { h.squeeze = false; });
     hands.push(h);
@@ -382,6 +384,7 @@ window.HW = (function () {
   }
   // 휴대폰 혼합현실: 화면을 누른 채 끌면, 손가락이 가리키는 빛줄기 위 같은 거리에서 물체가 따라온다
   function rayGrabbable(o, dir) {
+    if (modalBlock()) return null;   // 대화창·카드가 떠 있거나 막 버튼을 눌렀으면 뒤의 물건은 못 잡는다
     let best = null, bt = Infinity;
     for (const ob of grabbables) {
       const gd = ob.userData.grab; if (!gd.enabled || gd.held) continue;
@@ -465,12 +468,21 @@ window.HW = (function () {
   function addPickable(obj, onPick, onHover) { obj.userData.pick = { onPick, onHover, enabled: true }; pickables.push(obj); return obj; }
   function removePickable(obj) { const i = pickables.indexOf(obj); if (i >= 0) pickables.splice(i, 1); if (obj.userData.pick && obj.userData.pick.onHover) obj.userData.pick.onHover(false); }
   function pickRoot(o) { while (o && !o.userData.pick) o = o.parent; return o; }
+  // 버튼 있는 판(대화창·카드·시작판)이 떠 있거나 사라지는 중이면, 또는 버튼을 누른 지 0.5초 안이면 물건 누르기·잡기를 막는다
+  // (빠르게 여러 번 누를 때 사라지는 판을 뚫고 뒤의 물건이 눌리거나 잡히던 문제)
+  let lastButtonT = -99;
+  function modalBlock() {
+    if (now - lastButtonT < 0.5) return true;
+    for (const p of panels) if (!p.static && p.buttons.length && p.mesh.visible && (p.target === 1 || p.alpha > 0.05)) return true;
+    return false;
+  }
   function castFrom() {
     raycaster.camera = camera;   // 스프라이트 등 카메라가 필요한 물체 대비
     const list = panels.filter(p => p.active && !p.static && p.buttons.length).map(p => p.mesh);
     const ph = raycaster.intersectObjects(list, false)[0];
     let best = null;
     if (ph) { const p = ph.object.userData.panel, bi = p.hitButton(ph.uv); best = { kind: bi >= 0 ? 'panel' : 'none', p, bi, dist: ph.distance }; }
+    if (modalBlock()) return best;
     const shown = o => { for (let q = o; q; q = q.parent) if (!q.visible) return false; return true; };
     const objs = pickables.filter(o => o.userData.pick.enabled && shown(o));
     const oh = objs.length ? raycaster.intersectObjects(objs, true)[0] : null;
@@ -514,7 +526,7 @@ window.HW = (function () {
     if (hit.kind === 'panel') clickButton(hit.p, hit.bi);
     else if (hit.kind === 'pick' && hit.obj.userData.pick.enabled) hit.obj.userData.pick.onPick(hit.obj);
   }
-  function clickButton(p, bi) { const b = p.buttons[bi]; if (!b || !p.active) return; sfx('select'); if (b.onClick) b.onClick(bi); }
+  function clickButton(p, bi) { const b = p.buttons[bi]; if (!b || !p.active) return; lastButtonT = now; sfx('select'); if (b.onClick) b.onClick(bi); }
 
   // 막대: 왼쪽 걷기, 오른쪽 30도 돌기. 걸을 수 있는 둥근 범위 = bounds
   let canMove = true;
@@ -723,7 +735,7 @@ window.HW = (function () {
     }
     // 톡: 빛줄기가 물건 모양을 살짝 빗나가도, 누르기 시작할 때 집기 범위에 있던 물건이면 그 물건을 누른 것으로
     const g = grabbers.find(x => x.h === h), ob = g && g.tapObj; if (g) g.tapObj = null;
-    if (!h.hit && ob && ob.userData.pick && ob.userData.pick.enabled) { sfx('select'); ob.userData.pick.onPick(ob); return; }
+    if (!h.hit && ob && ob.userData.pick && ob.userData.pick.enabled && !modalBlock()) { sfx('select'); ob.userData.pick.onPick(ob); return; }
     onSelect(h);
   }
   async function placeStep(session) {
