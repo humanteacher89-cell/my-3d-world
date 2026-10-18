@@ -142,7 +142,8 @@
   // 듣기: 이름표 + 소리 (+ 리니 한마디)
   let hearing = 0, rini = null;
   async function riniSpeak(text) { if (rini) rini.setTalking(true); await H.speak(text); if (rini) rini.setTalking(false); }
-  const riniToast = (text, hold) => showToast('리니: ' + text, hold);
+  function toast(text, hold) { showToast(text, hold); if (H.useHud()) H.hud(ui.toast, 'bottom', 0.92); }   // 화면 모드: 가운데 위는 집주인 얼굴을 가려서 아래로
+  const riniToast = (text, hold) => toast(A.guide.name + ': ' + text, hold);
   async function hear(it, sentence) {
     const w = it.w; showLabel(it); heard.add(w.id); H.sfx('click');
     H.burst(it.g.getWorldPosition(V3()).add(V3(0, 0.08, 0)), '#ffffff', 14, 0.4, 0.5, 0.02);
@@ -195,7 +196,7 @@
 
   // ───────────── 안내판(지금 할 일)·미션 목록 ─────────────
   let board, task = '', taskExtra = '';
-  function drawBoard() { const p = board; p.clear(); p.pad = 26; p.text('지금 할 일', 24, '#ffc766', { bold: true, gap: 4 }); p.text(task || (curMission >= 0 ? MISSIONS[curMission] + ' — 리니 말을 들어 보세요' : '리니 말을 들어 보세요'), 30, '#ffffff', { gap: taskExtra ? 8 : 0 }); if (taskExtra) p.text(taskExtra, 26, '#c9c4d6', { gap: 0 }); p.finish(); p.pin(); }
+  function drawBoard() { const p = board; p.clear(); p.pad = 26; p.text('지금 할 일', 24, '#ffc766', { bold: true, gap: 4 }); p.text(task || (curMission >= 0 ? MISSIONS[curMission] + ' — ' + A.guide.name + ' 말을 들어 보세요' : A.guide.name + ' 말을 들어 보세요'), 30, '#ffffff', { gap: taskExtra ? 8 : 0 }); if (taskExtra) p.text(taskExtra, 26, '#c9c4d6', { gap: 0 }); p.finish(); p.pin(); }
   function missionInfo(t, extra) { task = t || ''; taskExtra = extra || ''; if (board) drawBoard(); }
   function buildBoard() { board = new Panel('board', 620, 'rgba(33,31,46,0.88)'); drawBoard(); board.mesh.visible = false; board.mesh.position.copy(BOARD); H.world.add(board.mesh); board.mesh.lookAt(V3(POS.start[0], 1.6, POS.start[1])); }
   function showBoard() { if (H.useHud()) H.hud(board, 'topLeft', (H.handheld ? innerWidth / innerHeight : H.camera.aspect) < 1 ? 0.56 : 0.36); board.mesh.visible = true; drawWrist(); }   // 세로 화면: 오른쪽 위 미션 목록(0.34)과 겹치지 않게
@@ -234,7 +235,7 @@
     await wait(0.4); log('state intro', H.handheld ? 'phone-MR' : H.isMR ? 'MR' : H.inXR() ? 'VR' : 'flat', 'lang', LANG);
     await waitPick(p, 0, 1.0); p.show(false);
     await wait(0.3);   // 배경음악 없음(휴먼쌤 10-18 "배경음악은 빼줘") — 효과음과 읽어 주는 소리만
-    if (!H.hasKoVoice() && !H.AUTOTEST) showToast('이 기기에는 한국어 음성이 없어요. 글로만 보여 줄게요.', 4);
+    if (!H.hasKoVoice() && !H.AUTOTEST) toast('이 기기에는 한국어 음성이 없어요. 글로만 보여 줄게요.', 4);
   }
   async function hello() { log('state hello'); if (rini) rini.wave(); for (const l of A.hello) await riniSay(l.text, l.choices, null, l.gloss); }
   async function listenStage() {
@@ -261,7 +262,7 @@
         const i = await waitPick(p, 1, 1.0); p.show(false);
         if (i === 1) break;
       }
-      it.halo.material.opacity = 0; showToast(A.repeat.good, 1.2); H.sfx('piece'); await wait(0.6);
+      it.halo.material.opacity = 0; toast(A.repeat.good, 1.2); H.sfx('piece'); await wait(0.6);
     }
     missionInfo(''); finish(1); await riniSay(A.repeat.done);
   }
@@ -292,8 +293,8 @@
       p.finish(); H.placeAhead(p, 1.1, 0, -0.25); p.show(true);
       riniSpeak(A.quiz.q);
       const i = await waitPick(p, correct, 1.0); p.show(false);
-      if (i === correct) { showToast(A.quiz.ok, 1.4); H.sfx('complete'); await riniSpeak(A.quiz.ok); }
-      else { const msg = fill(A.quiz.wrong, it.w); showToast(msg, 2.5); await riniSpeak(msg); }   // 틀려도 정답을 알려 주고 넘어간다
+      if (i === correct) { toast(A.quiz.ok, 1.4); H.sfx('complete'); await riniSpeak(A.quiz.ok); }
+      else { const msg = fill(A.quiz.wrong, it.w); toast(msg, 2.5); await riniSpeak(msg); }   // 틀려도 정답을 알려 주고 넘어간다
       it.halo.material.opacity = 0; await wait(0.4);
     }
     missionInfo(''); finish(3); await riniSay(A.quiz.done);
@@ -325,7 +326,7 @@
       p.finish(); H.placeAhead(p, 1.1, 0, -0.1); p.show(true);
       if (H.AUTOTEST) { log('autotest done'); return; }
       const i = await waitPick(p, 0, 1e9); p.show(false);
-      if (i === 0) { showToast('물건을 눌러 이름을 다시 들어 보세요.', 3); await until(() => false); }
+      if (i === 0) { toast('물건을 눌러 이름을 다시 들어 보세요.', 3); await until(() => false); }
       if (i === 2) { if (BACK) { location.href = BACK; return; } const s = H.renderer.xr.getSession(); if (s) { s.end(); return; } }
       location.reload(); return;
     }
@@ -338,8 +339,9 @@
   // ───────────── 짓기·시작 ─────────────
   buildSpace(); buildTable(); buildShelf(); buildItems(); buildBoard();
   wrist = new Panel('wrist', 440, 'rgba(33,31,46,0.88)', 0.0005); wrist.pad = 26; H.setWrist(wrist);
-  const riniReady = H.loadChar({ url: '../world1/assets/rini-glb.wasm', height: 1.2, pos: P(POS.rini),
-    clips: { idle: 'idle', talk: 'talk', walk: 'walk', wave: 'wave2' }, trim: { wave: [1.4, 5.0] }, glow: 0.25 }).then(c => { rini = c; });
+  // 집주인 = Tripo로 만든 한복 입은 여성(assets/host.glb, 10-18): 동작 idle(편히 서 있기)·talk(설명하며 말하기)·bow(공손한 절 → 인사 때 wave 자리에)
+  const riniReady = H.loadChar({ url: 'assets/host.glb', height: 1.58, pos: P(POS.rini),
+    clips: { idle: 'idle', talk: 'talk', wave: 'bow' }, glow: 0.18 }).then(c => { rini = c; });
   const ready = Promise.all([riniReady, ...loads]).then(() => log('assets loaded', loads.length));
   H.start({ main, ready, start: { pos: POS.start, look: [T.x, T.z] }, anchor: V3(0, 0, 0) });
   window.HANOKX = { items, byId, tap, putOnTable, get stage() { return stage; }, get target() { return target; }, get rini() { return rini; } };

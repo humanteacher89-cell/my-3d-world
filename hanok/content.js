@@ -4,15 +4,15 @@
    3D 모양은 지금 임시(코드로 지은 도형). 스케치팹 국가유산청(CC BY 4.0) 에셋으로 바꿀 예정.                   */
 window.HANOK = {
   kicker: '휴먼쌤 월드 · 한국어 배우기',
-  title: '리니네 집에 놀러 가요',
-  sub: '한옥 부엌에서 물건을 집어 이름을 듣고, 리니가 말하는 대로 밥상을 차려 봐요. 약 8분',
+  title: '하나네 집에 놀러 가요',
+  sub: '한옥 부엌에서 물건을 집어 이름을 듣고, 하나가 말하는 대로 밥상을 차려 봐요. 약 8분',
   howHand: '엄지와 검지를 맞대면 집어요. 버튼은 손가락으로 톡 눌러도 돼요.',
   howCtrl: '컨트롤러는 옆 버튼(그립)으로 집고, 방아쇠로 버튼을 눌러요.',
   howPhone: '물건을 톡 누르면 이름을 들려줘요. 누른 채 끌면 옮길 수 있어요.',
-  howFlat: '물건을 눌러 이름을 듣고, 리니가 말하는 물건을 눌러 밥상에 올려요.',
+  howFlat: '물건을 눌러 이름을 듣고, 하나가 말하는 물건을 눌러 밥상에 올려요.',
   start: '놀러 가기',
-  credit: '3D 모델: 국가유산청(Korea Heritage Service) · CC BY 4.0 · sketchfab.com/KHS_Asset',
-  guide: { name: '리니', role: 'AI 로봇 친구', dot: '#5cc3b4' },
+  credit: '3D 모델: 국가유산청(Korea Heritage Service) · CC BY 4.0 · sketchfab.com/KHS_Asset · 집주인 캐릭터: Tripo로 제작',
+  guide: { name: '하나', role: '한복 입은 집주인', dot: '#e86a9a' },   // 이름 '하나'는 임시(휴먼쌤 확인 전) — 외국인 학습자가 읽기 쉬운 받침 없는 이름
 
   // 낱말 10개 — id는 스케치팹 국가유산청 에셋과 1:1(괄호). slot = 밥상 위 자리(x, z, 높이 보정)
   words: [
@@ -32,7 +32,7 @@ window.HANOK = {
   repeatWords: ['bap', 'kimchi', 'jeotgarak'],                              // 따라 말하기
 
   hello: [
-    { text: '어서 오세요! 여기는 리니네 집이에요.', choices: ['안녕하세요!'], gloss: { fr: 'Bienvenue ! Ici, c\'est chez Rini.', en: 'Welcome! This is Rini\'s house.' } },
+    { text: '어서 오세요! 여기는 하나네 집이에요.', choices: ['안녕하세요!'], gloss: { fr: 'Bienvenue ! Ici, c\'est chez Hana.', en: 'Welcome! This is Hana\'s house.' } },
     { text: '안녕하세요! 들어오세요.', choices: ['네!'], gloss: { fr: 'Bonjour ! Entrez.', en: 'Hello! Come in.' } },
     { text: '오늘은 같이 밥상을 차려요. 먼저 부엌 물건 이름을 들어 봐요.', choices: ['좋아요'], gloss: { fr: 'Aujourd\'hui, on met la table ensemble. D\'abord, écoutons les noms des objets de la cuisine.', en: 'Today we set the table together. First, let\'s listen to the names of kitchen things.' } }
   ],
@@ -61,7 +61,7 @@ window.HANOK = {
   ],
   ending: {
     cardKicker: '오늘 배운 말',
-    cardTitle: '리니네 집 · 부엌',
+    cardTitle: '하나네 집 · 부엌',
     cultureTitle: '문화 한 조각',
     culture: ['밥은 왼쪽, 국은 오른쪽에 놓아요.', '옛날에는 가마솥에 밥을 짓고, 항아리에 김치와 장을 담아 두었어요.'],
     free: '더 둘러보기', restart: '처음부터 다시', exit: '나가기', back: '교실로 돌아가기'
