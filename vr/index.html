@@ -17,6 +17,8 @@
   #vrBtn { background:var(--accent); color:#2a2010; }
   #vrBtn[disabled] { background:#e7e1d6; color:#9a93a6; cursor:default; }
   #flatBtn { background:#ece5d8; color:var(--ink); }
+  #mrBtn { background:#5cc3b4; color:#0f2a26; }
+  #beta { margin-top:12px; font-size:12px; color:#2f7d72; line-height:1.5; }
   #note { margin-top:12px; font-size:13px; color:var(--dim); min-height:1em; }
   #loading { position:fixed; left:50%; bottom:18px; transform:translateX(-50%); background:rgba(30,28,44,.78); color:#fff; padding:8px 14px; border-radius:20px; font-size:13px; z-index:6; }
 </style>
@@ -28,7 +30,9 @@
     <h1>휴먼쌤이 누구인가</h1>
     <p>약 3분. 헤드셋에서는 손에서 나가는 빛줄기로 가리키고 방아쇠를 당겨 골라요.</p>
     <button id="vrBtn" type="button" disabled>VR 확인 중…</button>
+    <button id="mrBtn" type="button" style="display:none">혼합현실로 보기 (내 방에서) · 시험판</button>
     <button id="flatBtn" type="button">화면으로 보기</button>
+    <div id="beta">시험판: 혼합현실과 손으로 고르기(컨트롤러 없이)는 아직 헤드셋에서 다 확인하지 못했어요.</div>
     <div id="note"></div>
   </div>
 </div>

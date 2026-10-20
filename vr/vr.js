@@ -18,7 +18,7 @@
   const UP = V3(0, 1, 0);
 
   // ───────────── 렌더러·장면 ─────────────
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });   // alpha: 혼합현실에서 실제 방이 비쳐 보이게
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(innerWidth, innerHeight);
   renderer.outputEncoding = THREE.sRGBEncoding;
@@ -51,7 +51,18 @@
     fragmentShader: 'uniform vec3 top; uniform vec3 hor; uniform vec3 bot; varying vec3 vP; void main(){ float h = vP.y; vec3 c = h > 0.0 ? mix(hor, top, pow(h, 0.55)) : mix(hor, bot, pow(-h, 0.7)); gl_FragColor = vec4(c, 1.0); }'
   }));
   scene.add(sky);
-  function setSky(t, h, b, fog) { skyU.top.value.set(t); skyU.hor.value.set(h); skyU.bot.value.set(b); scene.fog.color.set(fog); }
+  const fogVR = scene.fog;
+  function setSky(t, h, b, fog) { skyU.top.value.set(t); skyU.hor.value.set(h); skyU.bot.value.set(b); fogVR.color.set(fog); }
+
+  // 혼합현실: 하늘·안개·무대 바닥·구름을 숨기고, 실제 방바닥 위에 캐릭터·조각 자리·문만 실제 크기로 세운다(10-18 시험)
+  let isMR = false;
+  function setMR(on) {
+    isMR = on;
+    stageVR.visible = !on; sky.visible = !on; scene.fog = on ? null : fogVR;
+    if (shadowCatcher) shadowCatcher.visible = on;
+    renderer.setClearColor(0x000000, on ? 0 : 1);
+    log('mode', on ? 'mixed reality' : 'vr');
+  }
 
   const hemi = new THREE.HemisphereLight(0xe6f0ff, 0x8c7a66, 0.65);
   scene.add(hemi);
@@ -234,16 +245,19 @@
   function isDark(c) { const col = new THREE.Color(c); return col.r * 0.3 + col.g * 0.59 + col.b * 0.11 < 0.55; }
 
   // ───────────── 무대 ─────────────
+  // VR에서만 보이는 것(무대 바닥·장식·구름). 혼합현실에서는 숨기고 실제 방바닥을 쓴다
+  const stageVR = new THREE.Group(); world.add(stageVR);
+  let shadowCatcher = null;
   function buildStage() {
-    mesh(new THREE.CylinderGeometry(9, 9.35, 0.9, 96), std('#e2d7c3', 0.92), world, [0, -0.45, 0]).castShadow = false;
-    mesh(new THREE.CylinderGeometry(9.35, 9.0, 0.25, 96), std('#d3c6ae', 0.95), world, [0, -1.02, 0]).castShadow = false;
+    mesh(new THREE.CylinderGeometry(9, 9.35, 0.9, 96), std('#e2d7c3', 0.92), stageVR, [0, -0.45, 0]).castShadow = false;
+    mesh(new THREE.CylinderGeometry(9.35, 9.0, 0.25, 96), std('#d3c6ae', 0.95), stageVR, [0, -1.02, 0]).castShadow = false;
     mesh(torus(8.92, 0.035, 160, 8), glowMat('#ffc46b', 0.9), world, [0, 0.012, 0]).castShadow = false;
     const deco = new THREE.MeshBasicMaterial({ color: hex('#d9cdb9'), transparent: true, opacity: 0.55 });
     for (let i = 0; i < 12; i++) {
-      const a = i * Math.PI / 6, s = mesh(geo.box, deco, world, [Math.sin(a) * 4.6, 0.006, Math.cos(a) * 4.6], [0.03, 0.002, 7.6], [0, a, 0]);
+      const a = i * Math.PI / 6, s = mesh(geo.box, deco, stageVR, [Math.sin(a) * 4.6, 0.006, Math.cos(a) * 4.6], [0.03, 0.002, 7.6], [0, a, 0]);
       s.castShadow = s.receiveShadow = false;
     }
-    const ring = mesh(new THREE.RingGeometry(2.4, 2.46, 96), deco, world, [0, 0.006, 0], null, [-Math.PI / 2, 0, 0]);
+    const ring = mesh(new THREE.RingGeometry(2.4, 2.46, 96), deco, stageVR, [0, 0.006, 0], null, [-Math.PI / 2, 0, 0]);
     ring.castShadow = false;
     // 무대 아래·멀리 구름
     const cloud = new THREE.MeshLambertMaterial({ color: hex('#f3f1ee') });
@@ -251,17 +265,20 @@
     const R = (a, b) => a + rnd() * (b - a);
     for (let i = 0; i < 7; i++) {
       const a = R(0, 6.28), r = R(0, 4);
-      const c = mesh(geo.lowSphere, cloud, world, [Math.cos(a) * r, R(-2.7, -1.9), Math.sin(a) * r], [R(9, 15), R(2.6, 3.8), R(9, 15)]); c.castShadow = false;
+      const c = mesh(geo.lowSphere, cloud, stageVR, [Math.cos(a) * r, R(-2.7, -1.9), Math.sin(a) * r], [R(9, 15), R(2.6, 3.8), R(9, 15)]); c.castShadow = false;
     }
     for (let i = 0; i < 14; i++) {
       const a = i / 14 * 6.28 + R(-0.2, 0.2), r = R(30, 55), cy = R(-10, -4);
       const side = V3(-Math.sin(a), 0, Math.cos(a)), size = R(7, 12), parts = 3 + (rnd() < 0.5 ? 1 : 0);
       for (let k = 0; k < parts; k++) {
         const off = (k - (parts - 1) / 2) * size * 0.6, s = size * R(0.7, 1.15) * (k === (parts >> 1) ? 1.25 : 1);
-        const c = mesh(geo.lowSphere, cloud, world, [Math.cos(a) * r + side.x * off, cy + R(0, s * 0.25), Math.sin(a) * r + side.z * off], [s, s * R(0.55, 0.75), s * R(0.8, 1.1)]);
+        const c = mesh(geo.lowSphere, cloud, stageVR, [Math.cos(a) * r + side.x * off, cy + R(0, s * 0.25), Math.sin(a) * r + side.z * off], [s, s * R(0.55, 0.75), s * R(0.8, 1.1)]);
         c.castShadow = c.receiveShadow = false;
       }
     }
+    // 혼합현실: 실제 바닥에 그림자만 그리는 투명판
+    shadowCatcher = mesh(new THREE.PlaneGeometry(40, 40), new THREE.ShadowMaterial({ opacity: 0.3 }), world, [0, 0.002, 0], null, [-Math.PI / 2, 0, 0]);
+    shadowCatcher.castShadow = false; shadowCatcher.receiveShadow = true; shadowCatcher.visible = false;
     // 떠다니는 빛 알갱이
     const n = 70, pos = new Float32Array(n * 3), base = [];
     for (let i = 0; i < n; i++) { const a = R(0, 6.28), r = R(3, 16); base.push([Math.cos(a) * r, R(0.4, 6.4), Math.sin(a) * r, R(0, 6.28)]); }
@@ -540,17 +557,34 @@
     const dot = new THREE.Mesh(new THREE.SphereGeometry(0.007, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffffff })); dot.visible = false; ray.add(dot);
     const h = { ray, grip, line, dot, src: null, hand: '', hit: null, turnHeld: false };
     ray.addEventListener('connected', e => {
-      h.src = e.data; h.hand = e.data.handedness;
-      grip.clear();
-      const body = std('#2d2b38', 0.5);
-      const gm = mesh(geo.sphere, body, grip, [0, -0.01, 0.02], [0.042, 0.05, 0.12], [0.35, 0, 0]); gm.castShadow = false;
-      const rc = h.hand === 'left' ? '#5cc3b4' : '#f2a94f';
-      mesh(new THREE.TorusGeometry(0.045, 0.008, 6, 32), glowMat(rc, 0.6), grip, [0, 0.02, -0.035], null, [0.96, 0, 0]).castShadow = false;
+      h.src = e.data; h.hand = e.data.handedness; h.isHand = !!e.data.hand;
+      grip.clear(); h.model = [];
+      if (!h.isHand) {   // 컨트롤러 모양(혼합현실에서는 실제 컨트롤러가 보이니 숨김)
+        const body = std('#2d2b38', 0.5);
+        const gm = mesh(geo.sphere, body, grip, [0, -0.01, 0.02], [0.042, 0.05, 0.12], [0.35, 0, 0]); gm.castShadow = false;
+        const rc = h.hand === 'left' ? '#5cc3b4' : '#f2a94f';
+        const ring = mesh(new THREE.TorusGeometry(0.045, 0.008, 6, 32), glowMat(rc, 0.6), grip, [0, 0.02, -0.035], null, [0.96, 0, 0]); ring.castShadow = false;
+        h.model = [gm, ring];
+      }
+      log('input connected', h.hand, h.isHand ? 'hand' : 'controller');
       if (h.hand === 'left' && checklist) attachChecklist();
     });
     ray.addEventListener('disconnected', () => { h.src = null; });
     ray.addEventListener('selectstart', () => onSelect(h));
     hands.push(h);
+  }
+  // 손 인식: 관절마다 작은 구슬(VR에서만. 혼합현실에서는 실제 손이 보인다). 엄지·검지 집기 = 방아쇠('select')
+  const handGroups = [0, 1].map(i => { const hg = renderer.xr.getHand(i); rig.add(hg); return hg; });
+  const jointMat = std('#f3d2bd', 0.55), tipMat = std('#ffffff', 0.4);
+  function updateHands() {
+    for (const hg of handGroups) {
+      const js = hg.joints; if (!js) continue;
+      for (const name in js) {
+        const j = js[name];
+        if (!j.userData.deco) { const s = new THREE.Mesh(geo.lowSphere, name.endsWith('tip') ? tipMat : jointMat); s.castShadow = false; j.add(s); j.userData.deco = s; }
+        const s = j.userData.deco; s.scale.setScalar(Math.max(0.006, j.jointRadius || 0.008) * 2); s.visible = !isMR;
+      }
+    }
   }
   const raycaster = new THREE.Raycaster();
   function pickPanel(origin, dir) {
@@ -568,6 +602,7 @@
       for (const h of hands) {
         if (!h.src) { h.line.visible = false; continue; }
         h.line.visible = true;
+        for (const m of h.model || []) m.visible = !isMR;
         const o = h.ray.getWorldPosition(V3()), q = h.ray.getWorldQuaternion(new THREE.Quaternion()), d = V3(0, 0, -1).applyQuaternion(q);
         const r = pickPanel(o, d);
         h.hit = r && r.bi >= 0 ? r : null;
@@ -747,7 +782,8 @@
     p.text(C.kicker, 30, '#b5873e', { bold: true, align: 'center', gap: 10 });
     p.text(C.title, 76, INK, { bold: true, align: 'center', gap: 18 });
     p.text(inXR() ? C.subVR : C.subFlat, 32, DIM, { align: 'center', gap: 10 });
-    p.text(inXR() ? C.moveVR : C.moveFlat, 28, DIM, { align: 'center', gap: 30 });
+    p.text(inXR() ? C.moveVR : C.moveFlat, 28, DIM, { align: 'center', gap: inXR() ? 10 : 30 });
+    if (inXR()) p.text(C.handHint, 28, '#b5873e', { align: 'center', gap: 30 });
     p.button(C.start, null, '#f2a94f', null, 110);
     p.finish();
     placeToward(p, P(C.pos.guide), 1.45, 0.55, -0.18); p.show(true);
@@ -920,7 +956,7 @@
   }
   async function comingSoon() {
     const E = C.ending;
-    world.visible = false; sun.visible = false; setSky('#fbf8f2', '#fbf8f2', '#fbf8f2', '#fbf8f2'); hemi.intensity = 1;
+    world.visible = false; sun.visible = false; if (!isMR) setSky('#fbf8f2', '#fbf8f2', '#fbf8f2', '#fbf8f2'); hemi.intensity = 1;
     checklist.mesh.visible = false; checklist.target = 0;
     place(V3(0, 0, 0), V3(0, 0, -5));
     const p = soon; p.clear(); p.pad = 40;
@@ -935,7 +971,7 @@
     if (i === 2) { const s = renderer.xr.getSession(); if (s) s.end(); location.reload(); return; }
     if (i === 1) { location.reload(); return; }
     await fadeTo(1, 0.6);
-    world.visible = true; sun.visible = true; hemi.intensity = 0.55; setSky('#5f87c9', '#dfe9f3', '#f4efe6', '#dfe9f3');
+    world.visible = true; sun.visible = true; hemi.intensity = 0.65; if (!isMR) setSky('#5f87c9', '#dfe9f3', '#f4efe6', '#dfe9f3');
     door.set(0); state.doorOpen = false; if (human) { human.root.visible = false; human.root.position.copy(P(C.pos.human)); }
     checklist.mesh.visible = true; updateChecklist(); fadeMesh.material.color.set(0x0a0810);
     place(P(C.pos.meet), V3(0, 1.5, C.pos.human[1]));
@@ -967,7 +1003,7 @@
     const dt = Math.min(0.05, clock.getDelta()); now += dt;
     for (let i = waits.length - 1; i >= 0; i--) { const w = waits[i]; if ((w.t != null && now >= w.t) || (w.f && w.f())) { waits.splice(i, 1); w.r(); } }
     for (let i = updaters.length - 1; i >= 0; i--) if (!updaters[i]()) updaters.splice(i, 1);
-    updateFlat(dt); updateSticks(dt); updateVignette(dt); updatePointers(); updateGuide(dt); updateHuman(dt); updateBursts(dt);
+    updateFlat(dt); updateSticks(dt); updateVignette(dt); updateHands(); updatePointers(); updateGuide(dt); updateHuman(dt); updateBursts(dt);
     for (const p of panels) p.tick(dt);
     renderer.render(scene, camera);
   });
@@ -986,17 +1022,27 @@
       else { vrBtn.textContent = '이 기기는 VR 미지원'; note.textContent = '메타 퀘스트 브라우저에서 이 주소를 열면 VR로 들어갈 수 있어요.'; }
     }).catch(() => { vrBtn.textContent = '이 기기는 VR 미지원'; });
   } else { vrBtn.textContent = '이 기기는 VR 미지원'; note.textContent = window.isSecureContext ? '메타 퀘스트 브라우저에서 이 주소를 열면 VR로 들어갈 수 있어요.' : 'VR은 https 주소에서만 열려요.'; }
-  vrBtn.addEventListener('click', async () => {
+  // 혼합현실 버튼(퀘스트 3: 컬러 화면 위에 띄우기)
+  const mrBtn = document.getElementById('mrBtn');
+  if (navigator.xr && navigator.xr.isSessionSupported && mrBtn) {
+    navigator.xr.isSessionSupported('immersive-ar').then(ok => { if (ok) { mrBtn.style.display = 'block'; } }).catch(() => {});
+  }
+  async function startXR(mode) {
     try {
-      const session = await navigator.xr.requestSession('immersive-vr', { optionalFeatures: ['local-floor', 'bounded-floor', 'hand-tracking'] });
+      const session = await navigator.xr.requestSession(mode, { optionalFeatures: ['local-floor', 'bounded-floor', 'hand-tracking'] });
+      if (mode === 'immersive-ar') setMR(true);
       await renderer.xr.setSession(session);
-      session.addEventListener('end', () => { attachChecklist(); });
+      session.addEventListener('end', () => location.reload());   // 나오면 처음 화면으로
       // 머리 위치가 잡힌 뒤 출발점에 세운다
       await wait(0.6); place(P(C.pos.hub), P(C.pos.guide)); attachChecklist();
+      log('xr start', mode, 'blend', session.environmentBlendMode || '-');
       begin();
-    } catch (e) { note.textContent = 'VR을 열지 못했어요: ' + e.message; log('xr fail', e); }
-  });
+    } catch (e) { setMR(false); note.textContent = (mode === 'immersive-ar' ? '혼합현실을' : 'VR을') + ' 열지 못했어요: ' + e.message; log('xr fail', mode, e); }
+  }
+  vrBtn.addEventListener('click', () => startXR('immersive-vr'));
+  if (mrBtn) mrBtn.addEventListener('click', () => startXR('immersive-ar'));
   flatBtn.addEventListener('click', begin);
+  if (Q.has('mrtest')) { setMR(true); document.body.style.background = '#7d828a'; }   // 시험용: 화면 모드에서 혼합현실 모습 흉내
   if (AUTOTEST || JUMP) begin();
   window.W1 = { state, scene, camera, rig, renderer, place };
 })();
