@@ -429,8 +429,21 @@
   wrist = new Panel('wrist', 440, 'rgba(33,31,46,0.88)', 0.0005); wrist.pad = 26; H.setWrist(wrist);
   // 점원 = Tripo로 만든 편의점 옷 입은 하나(assets/clerk.glb): 동작 idle·talk·bow(인사 때 wave 자리에)
   const riniReady = H.loadChar({ url: 'assets/clerk.glb', height: 1.58, pos: P(POS.rini),
-    clips: { idle: 'idle', talk: 'talk', wave: 'bow' }, glow: 0.18 }).then(c => { rini = c; }).catch(e => log('clerk load failed', e && e.message));
+    clips: { idle: 'idle', talk: 'talk', wave: 'bow' }, glow: 0.18 }).then(c => { rini = c; if (c) c.look = false; }).catch(e => log('clerk load failed', e && e.message));
+  // 하나가 사용자를 보게: 엔진의 c.look은 맵(world)이 돌아가 있지 않다고 보고 계산해서, 휴대폰 혼합현실처럼 맵을 돌려 놓으면 엉뚱한 곳을 본다
+  // (10-21 휴먼쌤 "패스스루로 하니까 하나 캐릭터가 다른곳을 바라보고 있음") → 머리 위치를 맵 안 좌표로 바꿔서 돌린다
+  H.onUpdate(dt => {
+    if (!rini || !rini.root.visible) return;
+    const r = rini.root, lp = r.parent.worldToLocal(H.headPos()), dx = lp.x - r.position.x, dz = lp.z - r.position.z;
+    if (dx * dx + dz * dz < 0.01) return;
+    let d = (Math.atan2(dx, dz) - r.rotation.y) % (Math.PI * 2); if (d > Math.PI) d -= Math.PI * 2; if (d < -Math.PI) d += Math.PI * 2;
+    r.rotation.y += d * (1 - Math.exp(-3 * Math.min(dt || 0.016, 0.1)));
+  });
   const ready = Promise.all([riniReady]).then(() => log('assets loaded'));
   H.start({ main, ready, start: { pos: POS.start, look: [0.1, -1.3] }, anchor: V3(0, 0, 0) });
+  if (H.Q.has('looktest')) ready.then(async () => {   // 시험용: 맵을 돌려 놓아도(휴대폰 혼합현실) 하나가 사용자를 보는지 — 하나 앞과 사용자 쪽 사이 각도(도)
+    const ang = () => { const r = rini.root, fw = V3(0, 0, 1).applyQuaternion(r.getWorldQuaternion(new THREE.Quaternion())), to = H.headPos().sub(r.getWorldPosition(V3())); fw.y = to.y = 0; return (Math.acos(Math.min(1, fw.normalize().dot(to.normalize()))) * 180 / Math.PI).toFixed(1); };
+    for (const yaw of [0, 1.2, -2.0, 2.8]) { H.world.rotation.y = yaw; H.world.updateMatrixWorld(true); await wait(4); log('looktest yaw', yaw, 'angle', ang()); }
+  });
   window.STOREX = { items, byId, tap, get stage() { return stage; }, get target() { return target; }, get rini() { return rini; } };
 })();
