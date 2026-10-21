@@ -271,7 +271,8 @@ window.HW = (function () {
     for (const c of chars) {
       if (!c.root.visible) continue;
       c.mixer.update(dt);
-      if (c.look) { const d = hp.clone().sub(c.root.getWorldPosition(V3())); d.y = 0; if (d.lengthSq() > 0.01) c.root.rotation.y += angDiff(c.root.rotation.y, Math.atan2(d.x, d.z)) * (1 - Math.exp(-3 * dt)); }
+      // rotation.y는 부모(맵) 좌표라 머리도 부모 좌표로 바꿔 잰다(휴대폰 혼합현실은 맵 전체를 돌려 놓음)
+      if (c.look) { const d = c.root.parent.worldToLocal(hp.clone()).sub(c.root.position); d.y = 0; if (d.lengthSq() > 0.01) c.root.rotation.y += angDiff(c.root.rotation.y, Math.atan2(d.x, d.z)) * (1 - Math.exp(-3 * dt)); }
     }
   }
 
