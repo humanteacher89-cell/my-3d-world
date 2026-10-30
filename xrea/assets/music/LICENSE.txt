@@ -1,8 +1,8 @@
 엑스리아 월드 배경음악 출처 (2026-10-30)
 
-"Floating Cities" Kevin MacLeod (incompetech.com)
-"Deep Haze" Kevin MacLeod (incompetech.com)
+"Pamgaea" Kevin MacLeod (incompetech.com) — 입장부터(day)
+"Dreamer" Kevin MacLeod (incompetech.com) — 세 조각이 모인 뒤 엔딩·문 너머까지(ending)
 Licensed under Creative Commons: By Attribution 4.0 License
 http://creativecommons.org/licenses/by/4.0/
 
-내려받은 곳: https://incompetech.com/music/royalty-free/ (2026-10-30). 쓰는 곳: xrea/audio.js (day = Floating Cities, ending = Deep Haze), 출처 표시는 문 너머 고르기 화면 아래 줄.
+내려받은 곳: https://incompetech.com/music/royalty-free/ (2026-10-30). 쓰는 곳: xrea/audio.js TRACKS. 출처 표시는 문 너머 고르기 화면 아래 줄.

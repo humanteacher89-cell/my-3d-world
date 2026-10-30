@@ -126,7 +126,8 @@
   /* ---------- 음악 파일(무료 곡) ----------
      휴먼쌤 10-30 "직접 만들지말고 무료로 된거 아무거나 다운받을순없니?" → Kevin MacLeod(incompetech.com, CC BY 4.0) 곡을 assets/music/에 두고 <audio>로 튼다.
      이름이 TRACKS에 있으면 파일을, 없으면 위 합성 곡을 쓴다. 파일을 못 불러오면 합성 곡으로 돌아간다. 출처는 assets/music/LICENSE.txt와 문 너머 화면 아래 줄. */
-  const TRACKS={day:'assets/music/floating-cities.mp3',ending:'assets/music/deep-haze.mp3'};
+  // 휴먼쌤 10-30 "입장시작하자마자는 바로 6번(Pamgaea)으로, 나중에 3개조각 다 모으고 시네마틱 영상부터는 5번(Dreamer)으로. 노래는 각각 무한반복" (loop=true)
+  const TRACKS={day:'assets/music/pamgaea.mp3',ending:'assets/music/dreamer.mp3'};
   const TK={el:null,src:null,fadeT:null,vol:0.55};
   function fadeTo(el,target,ms,done){clearInterval(TK.fadeT);const v0=el.volume,t0=performance.now();TK.fadeT=setInterval(()=>{const k=Math.min(1,(performance.now()-t0)/ms);el.volume=Math.max(0,Math.min(1,v0+(target-v0)*k));if(k>=1){clearInterval(TK.fadeT);if(done)done();}},50);}
   function stopTrack(){const el=TK.el;if(!el)return;TK.el=null;TK.src=null;fadeTo(el,0,600,()=>{try{el.pause();}catch(e){}});}

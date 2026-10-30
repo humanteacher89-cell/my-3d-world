@@ -210,7 +210,7 @@ window.WORLD_CONFIG = {
       ],
       soonToast: '그 월드는 아직 준비 중이에요.',
       backList: '← 돌아가기',
-      credit: '음악: "Floating Cities" · "Deep Haze" Kevin MacLeod (incompetech.com) · CC BY 4.0',   /* 무료 곡 출처 표기(assets/music/LICENSE.txt) */
+      credit: '음악: "Pamgaea" · "Dreamer" Kevin MacLeod (incompetech.com) · CC BY 4.0',   /* 무료 곡 출처 표기(assets/music/LICENSE.txt) */
       back: '조금 더 머물기',
       leaving: '{name}(으)로 이동합니다'
     },

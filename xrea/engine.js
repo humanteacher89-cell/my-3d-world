@@ -875,7 +875,7 @@ function start(CFG){
     if(p===PH.TALK){if(cine.ci<cine.full.length){cine.ci=cine.full.length;setSub(human.name,cine.full);human.act=null;$('#cineNext').hidden=false;return;}
       cine.li++;if(cine.li>=cine.lines.length){setSub('','');$('#cineNext').hidden=true;human.act='open';nextPhase();SND('sfx','door');cineTitle(T_(END.doorTitle||''));}else cineShowLine();return;}
     if(cine.pt>0.6)cine.pt+=99;}
-  function finishEnding(){SND('music','day');cine.orbs.forEach(x=>scene.remove(x.o));cine.orbs=[];hState.scale=NOHOST?0:1;human.root.visible=!NOHOST;human.act=null;STAGE.door.open(1);cine.doorK=1;
+  function finishEnding(){/* 엔딩 뒤에도 엔딩 곡을 이어 튼다(휴먼쌤 10-30: 조각 다 모은 뒤부터는 5번 곡) */cine.orbs.forEach(x=>scene.remove(x.o));cine.orbs=[];hState.scale=NOHOST?0:1;human.root.visible=!NOHOST;human.act=null;STAGE.door.open(1);cine.doorK=1;
     hState.pos.set(2.1,0,-6.0);hState.facing=Math.atan2(player.pos.x-hState.pos.x,player.pos.z-hState.pos.z);
     Q.human=true;qSave();checklistUI();cine.active=false;document.body.classList.remove('cine','talking');$('#cine').hidden=true;cineTitle('');setSub('','');J.busy=false;J.node='meet';DIR.init=false;camYaw=0;camPitch=0.3;refreshChoices();}
   $('#cine').addEventListener('pointerdown',e=>{if(e.target.closest('#cineSkip,#arrGo'))return;e.preventDefault();if(END.autoAdvance===false)cineAdvance();});
@@ -1613,7 +1613,7 @@ function start(CFG){
      문을 지나면 주인 로봇이 묻는 화면이 뜨고, 월드 하나를 고르면 그 주소로 간다. worlds[]는 설정에서만 고친다. */
   // 같은 사이트 안(http·https)에서 열었으면 상대 주소(url), 파일로 열었거나 url이 없으면 절대 주소(urlAbs)
   function pickUrl(w){const rel=w.url,abs=w.urlAbs||w.url;if(!rel)return abs||'';return /^https?:$/.test(location.protocol)?rel:abs;}
-  function showPick(){if(!PK)return;hideChoices();J.busy=true;SND('music','day');
+  function showPick(){if(!PK)return;hideChoices();J.busy=true;
     $('#pick .kicker').textContent=T_(PK.kicker||V.mainWorld||'');$('#pickName').textContent=T_(PK.asker||human.name||'');$('#pickRole').textContent=T_(PK.askerRole||HM.role||'');
     $('#pickTitle').textContent=T_(PK.title||'누구의 월드로 들어갈까요?');$('#pickSub').textContent=T_(PK.sub||'');$('#pickBack').textContent=T_(PK.back||END.stayLabel||'조금 더 머물기');
     renderPick(PK.worlds||[],null);
