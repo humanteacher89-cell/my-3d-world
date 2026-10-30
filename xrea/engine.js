@@ -344,7 +344,7 @@ function start(CFG){
       loadGltf(url).then(gltf=>{const s=gltf.scene;s.traverse(o=>{if(!o.isMesh)return;const nm=o.name||'';o.castShadow=false;o.receiveShadow=false;
           if(nm.indexOf('BK_')===0){const map=o.material&&o.material.map;if(map){map.anisotropy=renderer.capabilities.getMaxAnisotropy();}o.material=new THREE.MeshBasicMaterial({map:map||null,color:map?'#ffffff':'#222a3a'});}
           else if(o.material){const m=o.material;if(m.emissiveIntensity>2.2)m.emissiveIntensity=2.2;m.needsUpdate=true;}});
-        g.add(s);fb.visible=false;fbHide.forEach(o=>{o.visible=false;});
+        g.add(s);fb.visible=false;fbHide.forEach(o=>{o.visible=false;});grid.visible=false;   /* 네모 격자 덧그림은 구운 바닥 선과 겹치므로 끈다(휴먼쌤 10-30 "하단에 그리드는?") */
         const sh=new THREE.Mesh(new THREE.CircleGeometry(R,64),new THREE.ShadowMaterial({opacity:.38}));sh.rotation.x=-Math.PI/2;sh.position.y=0.058;sh.receiveShadow=true;g.add(sh);
         console.info('[world] 블렌더 무대 GLB 불러옴:',url);})
       .catch(e=>{console.warn('[world] 무대 GLB를 불러오지 못해 코드 무대를 씁니다:',e);});}
