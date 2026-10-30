@@ -195,11 +195,21 @@ window.WORLD_CONFIG = {
       sub: '엑스리아와 함께하는 선생님들의 월드예요. 고르면 바로 이어져요.',
       walkLabel: '문 너머로',
       // 휴먼쌤 10-30: "마지막에 '휴먼쌤월드'로 연결하지 말고, 차라리 이 'https://humanssaem-world.pages.dev/ai/' 이걸로 해줘"
+      //            "여기에다가 AI타운말고 로봇학교 교실, 융합광장, xr과학실험실(5종) 3개 연결되도록 넣어줘" → 넷. children이 있으면 누르면 그 안 목록(돌아가기 있음)
       worlds: [
-        { name: 'AI가 지은 섬', sub: 'AI가 생각하고 사는 방식 · 휴먼쌤 월드', url: 'https://humanssaem-world.pages.dev/ai/', urlAbs: 'https://humanssaem-world.pages.dev/ai/' },
-        { name: '다음 선생님의 월드', sub: '준비 중', ready: false }
+        { name: 'AI가 지은 섬', sub: 'AI가 생각하고 사는 방식', url: 'https://humanssaem-world.pages.dev/ai/', urlAbs: 'https://humanssaem-world.pages.dev/ai/' },
+        { name: '로봇 학교 교실', sub: 'Delightex Edu · 칠판 앞의 리니', url: 'https://edu.delightex.com/AGG-QBY', urlAbs: 'https://edu.delightex.com/AGG-QBY' },
+        { name: '융합 광장', sub: '블렌더로 지은 학교 교정 · 걷기·VR', url: 'https://humanssaem-world.pages.dev/plaza/', urlAbs: 'https://humanssaem-world.pages.dev/plaza/' },
+        { name: 'XR 과학 실험실', sub: '다섯 가지 · 손으로 하는 과학', pickSub: '하나를 고르면 바로 실험실이 열려요.', children: [
+          { name: '공기 분자 실험실', sub: '혼합현실 · 손 집기', url: 'https://humanssaem-world.pages.dev/air/', urlAbs: 'https://humanssaem-world.pages.dev/air/' },
+          { name: '빛과 그림자 실험실', sub: '손전등·거울·그림자', url: 'https://humanssaem-world.pages.dev/light/', urlAbs: 'https://humanssaem-world.pages.dev/light/' },
+          { name: '물의 상태 변화 실험실', sub: '얼음·물·수증기', url: 'https://humanssaem-world.pages.dev/phase/', urlAbs: 'https://humanssaem-world.pages.dev/phase/' },
+          { name: '손 위의 태양계', sub: '행성 여덟 · 공전', url: 'https://humanssaem-world.pages.dev/solar/', urlAbs: 'https://humanssaem-world.pages.dev/solar/' },
+          { name: '심장과 폐 탐험실', sub: '숨쉬기 · 피의 길', url: 'https://humanssaem-world.pages.dev/body/', urlAbs: 'https://humanssaem-world.pages.dev/body/' }
+        ] }
       ],
       soonToast: '그 월드는 아직 준비 중이에요.',
+      backList: '← 돌아가기',
       back: '조금 더 머물기',
       leaving: '{name}(으)로 이동합니다'
     },

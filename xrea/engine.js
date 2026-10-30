@@ -1614,10 +1614,17 @@ function start(CFG){
   function showPick(){if(!PK)return;hideChoices();J.busy=true;SND('music','day');
     $('#pick .kicker').textContent=T_(PK.kicker||V.mainWorld||'');$('#pickName').textContent=T_(PK.asker||human.name||'');$('#pickRole').textContent=T_(PK.askerRole||HM.role||'');
     $('#pickTitle').textContent=T_(PK.title||'누구의 월드로 들어갈까요?');$('#pickSub').textContent=T_(PK.sub||'');$('#pickBack').textContent=T_(PK.back||END.stayLabel||'조금 더 머물기');
-    const list=$('#pickList');list.textContent='';(PK.worlds||[]).forEach(w=>{const soon=w.ready===false||!(w.url||w.urlAbs);const b=document.createElement('button');b.className='jb'+(soon?' soon':' hot');
-      const t=document.createElement('span');t.className='t';t.textContent=T_(w.name||'');b.appendChild(t);if(w.sub){const s=document.createElement('span');s.className='s';s.textContent=T_(w.sub);b.appendChild(s);}
-      b.onclick=()=>{SND('sfx','click');if(soon){$('#pickSub').textContent=T_(w.toast||PK.soonToast||'아직 준비 중이에요.');return;}goWorld(w);};list.appendChild(b);});
+    renderPick(PK.worlds||[],null);
     const el=$('#pick');el.classList.remove('leaving');el.hidden=false;}
+  // 목록 그리기. 묶음(w.children)은 누르면 그 안 목록으로 들어가고 '뒤로'가 생긴다(예: XR 과학 실험실 다섯)
+  function renderPick(items,parent){const list=$('#pickList');list.textContent='';
+    if(parent){$('#pickTitle').textContent=T_(parent.name||'');$('#pickSub').textContent=T_(parent.pickSub||parent.sub||'');}
+    else{$('#pickTitle').textContent=T_(PK.title||'누구의 월드로 들어갈까요?');$('#pickSub').textContent=T_(PK.sub||'');}
+    items.forEach(w=>{const group=Array.isArray(w.children)&&w.children.length>0;const soon=!group&&(w.ready===false||!(w.url||w.urlAbs));const b=document.createElement('button');b.className='jb'+(soon?' soon':' hot');
+      const t=document.createElement('span');t.className='t';t.textContent=T_(w.name||'');b.appendChild(t);if(w.sub){const s=document.createElement('span');s.className='s';s.textContent=T_(w.sub);b.appendChild(s);}
+      if(group){const a=document.createElement('span');a.className='ar';a.textContent='›';b.appendChild(a);}
+      b.onclick=()=>{SND('sfx','click');if(group){renderPick(w.children,w);return;}if(soon){$('#pickSub').textContent=T_(w.toast||PK.soonToast||'아직 준비 중이에요.');return;}goWorld(w);};list.appendChild(b);});
+    if(parent){const back=document.createElement('button');back.className='jb back';back.textContent=T_(PK.backList||'← 돌아가기');back.onclick=()=>{SND('sfx','click');renderPick(PK.worlds||[],null);};list.appendChild(back);}}
   function goWorld(w){const url=pickUrl(w);if(!url)return;SND('sfx','whoosh');$('#pick').classList.add('leaving');if(PK.leaving)$('#pickSub').textContent=T_(PK.leaving,{name:T_(w.name||'')});
     setTimeout(()=>{try{location.href=url;}catch(e){}},700);}
   $('#pickBack').onclick=()=>{SND('sfx','click');leaveEnd();refreshChoices();};
