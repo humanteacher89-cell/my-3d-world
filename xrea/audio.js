@@ -123,9 +123,24 @@
   function tick(){if(!A.ctx||!A.song)return;const S=A.song.S,beat=60/S.bpm,bar=beat*4;
     while(A.next<A.ctx.currentTime+0.6){if(!A.song.sec||A.song.b>=8){A.song.sec=makeSection(S);A.song.sec.intro=A.song.first;A.song.first=false;A.song.b=0;}
       scheduleBar(S,A.song.sec,A.song.b,A.next);A.song.b++;A.next+=bar;}}
+  /* ---------- 음악 파일(무료 곡) ----------
+     휴먼쌤 10-30 "직접 만들지말고 무료로 된거 아무거나 다운받을순없니?" → Kevin MacLeod(incompetech.com, CC BY 4.0) 곡을 assets/music/에 두고 <audio>로 튼다.
+     이름이 TRACKS에 있으면 파일을, 없으면 위 합성 곡을 쓴다. 파일을 못 불러오면 합성 곡으로 돌아간다. 출처는 assets/music/LICENSE.txt와 문 너머 화면 아래 줄. */
+  const TRACKS={day:'assets/music/floating-cities.mp3',ending:'assets/music/deep-haze.mp3'};
+  const TK={el:null,src:null,fadeT:null,vol:0.55};
+  function fadeTo(el,target,ms,done){clearInterval(TK.fadeT);const v0=el.volume,t0=performance.now();TK.fadeT=setInterval(()=>{const k=Math.min(1,(performance.now()-t0)/ms);el.volume=Math.max(0,Math.min(1,v0+(target-v0)*k));if(k>=1){clearInterval(TK.fadeT);if(done)done();}},50);}
+  function stopTrack(){const el=TK.el;if(!el)return;TK.el=null;TK.src=null;fadeTo(el,0,600,()=>{try{el.pause();}catch(e){}});}
+  function playTrack(name){const src=TRACKS[name];if(!src)return false;
+    if(TK.el&&TK.src===src){return true;}   /* 같은 파일이면 그대로 이어 튼다 */
+    stopTrack();const el=new Audio(src);el.loop=true;el.preload='auto';el.volume=0;TK.el=el;TK.src=src;
+    el.addEventListener('error',()=>{if(TK.el===el){TK.el=null;TK.src=null;console.warn('[audio] 음악 파일을 못 불러와 합성 곡으로:',src);startSynth(name);}});
+    const p=el.play();if(p&&p.catch)p.catch(()=>{});fadeTo(el,A.muted?0:TK.vol,1800);return true;}
   function music(name){if(!init())return;if(A.mode===name)return;A.mode=name;const c=A.ctx,now=c.currentTime;
     A.mus.gain.cancelScheduledValues(now);A.mus.gain.setValueAtTime(A.mus.gain.value,now);A.mus.gain.linearRampToValueAtTime(0.0001,now+0.6);
-    clearInterval(A.timer);A.song=null;if(!name||!SONGS[name])return;
+    clearInterval(A.timer);A.song=null;
+    if(name&&TRACKS[name]){if(playTrack(name))return;}else stopTrack();
+    startSynth(name);}
+  function startSynth(name){if(!name||!SONGS[name])return;
     setTimeout(()=>{if(A.mode!==name)return;const t=A.ctx.currentTime;seed=1+Math.floor(Math.random()*99999);
       // 새 곡을 깨끗하게 시작하려고 음악 버스를 새로 만든다(앞 곡의 예약된 음을 끊는다)
       const old=A.mus;A.mus=A.ctx.createGain();A.mus.gain.value=0.0001;A.mus.connect(A.out);try{old.disconnect();}catch(e){}
@@ -153,9 +168,10 @@
   function sfx(name,arg){if(!A.ctx||A.muted||!SFX[name])return;try{SFX[name](A.ctx.currentTime+0.01,arg);}catch(e){}}
 
   /* ---------- 켜기·끄기 버튼 ---------- */
-  function unlock(){if(!init())return;if(A.ctx.state!=='running')A.ctx.resume();}
+  function unlock(){if(!init())return;if(A.ctx.state!=='running')A.ctx.resume();if(TK.el&&TK.el.paused){const p=TK.el.play();if(p&&p.catch)p.catch(()=>{});}}
   function setMuted(m){A.muted=m;try{localStorage.setItem(LS,m?'1':'0');}catch(e){}
     if(A.ctx){const t=A.ctx.currentTime;A.out.gain.cancelScheduledValues(t);A.out.gain.setValueAtTime(A.out.gain.value,t);A.out.gain.linearRampToValueAtTime(m?0:0.9,t+0.25);}
+    if(TK.el)fadeTo(TK.el,m?0:TK.vol,300);
     if(btn){btn.innerHTML=m?ICON_OFF:ICON_ON;btn.setAttribute('aria-label',m?'소리 켜기':'소리 끄기');}}
   const ICON_ON='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" stroke="none"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>';
   const ICON_OFF='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" stroke="none"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
@@ -168,7 +184,8 @@
   if(document.body)mountButton();else document.addEventListener('DOMContentLoaded',mountButton);
   // 브라우저 정책: 첫 터치에서만 소리를 켤 수 있다. 화면이 가려지면 멈췄다가 돌아오면 다시
   ['pointerdown','keydown','touchend'].forEach(ev=>addEventListener(ev,unlock,{capture:true,passive:true}));
-  document.addEventListener('visibilitychange',()=>{if(!A.ctx)return;if(document.hidden)A.ctx.suspend();else A.ctx.resume();});
+  document.addEventListener('visibilitychange',()=>{if(TK.el){if(document.hidden)TK.el.pause();else{const p=TK.el.play();if(p&&p.catch)p.catch(()=>{});}}if(!A.ctx)return;if(document.hidden)A.ctx.suspend();else A.ctx.resume();});
 
-  window.WorldAudio={unlock,music,sfx,setMuted,get muted(){return A.muted;},get state(){return A.ctx?A.ctx.state:'none';},get mode(){return A.mode;},get _ctx(){return A.ctx;},get _out(){return A.out;}};   // _ctx·_out: 시험용
+  window.WorldAudio={unlock,music,sfx,setMuted,get muted(){return A.muted;},get state(){return A.ctx?A.ctx.state:'none';},get mode(){return A.mode;},get _ctx(){return A.ctx;},get _out(){return A.out;},
+    get track(){return TK.el?{src:TK.src,paused:TK.el.paused,time:TK.el.currentTime,volume:TK.el.volume}:null;}};   // _ctx·_out·track: 시험용
 })();

@@ -52,7 +52,7 @@ const UI_HTML=`
 <div id="end" hidden><div class="box"><p class="kicker"></p><h1></h1><p class="sub"></p><button id="endExit"></button><small id="endVer"></small></div>
   <div class="btns"><button id="endReplay"></button><button id="endRestart"></button></div>
   <div id="exit" hidden><p class="kicker"></p><h1></h1><p class="sub"></p><a id="exitLink" hidden></a></div></div>
-<div id="pick" hidden role="dialog" aria-labelledby="pickTitle"><div class="box"><p class="kicker"></p><div class="who"><b id="pickName"></b><span id="pickRole"></span></div><h1 id="pickTitle"></h1><p class="sub" id="pickSub"></p><div id="pickList"></div></div>
+<div id="pick" hidden role="dialog" aria-labelledby="pickTitle"><div class="box"><p class="kicker"></p><div class="who"><b id="pickName"></b><span id="pickRole"></span></div><h1 id="pickTitle"></h1><p class="sub" id="pickSub"></p><div id="pickList"></div><p id="pickCredit" hidden></p></div>
   <div class="btns"><button id="pickBack"></button></div></div>`;
 
 function start(CFG){
@@ -92,7 +92,9 @@ function start(CFG){
     const rt=new THREE.WebGLRenderTarget(innerWidth||2,innerHeight||2,{type:THREE.HalfFloatType,samples:4});
     composer=new THREE.EffectComposer(renderer,rt);composer.addPass(new THREE.RenderPass(scene,camera));
     bloomPass=new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth||2,innerHeight||2),0.28,0.55,0.9);composer.addPass(bloomPass);
-    composer.addPass(new THREE.ShaderPass(THREE.GammaCorrectionShader));}catch(e){composer=null;bloomPass=null;}}
+    composer.addPass(new THREE.ShaderPass(THREE.GammaCorrectionShader));
+    // 렌더 타깃을 직접 넘기면 EffectComposer가 화면 배율(devicePixelRatio)을 1로 잡아 CSS 픽셀 크기로만 그려 고해상도 화면에서 흐릿했다(휴먼쌤 10-30 "해상도가 전체적으로 흐려보이는데") → 배율을 알려 준다
+    composer.setPixelRatio(renderer.getPixelRatio());composer.setSize(innerWidth||2,innerHeight||2);}catch(e){composer=null;bloomPass=null;}}
 
   /* ---------- textures / small helpers ---------- */
   function canvasTex(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;return t;}
@@ -1615,6 +1617,7 @@ function start(CFG){
     $('#pick .kicker').textContent=T_(PK.kicker||V.mainWorld||'');$('#pickName').textContent=T_(PK.asker||human.name||'');$('#pickRole').textContent=T_(PK.askerRole||HM.role||'');
     $('#pickTitle').textContent=T_(PK.title||'누구의 월드로 들어갈까요?');$('#pickSub').textContent=T_(PK.sub||'');$('#pickBack').textContent=T_(PK.back||END.stayLabel||'조금 더 머물기');
     renderPick(PK.worlds||[],null);
+    const cr=$('#pickCredit');cr.textContent=T_(PK.credit||'');cr.hidden=!PK.credit;   /* 음악 등 출처 한 줄(CC BY 표기) */
     const el=$('#pick');el.classList.remove('leaving');el.hidden=false;}
   // 목록 그리기. 묶음(w.children)은 누르면 그 안 목록으로 들어가고 '뒤로'가 생긴다(예: XR 과학 실험실 다섯)
   function renderPick(items,parent){const list=$('#pickList');list.textContent='';
