@@ -2,7 +2,8 @@
    - 헤드셋: VR / 혼합현실(퀘스트 3 컬러 화면 위), 손 빛줄기 + 방아쇠 또는 손 집기, 왼쪽 막대 걷기·오른쪽 막대 30도 돌기, 터널링
    - 화면(PC·휴대폰): 끌어서 둘러보기, 눌러서 고르기, W·A·S·D
    - 맵 파일은 HW.start({ main, introText }) 하나만 부른다. 맵 안 물건은 HW.world(VR·혼합현실 공통)나 HW.vrOnly(VR에서만: 벽·바닥·하늘)에 넣는다.
-   - 시험: ?autotest=1(저절로 끝까지) · ?mrtest=1(화면 모드에서 혼합현실 모습 흉내) · ?vigtest=1(터널링 강제)                       */
+   - 시험: ?autotest=1(저절로 끝까지) · ?mrtest=1(화면 모드에서 혼합현실 모습 흉내) · ?vigtest=1(터널링 강제)
+          · ?placetest=1|2(화면 모드에서 휴대폰 '놓을 곳 정하기' 안내 흉내: 1 = 바닥 찾기가 없는 폰, 2 = 바닥을 계속 못 찾는 폰. 화면을 누르면 놓고 시작)   */
 window.HW = (function () {
   'use strict';
   const Q = new URLSearchParams(location.search);
@@ -576,7 +577,7 @@ window.HW = (function () {
   });
   cv.addEventListener('pointerup', e => {
     if (!drag) return; const moved = drag.moved; drag = null;
-    if (moved <= 6) { audio.unlock(); const hit = flatPick(e); if (hit) activate(hit); else if (emptyAction) emptyAction(); }
+    if (moved <= 6) { if (placing) { onScreenTap(null); return; } audio.unlock(); const hit = flatPick(e); if (hit) activate(hit); else if (emptyAction) emptyAction(); }   // 놓을 곳 정하는 중(placetest)이면 화면 누르기 = 놓기
   });
   function updateFlat(dt) {
     if (inXR()) return;
@@ -746,17 +747,46 @@ window.HW = (function () {
 
   // ───────────── 휴대폰 혼합현실: 바닥·책상을 비춰 놓을 곳 정하기 ─────────────
   // 카메라가 비추는 면에 동그라미(레티클)가 뜨고, 화면을 톡 누르면 그 자리에 맵(anchor 점)이 놓인다.
-  let hitSource = null, placing = null, placeAnchor = V3(0, 0, 0);
+  // 10-30 휴먼쌤 "바닥을 비췄을 때 초록 표기가 안 되는 경우가 있었어": 면(plane) 맞춤은 ARCore가 바닥을 다 익힌 뒤에야 잡혀 몇 초 걸리고, 무늬 없는 바닥·어두운 방에서는 끝내 안 잡힌다.
+  //   → ① 면을 못 찾는 동안은 특징점(point) 맞춤으로라도 동그라미를 띄우고 ② 4초 넘게 못 찾으면 안내를 바꿔 "그냥 눌러도 앞에 놓인다"고 알리고 ③ 바닥 찾기 자체가 없는 폰은 처음부터 그렇게 안내한다.
+  let hitSource = null, hitPts = null, placing = null, placeAnchor = V3(0, 0, 0);
+  let placeT0 = 0, lastSeenT = -99, hitSeen = false, hintStage = -1; const lastHit = V3();
+  const PLACETEST = Q.get('placetest');
   const reticle = new THREE.Group(); reticle.matrixAutoUpdate = false; reticle.visible = false; scene.add(reticle);
   { const r1 = new THREE.Mesh(new THREE.RingGeometry(0.07, 0.09, 40).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x5cc3b4, transparent: true, opacity: 0.95, depthTest: false }));
     const r2 = new THREE.Mesh(new THREE.CircleGeometry(0.02, 20).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0xffffff, depthTest: false }));
     r1.renderOrder = r2.renderOrder = 30; reticle.add(r1, r2); }
+  // 안내 네 단계: 0 처음 · 1 동그라미 보임 · 2 4초 넘게 못 찾음 · 3 이 폰은 바닥 찾기 없음
+  const PLACE_HINTS = [
+    ['바닥이나 책상을 천천히 비춰 보세요.', '초록 동그라미가 뜨면 화면을 톡 눌러 놓아요.', '#c9e3d4'],
+    ['초록 동그라미 자리에 놓을 수 있어요.', '화면을 톡 눌러 놓아요. 자리를 바꾸려면 다른 곳을 비춰요.', '#c9e3d4'],
+    ['아직 바닥을 못 찾았어요.', '휴대폰을 천천히 좌우로 움직이며 밝고 무늬 있는 바닥을 비춰 보세요.\n그냥 화면을 톡 눌러도 앞에 놓여요.', '#ffd9a8'],
+    ['이 휴대폰에서는 바닥 찾기가 안 돼요.', '화면을 톡 누르면 앞에 놓여요.', '#ffd9a8'],
+  ];
+  function placeHint(stage) {
+    if (stage === hintStage) return; hintStage = stage;
+    const [a, b, c] = PLACE_HINTS[stage], p = ui.info; p.clear(); p.pad = 28;
+    p.text(a, 34, '#ffffff', { bold: true, align: 'center', gap: 8 });
+    p.text(b, 30, c, { align: 'center', gap: 0 });
+    p.finish(); placeHud(p, 'bottom'); p.show(true);
+  }
   function updatePlacement(frame) {
-    if (!placing || !frame) return;
-    if (!hitSource) { reticle.visible = false; return; }
-    const res = frame.getHitTestResults(hitSource);
-    if (res.length) { const pose = res[0].getPose(renderer.xr.getReferenceSpace()); if (pose) { reticle.visible = true; reticle.matrix.fromArray(pose.transform.matrix); return; } }
+    if (!placing) return;
+    if (!hitSource && !hitPts) { reticle.visible = false; placeHint(3); return; }
+    let pose = null, pt = false;
+    if (frame) {
+      const ref = renderer.xr.getReferenceSpace();
+      if (hitSource) { const r = frame.getHitTestResults(hitSource); if (r.length) pose = r[0].getPose(ref); }
+      if (!pose && hitPts) { const r = frame.getHitTestResults(hitPts); if (r.length) { pose = r[0].getPose(ref); pt = true; } }
+    }
+    if (pose) {
+      reticle.visible = true; reticle.matrix.fromArray(pose.transform.matrix); lastHit.setFromMatrixPosition(reticle.matrix);
+      if (pt) reticle.matrix.makeTranslation(lastHit.x, lastHit.y, lastHit.z);   // 점 맞춤은 기울기가 들쭉날쭉 → 자리만 쓰고 바닥과 나란히 둔다
+      hitSeen = true; lastSeenT = now; placeHint(1); return;
+    }
     reticle.visible = false;
+    const lost = now - Math.max(placeT0, lastSeenT);
+    placeHint(lost > 4 ? 2 : hitSeen && lost < 1 ? 1 : 0);   // 잠깐 놓친 것은 안내를 안 바꾼다(깜빡임 방지), 4초 넘으면 '못 찾았어요'
   }
   function placeWorldAt(pos) {
     const cam = headPos(), yaw = Math.atan2(cam.x - pos.x, cam.z - pos.z);   // 맵 앞(+Z)이 휴대폰을 보게
@@ -770,6 +800,7 @@ window.HW = (function () {
     if (placing) {
       let pos;
       if (reticle.visible) pos = V3().setFromMatrixPosition(reticle.matrix);
+      else if (hitSeen && now - lastSeenT < 3) pos = lastHit.clone();   // 방금 전까지 보이던 자리
       else { const d = headDir(); pos = headPos().addScaledVector(d, 1.6); pos.y -= 0.6; }   // 면을 못 찾으면 앞 1.6m
       placeWorldAt(pos); reticle.visible = false; world.visible = true; sfx('appear');
       const p = placing; placing = null; ui.info.show(false); p(); return;
@@ -780,14 +811,20 @@ window.HW = (function () {
     onSelect(h);
   }
   async function placeStep(session) {
-    try { const vs = await session.requestReferenceSpace('viewer'); hitSource = await session.requestHitTestSource({ space: vs }); } catch (e) { hitSource = null; log('hit-test 없음', e && e.message); }
-    world.visible = false;
-    const p = ui.info; p.clear(); p.pad = 28;
-    p.text('바닥이나 책상을 천천히 비춰 보세요.', 34, '#ffffff', { bold: true, align: 'center', gap: 8 });
-    p.text('초록 동그라미가 뜨면 화면을 톡 눌러 놓아요.', 30, '#c9e3d4', { align: 'center', gap: 0 });
-    p.finish(); placeHud(p, 'bottom'); p.show(true);
+    hitSource = hitPts = null; hitSeen = false; lastSeenT = -99; hintStage = -1;
+    if (session) {
+      try {
+        const vs = await session.requestReferenceSpace('viewer');
+        try { hitSource = await session.requestHitTestSource({ space: vs }); } catch (e) { log('hit-test(면) 없음', e && e.message); }
+        try { hitPts = await session.requestHitTestSource({ space: vs, entityTypes: ['point'] }); } catch (e) { log('hit-test(점) 없음', e && e.message); }
+      } catch (e) { log('viewer space 없음', e && e.message); }
+    } else if (PLACETEST === '2') hitSource = { cancel() {} };   // 화면 모드 시험: 바닥 찾기는 되는데 계속 못 찾는 폰 흉내
+    log('place', hitSource ? '면' : '-', hitPts ? '점' : '-');
+    world.visible = false; placeT0 = now;
+    placeHint(!hitSource && !hitPts ? 3 : 0);
     await new Promise(r => { placing = r; });
-    if (hitSource) { try { hitSource.cancel(); } catch (e) {} hitSource = null; }
+    for (const s of [hitSource, hitPts]) if (s) { try { s.cancel(); } catch (e) {} }
+    hitSource = hitPts = null;
   }
 
   // ───────────── 루프·시작 ─────────────
@@ -817,7 +854,11 @@ window.HW = (function () {
     place(P(s0.pos), P(s0.look));
     Promise.resolve(opts.ready).then(() => { if (loading) loading.style.display = 'none'; });
     let started = false;
-    async function begin() { if (started) return; started = true; cover.style.display = 'none'; audio.unlock(); await opts.ready; await wait(0.3); opts.main(); }
+    async function begin() {
+      if (started) return; started = true; cover.style.display = 'none'; audio.unlock(); await opts.ready; await wait(0.3);
+      if (PLACETEST && !renderer.xr.isPresenting) await placeStep(null);   // 화면 모드에서 '놓을 곳 정하기' 안내만 흉내(화면을 누르면 놓고 시작)
+      opts.main();
+    }
     const sup = m => navigator.xr && navigator.xr.isSessionSupported ? navigator.xr.isSessionSupported(m).catch(() => false) : Promise.resolve(false);
     sup('immersive-vr').then(ok => {
       if (ok) { vrBtn.disabled = false; vrBtn.textContent = 'VR로 들어가기'; }
