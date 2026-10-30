@@ -100,8 +100,11 @@
   #cardEyebrow{font-size:11px;letter-spacing:.1em;color:var(--c,var(--accent));font-weight:700;display:flex;align-items:center;gap:8px}
   #cardEyebrow::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c,var(--accent))}
   #cardTitle{margin:0;font-weight:900;font-size:21px;line-height:1.3;letter-spacing:-.02em;text-wrap:balance}
-  #cardReply{margin:0;font-size:13.5px;color:var(--ink-dim);line-height:1.55;border-left:2px solid var(--line);padding-left:10px}
-  #cardText{margin:2px 0 0;font-size:16px;line-height:1.6}
+  /* 가운데 설명(안내 로봇의 대답)이 묻히지 않게: 밝은 글씨, 조각 색 테두리의 말풍선, 위에 작은 이름표(휴먼쌤 10-30) */
+  #cardReply{margin:4px 0 2px;font-size:15.5px;color:var(--ink);line-height:1.6;background:rgba(255,255,255,.08);border-left:3px solid var(--c,var(--accent));border-radius:0 12px 12px 0;padding:10px 12px 10px 14px}
+  #cardReply::before{content:"안내 로봇";display:block;font-size:11px;letter-spacing:.06em;font-weight:700;color:var(--c,var(--accent));margin-bottom:4px}
+  #cardText{margin:6px 0 0;font-size:15px;line-height:1.6;color:var(--ink-dim);padding-top:8px;border-top:1px solid var(--line)}
+  #cardText::before{content:"한 줄 정리";display:block;font-size:11px;letter-spacing:.06em;font-weight:700;color:var(--ink-faint);margin-bottom:3px}
   #cardMore{margin:0;font-size:13.5px;color:var(--ink-dim);line-height:1.55}
   #cardPending{border:1.5px dashed var(--line);border-radius:12px;padding:10px 12px;font-size:13px;color:var(--ink-dim)}
   #cardSrc{font-size:10.5px;color:var(--ink-faint);letter-spacing:.04em}
