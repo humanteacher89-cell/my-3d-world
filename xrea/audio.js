@@ -3,9 +3,10 @@
    -----------------------------------------------------------------
    배경음은 같은 음을 길게 끌거나(드론) 한 마디를 반복하지 않는다.
    코드 진행이 마디마다 바뀌고, 멜로디는 8마디 단위로 새로 만든다(앞 동기를 살짝 바꿔 이어 감).
-   - day    : 월드 1(밝은 낮). 104bpm, 다장조, 가벼운 드럼·베이스·건반·플럭 멜로디
-   - ending : 휴먼쌤 등장. 드럼 없이 건반 아르페지오, 따뜻하게
-   - city   : 문 너머 저녁 도시. 92bpm, 바장조 7화음, 부드러운 셔플
+   - day    : 엑스리아 월드(2026-10-30, 휴먼쌤 "배경음악도 미래지향적인걸로"). 96bpm, 가단조 도리안, 신스 패드·16분 아르페지오(메아리)·서브베이스·전자 드럼(킥·클랩·틱)·4마디마다 스위프
+   - ending : 엑스리아 등장. 70bpm, 드럼 없이 패드·아르페지오·종 멜로디
+   - city   : (월드 1용, 여기서는 안 씀) 문 너머 저녁 도시. 92bpm, 바장조 7화음, 부드러운 셔플
+   월드 1 원곡(day 104bpm 다장조 플럭)은 ../world1/audio.js에 그대로 있다.
    엔진은 WorldAudio.unlock()(첫 터치), .music(이름), .sfx(이름)만 부른다.
    ===================================================================== */
 (function(){
@@ -50,17 +51,28 @@
     // 건반(전자 피아노 느낌): 사인 + 두 배음, 금방 줄어든다
     keys:(t,m,dur,v)=>{voice(A.mus,'sine',mtof(m),t,dur,0.13*v,{d:dur,sus:0.25,r:0.25,rev:0.35});voice(A.mus,'sine',mtof(m)*2,t,dur*0.4,0.035*v,{d:dur*0.4});},
     pluck:(t,m,dur,v)=>{voice(A.mus,'triangle',mtof(m),t,dur,0.2*v,{lp:3200,lpTo:900,d:Math.min(0.5,dur),rev:0.4});voice(A.mus,'sine',mtof(m+12),t,0.12,0.04*v,{d:0.12});},
-    bell:(t,m,dur,v)=>{voice(A.mus,'sine',mtof(m),t,dur,0.12*v,{d:dur,rev:0.6});voice(A.mus,'sine',mtof(m)*2.76,t,dur*0.3,0.03*v,{d:dur*0.3});}
+    bell:(t,m,dur,v)=>{voice(A.mus,'sine',mtof(m),t,dur,0.12*v,{d:dur,rev:0.6});voice(A.mus,'sine',mtof(m)*2.76,t,dur*0.3,0.03*v,{d:dur*0.3});},
+    // ---- 미래 느낌 신스(엑스리아 월드): 패드·아르페지오·서브베이스·전자 드럼 ----
+    pad:(t,m,dur,v)=>{[-7,7].forEach(dt=>voice(A.mus,'sawtooth',mtof(m),t,dur,0.05*v,{detune:dt,lp:1000,lpTo:1700,q:0.6,a:0.4,d:dur,sus:0.7,r:0.8,rev:0.55}));voice(A.mus,'triangle',mtof(m-12),t,dur,0.045*v,{a:0.3,d:dur,sus:0.6,r:0.5,lp:800});},
+    arp:(t,m,dur,v)=>{voice(A.mus,'square',mtof(m),t,dur,0.05*v,{lp:2400,lpTo:700,q:1.2,d:Math.min(0.35,dur),rev:0.35});voice(A.mus,'square',mtof(m),t+0.19,dur,0.022*v,{lp:1800,lpTo:600,q:1.2,d:Math.min(0.3,dur),rev:0.4});},
+    sub:(t,m,dur,v)=>voice(A.mus,'sine',mtof(m),t,dur,0.48*v,{a:0.01,d:dur*0.9,sus:0.6,r:0.08}),
+    ekick:(t,v)=>{voice(A.mus,'sine',120,t,0.35,0.95*v,{slide:38,slideT:0.16,d:0.35});noise(A.mus,t,0.03,0.08*v,{type:'lowpass',f:2500});},
+    clap:(t,v)=>{for(let i=0;i<3;i++)noise(A.mus,t+i*0.012,0.09,0.085*v,{type:'bandpass',f:1500,q:0.9});noise(A.mus,t+0.03,0.25,0.06*v,{type:'bandpass',f:2200,q:0.7,rev:0.5});},
+    tick:(t,v)=>noise(A.mus,t,0.03,0.05*v,{f:9500}),
+    ohat:(t,v)=>noise(A.mus,t,0.18,0.045*v,{f:8000,rev:0.2}),
+    sweep:(t,dur,v)=>noise(A.mus,t,dur,0.035*v,{type:'bandpass',f:400,fTo:4500,q:0.8,a:dur*0.7,rev:0.6}),
+    synth:(t,m,dur,v)=>{voice(A.mus,'sawtooth',mtof(m),t,dur,0.085*v,{detune:5,lp:2600,lpTo:1200,q:0.9,a:0.02,d:dur,sus:0.5,r:0.2,rev:0.45});voice(A.mus,'sawtooth',mtof(m),t,dur,0.065*v,{detune:-6,lp:2200,lpTo:1000,q:0.9,a:0.02,d:dur,sus:0.5,r:0.2});voice(A.mus,'sine',mtof(m-12),t,dur,0.045*v,{a:0.02,d:dur,sus:0.4,r:0.15});}
   };
 
   /* ---------- 곡 ---------- */
   // 코드: [근음(미디), 구성음(근음 기준 반음)]. 진행 여러 개를 섹션마다 골라 쓴다
-  const MAJ=[0,4,7],MIN=[0,3,7],MAJ7=[0,4,7,11],MIN7=[0,3,7,10],DOM7=[0,4,7,10],ADD9=[0,4,7,14];
+  const MAJ=[0,4,7],MIN=[0,3,7],MAJ7=[0,4,7,11],MIN7=[0,3,7,10],DOM7=[0,4,7,10],ADD9=[0,4,7,14],MIN9=[0,3,7,10,14],SUS2=[0,2,7],SUS4=[0,5,7];
   const SONGS={
-    day:{bpm:104,key:60,scale:[0,2,4,5,7,9,11],drums:'pop',lead:'pluck',swing:0,
-      progs:[[[0,MAJ],[7,MAJ],[9,MIN],[5,MAJ]],[[5,MAJ],[7,MAJ],[4,MIN],[9,MIN]],[[0,ADD9],[9,MIN7],[2,MIN7],[7,DOM7]],[[5,MAJ7],[4,MIN7],[2,MIN7],[7,MAJ]]]},
-    ending:{bpm:84,key:57+3,scale:[0,2,4,5,7,9,11],drums:'none',lead:'bell',swing:0,arp:true,
-      progs:[[[5,MAJ7],[7,MAJ],[4,MIN7],[9,MIN7]],[[2,MIN7],[7,DOM7],[0,ADD9],[0,MAJ]]]},
+    // 엑스리아 월드: 가(A) 도리안. 화음은 모두 음계 안(Am9·Dadd9·Gmaj7·Em7·Cmaj7·Asus2·Esus4)이라 멜로디가 떠다녀도 어긋나지 않는다
+    day:{bpm:96,key:57,scale:[0,2,3,5,7,9,10],synth:true,drums:'electro',lead:'synth',swing:0,
+      progs:[[[0,MIN9],[5,ADD9],[10,MAJ7],[7,MIN7]],[[0,MIN7],[3,MAJ7],[5,ADD9],[7,SUS4]],[[0,SUS2],[10,MAJ7],[3,ADD9],[7,MIN7]],[[5,ADD9],[7,MIN7],[0,MIN9],[10,MAJ]]]},
+    ending:{bpm:70,key:57,scale:[0,2,3,5,7,9,10],synth:true,drums:'none',lead:'bell',swing:0,
+      progs:[[[0,MIN9],[3,MAJ7],[5,ADD9],[7,MIN7]],[[10,ADD9],[5,ADD9],[0,MIN7],[0,MIN9]]]},
     city:{bpm:92,key:53,scale:[0,2,4,5,7,9,10],drums:'soft',lead:'keys',swing:0.16,
       progs:[[[0,MAJ7],[2,MIN7],[3+7,MAJ7],[7,DOM7]],[[5,MAJ7],[4,MIN7],[2,MIN7],[7,DOM7]],[[0,ADD9],[9,MIN7],[5,MAJ7],[7,DOM7]]]}
   };
@@ -78,7 +90,18 @@
   // 멜로디 음이 코드와 어긋나면 가장 가까운 코드 음으로 당긴다(강박에서만)
   function fitChord(m,root,ch,strong){if(!strong)return m;let best=m,bd=99;for(let o=-1;o<=2;o++)ch.forEach(iv=>{const c=root+iv+12*o;const d=Math.abs(c-m);if(d<bd){bd=d;best=c;}});return bd<=2?best:m;}
 
-  function scheduleBar(S,sec,b,t0){const beat=60/S.bpm,[r,ch]=sec.bars[b],root=S.key+r,bv=b===0?1.08:1;
+  // 신스 판(S.synth): 패드가 한 마디 내내 깔리고, 16분 아르페지오가 코드 음을 오르내리고(두 번째·네 번째 박은 한 옥타브 위), 서브베이스는 1박·3.5박 당김, 전자 드럼은 킥 1·2.5박·클랩 3박·틱 8분. 4마디마다 스위프
+  function scheduleBarSynth(S,sec,b,t0){const beat=60/S.bpm,[r,ch]=sec.bars[b],root=S.key+r,bar=beat*4;
+    const voicing=ch.map(iv=>root+iv+12).slice(0,4);
+    voicing.forEach(n=>I.pad(t0,n,bar*(b===7?1.4:1.02),b===0?1:0.9));
+    I.sub(t0,root-24,beat*1.8,1);I.sub(t0+beat*2.5,root-24+(rnd()<0.3?7:0),beat*1.2,0.8);
+    if(!(sec.intro&&b<2))for(let k=0;k<16;k++){if(k%4===3&&rnd()<0.5)continue;const L=voicing.length,idx=k<8?k%L:(L-1-(k%L));const n=voicing[idx]+(k%8>=4?12:0);I.arp(t0+k*beat*0.25,n,beat*0.3,k%4===0?1:0.75);}
+    if(S.drums==='electro'&&!(sec.intro&&b<4)){for(let k=0;k<8;k++){const at=t0+k*beat*0.5;if(k===0||k===5||(k===7&&b%2&&rnd()<0.5))I.ekick(at,k===0?1:0.8);if(k===4)I.clap(at,0.9);I.tick(at,k%2?0.6:1);}
+      if(b%4===3)I.ohat(t0+beat*3.5,0.8);if(b===3||b===7)I.sweep(t0,bar,b===7?1:0.6);if(sec.fill&&b===7)for(let k=0;k<4;k++)I.clap(t0+beat*2+k*beat*0.5,0.3+k*0.12);}
+    else if(b===3||b===7)I.sweep(t0,bar,0.5);
+    if(!(sec.intro&&b<2))sec.mel[b].forEach(n=>{const strong=n.at%1===0;let m=degToMidi(S,n.deg,S.key+12);m=fitChord(m,root+12,ch,strong);const at=t0+n.at*beat,len=Math.max(0.2,n.len*beat*0.9);
+      if(S.lead==='bell')I.bell(at,m+12,len*1.6,0.9);else I.synth(at,m+12,len,0.9);});}
+  function scheduleBar(S,sec,b,t0){if(S.synth)return scheduleBarSynth(S,sec,b,t0);const beat=60/S.bpm,[r,ch]=sec.bars[b],root=S.key+r,bv=b===0?1.08:1;
     const sw=k=>k%1===0.5?S.swing*beat:0;   // 8분 뒷박 셔플
     // 베이스: 1박 근음, 3박(가끔 5도나 옥타브), 마지막 마디는 이음음
     I.bass(t0,root-12,beat*1.6,bv);I.bass(t0+beat*2+sw(0.5)*0,root-12+(rnd()<0.4?7:rnd()<0.5?12:0),beat*1.4,0.85);
