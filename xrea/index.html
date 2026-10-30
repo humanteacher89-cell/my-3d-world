@@ -103,6 +103,25 @@
   /* 가운데 설명(안내 로봇의 대답)이 묻히지 않게: 밝은 글씨, 조각 색 테두리의 말풍선, 위에 작은 이름표(휴먼쌤 10-30) */
   #cardReply{margin:4px 0 2px;font-size:15.5px;color:var(--ink);line-height:1.6;background:rgba(255,255,255,.08);border-left:3px solid var(--c,var(--accent));border-radius:0 12px 12px 0;padding:10px 12px 10px 14px}
   #cardReply::before{content:"안내 로봇";display:block;font-size:11px;letter-spacing:.06em;font-weight:700;color:var(--c,var(--accent));margin-bottom:4px}
+  /* 카드 안 그림틀(#cardViz): 연표·숫자 타일·칩·단계·큰 글귀 */
+  #cardViz{display:grid;gap:12px;margin:6px 0 2px}
+  .vz-quote{font-size:18px;font-weight:900;line-height:1.4;letter-spacing:-.015em;text-wrap:balance}
+  .vz-quote small{display:block;font-size:11px;color:var(--ink-faint);font-weight:400;margin-top:5px;letter-spacing:.03em}
+  .vz-tl{display:grid;gap:9px;padding-left:16px;margin-left:6px;border-left:2px solid var(--c,var(--accent))}
+  .vz-tl .it{position:relative}
+  .vz-tl .it::before{content:"";position:absolute;left:-22px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--c,var(--accent));box-shadow:0 0 0 3px rgba(17,18,28,.9)}
+  .vz-tl .t{font-size:11.5px;font-weight:700;letter-spacing:.05em;color:var(--c,var(--accent));line-height:1.2}
+  .vz-tl .s{font-size:14.5px;line-height:1.4;margin-top:1px}
+  .vz-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px}
+  .vz-stats .it{background:rgba(255,255,255,.08);border:1px solid var(--line);border-radius:12px;padding:11px 8px 9px;text-align:center}
+  .vz-stats .n{font-size:22px;font-weight:900;line-height:1.1;letter-spacing:-.02em;color:var(--c,var(--accent))}
+  .vz-stats .s{font-size:11.5px;color:var(--ink-dim);margin-top:4px;line-height:1.3}
+  .vz-grid{display:flex;flex-wrap:wrap;gap:6px}
+  .vz-grid .it{background:rgba(255,255,255,.1);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;line-height:1.3}
+  .vz-steps{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+  .vz-steps .it{background:var(--c,var(--accent));color:#15161f;font-weight:700;border-radius:10px;padding:7px 11px;font-size:13px;line-height:1.3}
+  .vz-steps .ar{color:var(--ink-dim);font-size:14px}
+  .vz-note{font-size:12.5px;color:var(--ink-dim);line-height:1.5}
   #cardText{margin:6px 0 0;font-size:15px;line-height:1.6;color:var(--ink-dim);padding-top:8px;border-top:1px solid var(--line)}
   #cardText::before{content:"한 줄 정리";display:block;font-size:11px;letter-spacing:.06em;font-weight:700;color:var(--ink-faint);margin-bottom:3px}
   #cardMore{margin:0;font-size:13.5px;color:var(--ink-dim);line-height:1.55}

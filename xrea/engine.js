@@ -38,7 +38,7 @@ const UI_HTML=`
 <section id="talk" class="panel" hidden role="dialog" aria-live="polite"><div class="who"><b id="talkName"></b><span id="talkRole"></span></div><p id="talkText"></p><div id="talkBtns"></div></section>
 <section id="card" class="panel" hidden role="dialog" aria-labelledby="cardTitle">
   <div id="cardEyebrow"></div><h2 id="cardTitle"></h2>
-  <p id="cardReply"></p><p id="cardText"></p><p id="cardMore"></p><div id="cardPending" hidden></div>
+  <p id="cardReply"></p><div id="cardViz" hidden></div><p id="cardText"></p><p id="cardMore"></p><div id="cardPending" hidden></div>
   <div id="cardSrc"></div><button id="cardClose"></button>
 </section>
 <div id="toast" class="panel" role="status" aria-live="polite"></div>
@@ -796,6 +796,15 @@ function start(CFG){
     const ex={chosen,chosenTitle,others,label:m.label};$('#card').style.setProperty('--c',m.color||'#fff');
     $('#cardEyebrow').textContent=pieceName(m)+(m.collectAll?` · ${gotList(i).length}/${m.choices.length}`:'');$('#cardTitle').textContent=T_(f.title||m.title,ex);
     const reply=T_(c.reply||'',ex);$('#cardReply').textContent=reply;$('#cardReply').hidden=!reply;
+    // 줄글 대신 그림처럼(엑스리아 월드, 휴먼쌤 10-30 "줄글말고 다른방식없어?"): 선택지 c.viz 또는 조각 f.viz — quote(큰 글귀)·timeline(연표)·stats(큰 숫자 타일)·grid(칩)·steps(단계 화살표)
+    const viz=c.viz||f.viz||null,vz=$('#cardViz');vz.textContent='';vz.hidden=!viz;
+    if(viz){const el=(tag,cls,txt,parent)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=T_(String(txt),ex);(parent||vz).appendChild(e);return e;};
+      if(viz.quote){const q=el('div','vz-quote',viz.quote.text);if(viz.quote.by)el('small',null,viz.quote.by,q);}
+      if(viz.timeline){const w=el('div','vz-tl');viz.timeline.forEach(it=>{const d=el('div','it',null,w);el('div','t',it.t,d);el('div','s',it.s,d);});}
+      if(viz.stats){const w=el('div','vz-stats');viz.stats.forEach(it=>{const d=el('div','it',null,w);el('div','n',it.n,d);el('div','s',it.s,d);});}
+      if(viz.grid){const w=el('div','vz-grid');viz.grid.forEach(it=>el('span','it',it,w));}
+      if(viz.steps){const w=el('div','vz-steps');viz.steps.forEach((it,k)=>{if(k)el('span','ar','→',w);el('span','it',it,w);});}
+      if(viz.note)el('div','vz-note',viz.note);}
     $('#cardText').textContent=T_(f.text||'',ex);const more=f.more&&others?T_(f.more,ex):(done&&m.complete?T_(m.complete,ex):'');$('#cardMore').textContent=more;$('#cardMore').hidden=!more;
     const pend=(!reply&&f.pending)?T_(f.pending,ex):'';$('#cardPending').textContent=pend;$('#cardPending').hidden=!pend;
     $('#cardSrc').textContent=f.source?T_(f.source,ex):'';$('#cardClose').textContent=done?(UI.cardClose||'간직하기'):(UI.cardCloseMore||UI.cardClose||'다음');$('#card').hidden=false;
