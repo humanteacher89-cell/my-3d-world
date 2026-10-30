@@ -128,12 +128,13 @@
      이름이 TRACKS에 있으면 파일을, 없으면 위 합성 곡을 쓴다. 파일을 못 불러오면 합성 곡으로 돌아간다. 출처는 assets/music/LICENSE.txt와 문 너머 화면 아래 줄. */
   // 휴먼쌤 10-30 "입장시작하자마자는 바로 6번(Pamgaea)으로, 나중에 3개조각 다 모으고 시네마틱 영상부터는 5번(Dreamer)으로. 노래는 각각 무한반복" (loop=true)
   const TRACKS={day:'assets/music/pamgaea.mp3',ending:'assets/music/dreamer.mp3'};
-  const TK={el:null,src:null,fadeT:null,vol:0.55};
-  function fadeTo(el,target,ms,done){clearInterval(TK.fadeT);const v0=el.volume,t0=performance.now();TK.fadeT=setInterval(()=>{const k=Math.min(1,(performance.now()-t0)/ms);el.volume=Math.max(0,Math.min(1,v0+(target-v0)*k));if(k>=1){clearInterval(TK.fadeT);if(done)done();}},50);}
-  function stopTrack(){const el=TK.el;if(!el)return;TK.el=null;TK.src=null;fadeTo(el,0,600,()=>{try{el.pause();}catch(e){}});}
+  const TK={el:null,src:null,vol:0.55,all:[]};
+  // 소리 크기 서서히 바꾸기 — 타이머는 곡(요소)마다 따로 둔다. 하나를 같이 쓰면 새 곡을 켜는 타이머가 이전 곡을 끄는 타이머를 지워 두 곡이 겹쳐 들렸다(휴먼쌤 10-30 "시네마틱 영상부터 음악 겹쳐!")
+  function fadeTo(el,target,ms,done){if(el._fadeT)clearInterval(el._fadeT);const v0=el.volume,t0=performance.now();el._fadeT=setInterval(()=>{const k=Math.min(1,(performance.now()-t0)/ms);el.volume=Math.max(0,Math.min(1,v0+(target-v0)*k));if(k>=1){clearInterval(el._fadeT);el._fadeT=null;if(done)done();}},50);}
+  function stopTrack(){const el=TK.el;if(!el)return;TK.el=null;TK.src=null;fadeTo(el,0,700,()=>{try{el.pause();el.currentTime=0;}catch(e){}});}
   function playTrack(name){const src=TRACKS[name];if(!src)return false;
     if(TK.el&&TK.src===src){return true;}   /* 같은 파일이면 그대로 이어 튼다 */
-    stopTrack();const el=new Audio(src);el.loop=true;el.preload='auto';el.volume=0;TK.el=el;TK.src=src;
+    stopTrack();const el=new Audio(src);el.loop=true;el.preload='auto';el.volume=0;TK.el=el;TK.src=src;TK.all.push(el);
     el.addEventListener('error',()=>{if(TK.el===el){TK.el=null;TK.src=null;console.warn('[audio] 음악 파일을 못 불러와 합성 곡으로:',src);startSynth(name);}});
     const p=el.play();if(p&&p.catch)p.catch(()=>{});fadeTo(el,A.muted?0:TK.vol,1800);return true;}
   function music(name){if(!init())return;if(A.mode===name)return;A.mode=name;const c=A.ctx,now=c.currentTime;
@@ -188,5 +189,6 @@
   document.addEventListener('visibilitychange',()=>{if(TK.el){if(document.hidden)TK.el.pause();else{const p=TK.el.play();if(p&&p.catch)p.catch(()=>{});}}if(!A.ctx)return;if(document.hidden)A.ctx.suspend();else A.ctx.resume();});
 
   window.WorldAudio={unlock,music,sfx,setMuted,get muted(){return A.muted;},get state(){return A.ctx?A.ctx.state:'none';},get mode(){return A.mode;},get _ctx(){return A.ctx;},get _out(){return A.out;},
-    get track(){return TK.el?{src:TK.src,paused:TK.el.paused,time:TK.el.currentTime,volume:TK.el.volume}:null;}};   // _ctx·_out·track: 시험용
+    get track(){return TK.el?{src:TK.src,paused:TK.el.paused,time:TK.el.currentTime,volume:TK.el.volume}:null;},
+    get tracks(){return TK.all.map(e=>({src:e.src.split('/').pop(),paused:e.paused,volume:Math.round(e.volume*100)/100}));}};   // _ctx·_out·track·tracks: 시험용
 })();
