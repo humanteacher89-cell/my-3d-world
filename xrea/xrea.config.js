@@ -38,7 +38,16 @@ window.WORLD_CONFIG = {
     name: '안내 로봇',
     role: '엑스리아 월드 입구',
     look: [1, 5, 2, 2, 1],
+    // 코드 로봇(GLB를 못 불러올 때 대체): 판·몸·관절·강조·눈·발 색
     robot: { plate: '#e3e7ee', body: '#8d97a8', joint: '#2d3240', accent: '#4fd8ff', eye: '#7af0ff', feet: '#9aa3b2' },
+    // 휴머노이드 로봇 3D(휴먼쌤 10-30 "퀄리티 좋은 휴머노이드… 언리얼 플레이어 로봇 같은"): Mixamo X Bot, three.js r147 예제 배포본(Xbot.glb, 2.9MB, 동작 idle·walk·run·agree·headShake).
+    // tint: 재질 이름에 joint가 들면 관절색, 아니면 몸색. wave 자리에 'agree'(끄덕임)를 쓴다(손 인사 동작이 없음)
+    model: {
+      url: 'assets/xbot.glb', height: 1.74, idle: 'idle', walk: 'walk', wave: 'agree', glow: 0, tagColor: '#4fd8ff',
+      tint: { body: '#dde3ec', joint: '#2a3140', metal: 0.55, rough: 0.38, emissive: '#4fd8ff', emissiveIntensity: 0.05 },
+      talk: { idleSwap: 0, gesture: 0.9 },
+      poseFix: { armSpread: 0, shoulderLift: 0, armLength: 1, spineBend: 0, neckBend: 0, headBend: 0 }
+    },
     greeting: [
       '어서 오세요. 여기는 엑스리아 월드의 입구예요.',
       { text: '엑스리아가 무엇인지 궁금해서 오셨죠?', choices: [{ label: '네, 궁금해요' }, { label: '엑스리아가 뭐예요?' }] },
@@ -56,8 +65,26 @@ window.WORLD_CONFIG = {
     name: '엑스리아',
     role: 'XREA 월드의 주인 로봇',
     look: [0, 0, 0, 5, 2],
-    robot: { plate: '#f3eee4', body: '#5d6f99', joint: '#262b3a', accent: '#ffcf5a', eye: '#ffe9a6', feet: '#8e96a8' }
-    // model(GLB)은 쓰지 않는다. 코드로 그린 휴머노이드 로봇.
+    // 코드 로봇(GLB를 못 불러올 때 대체)
+    robot: { plate: '#f3eee4', body: '#5d6f99', joint: '#262b3a', accent: '#ffcf5a', eye: '#ffe9a6', feet: '#8e96a8' },
+    // 같은 X Bot을 따뜻한 흰색·금빛으로. 인사는 'agree'(끄덕임)
+    model: {
+      url: 'assets/xbot.glb', height: 1.80, idle: 'idle', idle2: 'idle', wave: 'agree', glow: 0, tagColor: '#ffcf5a',
+      tint: { body: '#f1ece2', joint: '#3a3550', metal: 0.5, rough: 0.4, emissive: '#ffcf5a', emissiveIntensity: 0.05 },
+      talkIdles: [],
+      talk: { idleSwap: 0, gesture: 1.0 },
+      poseFix: { armSpread: 0, shoulderLift: 0, armLength: 1, spineBend: 0, neckBend: 0, headBend: 0 }
+    }
+  },
+
+  // 플레이어(방문자) = 만화풍 휴먼쌤 3D(언리얼 HumanssamToon을 GLB로 옮긴 것, 휴먼쌤 10-30 "기존의 '휴먼쌤' 3D 캐릭터(실사형 말고 귀엽게 새로 만든걸로)").
+  // 못 불러오면 월드 1의 만화풍 여행자 캐릭터. step: 걷기 동작 1배속에서 발이 나가는 속도(m/초) — 미끄러지면 이 값을 고친다
+  player: {
+    model: {
+      url: 'assets/humanssam_toon.glb', height: 1.65, idle: 'idle', walk: 'walk', wave: 'wave', glow: 0.25, step: 1.4,   /* 걷기 FBX 측정값 1.40m/초(walk_info.json) */
+      talk: { idleSwap: 0, gesture: 0 },
+      poseFix: { armSpread: 0, shoulderLift: 0, armLength: 1, spineBend: 0, neckBend: 0, headBend: 0 }
+    }
   },
 
   // 미션(조각) 세 개. 엑스리아 소개는 모두 [확인 전] — 답(reply)이 비어 있어 카드에 "휴먼쌤이 직접 채웁니다"가 나온다.

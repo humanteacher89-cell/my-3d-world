@@ -376,7 +376,12 @@ function start(CFG){
           // 저녁 광장처럼 어두운 조명에서는 Tripo 텍스처(리니 가방 무늬·등)가 때처럼 보여서, 텍스처 색으로 살짝 스스로 빛나게 한다(2026-10-03 휴먼쌤 "꾸질꾸질")
           (Array.isArray(x.material)?x.material:[x.material]).forEach(m=>{m.metalness=0;m.metalnessMap=null;
             if(glow>0&&m.map){m.emissive=new THREE.Color('#ffffff');m.emissiveMap=m.map;m.emissiveIntensity=glow;}m.needsUpdate=true;});}
-        if(x.isBone)this.bones[x.name.replace('mixamorig','')]=x;});
+        if(x.isBone)this.bones[x.name.replace(/^mixamorig:?/,'')]=x;});   /* Mixamo 뼈 이름은 'mixamorig:Hips'(콜론) 또는 'mixamorigHips' 둘 다 */
+      // 로봇 GLB 색 입히기(설정 model.tint, 엑스리아 월드): 재질 이름에 joint가 들면 관절색, 아니면 몸색. 금속감·거칠기·은은한 빛도 같이
+      const tint=o.tint||null;this.tagColor=o.tagColor||null;
+      if(tint)model.traverse(x=>{if(!x.isMesh)return;(Array.isArray(x.material)?x.material:[x.material]).forEach(m=>{const joint=/joint/i.test(m.name||'');const c=joint?tint.joint:tint.body;if(c)m.color.set(c);
+        if(tint.metal!=null)m.metalness=joint?Math.min(1,tint.metal+0.2):tint.metal;if(tint.rough!=null)m.roughness=joint?Math.max(0.2,tint.rough-0.1):tint.rough;
+        if(!joint&&tint.emissive){m.emissive=new THREE.Color(tint.emissive);m.emissiveMap=null;m.emissiveIntensity=tint.emissiveIntensity!=null?tint.emissiveIntensity:0.1;}m.needsUpdate=true;});});
       for(const side of['Left','Right'])for(const n of[side+'ForeArm',side+'Hand'])if(this.bones[n])this.restPos[n]=this.bones[n].position.clone();
       // 키를 맞추고, 발 가운데가 원점(0,0,0)에 오도록 모델을 옮긴다(파일 속 원점이 비껴 있으면 카메라 구도가 어긋난다)
       const bb=measureBounds(model);const h=bb?bb.height:1.75;this.height=o.height||1.68;this.baseScale=this.height/h;inner.scale.setScalar(this.baseScale);
@@ -400,8 +405,9 @@ function start(CFG){
       this.tag=textSprite();this.tag.scale.set(1.0,0.31,1);this.tag.position.y=this.height+0.3;root.add(this.tag);this.tag.visible=false;
       this.bubble=textSprite();this.bubble.visible=false;root.add(this.bubble);}
     setState(n){const next=this.actions[n];if(!next||next===this.current)return;next.reset().setEffectiveWeight(1).fadeIn(0.25).play();if(this.current)this.current.fadeOut(0.25);this.current=next;}
-    setName(n){n=cleanText(n,16)||'휴먼쌤';this.name=n;drawTag(this.tag,n,'#3b6db3');}
+    setName(n){n=cleanText(n,16)||'휴먼쌤';this.name=n;drawTag(this.tag,n,this.tagColor||'#3b6db3');}
     setScale(k){this.inner.scale.setScalar(this.baseScale*Math.max(0.001,k));}
+    setLook(){}
     say(){}
     emote(k){if(k==='wave'&&this.actions.wave&&!this.waving){this.waving=true;this.setState('wave');}}
     rot(bone,axisLocal,angle){if(!bone||!bone.parent||!angle)return;this.model.getWorldQuaternion(_mq);_axis.copy(axisLocal).applyQuaternion(_mq);bone.parent.getWorldQuaternion(_pq).invert();
@@ -437,16 +443,29 @@ function start(CFG){
       .then(gltf=>{const g=new GlbChar(gltf,o);g.setName(human.name);g.root.visible=human.root.visible;g.tag.visible=human.tag.visible;g.act=human.act;
         scene.remove(human.root);human=g;scene.add(g.root);g.setScale(hState.scale);g.update(0.001,T,{pos:hState.pos,facing:hState.facing});})
       .catch(e=>{console.warn('[world] 실물 아바타를 불러오지 못해 만화풍 캐릭터를 씁니다:',e);});}
+  // 안내 로봇 GLB(설정 guide.model, 엑스리아 월드): 불러오면 코드 캐릭터와 바꿔 끼운다. 실패하면 코드 로봇 그대로
+  function loadGlbGuide(o){if(!THREE.GLTFLoader||!window.fetch)return;
+    loadGltf(o.url)
+      .then(gltf=>{const old=guide,g=new GlbChar(gltf,o);g.setName(old.name);g.tag.visible=old.tag.visible;g.root.visible=old.root.visible;g.act=old.act;
+        if(talk.open&&talk.who===old)talk.who=g;scene.remove(old.root);guide=g;scene.add(g.root);g.update(0.001,T,{pos:gState.pos,facing:gState.facing});})
+      .catch(e=>{console.warn('[world] 안내 로봇 3D를 불러오지 못해 코드 로봇을 씁니다:',e);});}
+  // 플레이어 GLB(설정 player.model, 엑스리아 월드): 만화풍 휴먼쌤. 걷기 동작은 메인 루프에서 hold='walk'
+  function loadGlbMe(o){if(!THREE.GLTFLoader||!window.fetch)return;
+    loadGltf(o.url)
+      .then(gltf=>{const old=me,g=new GlbChar(gltf,o);g.setName(old.name||'');g.tag.visible=old.tag.visible;g.root.visible=old.root.visible;
+        scene.remove(old.root);me=g;scene.add(g.root);g.update(0.001,T,{pos:player.pos,facing:player.facing});})
+      .catch(e=>{console.warn('[world] 플레이어 3D를 불러오지 못해 만화풍 캐릭터를 씁니다:',e);});}
 
   /* ---------- entities ---------- */
   const player={pos:STAGE.hub.clone(),vx:0,vz:0,facing:Math.PI,faceT:null,speed:0,path:[],base:2.3};
-  const me=new Char(lsGet(KEY+'look',[0,1,0,0,0]));scene.add(me.root);
+  let me=new Char(lsGet(KEY+'look',[0,1,0,0,0]));scene.add(me.root);
   const GD=CFG.guide||{},HM=CFG.human||{};
-  const guide=new Char(GD.look||[1,5,2,2,1],{bag:false,robot:GD.robot});guide.setName(GD.name||'안내자');guide.tag.visible=true;scene.add(guide.root);
+  let guide=new Char(GD.look||[1,5,2,2,1],{bag:false,robot:GD.robot});guide.setName(GD.name||'안내자');guide.tag.visible=true;scene.add(guide.root);
   const gState={pos:STAGE.guide.pos.clone(),facing:0};
   let human=new Char(HM.look||[0,0,0,5,2],{bag:false,pants:'#3a3f52',shoe:'#4a3a2a',robot:HM.robot});human.setName(HM.name||'휴먼쌤');human.tag.visible=true;human.root.visible=false;scene.add(human.root);
   const hState={pos:STAGE.human.clone(),facing:0,scale:0};
   if(HM.model&&HM.model.url)loadGlbHuman(HM.model);
+  const PM=CFG.player||{};if(GD.model&&GD.model.url)loadGlbGuide(GD.model);if(PM.model&&PM.model.url)loadGlbMe(PM.model);
   // "!" marker over the guide until met
   const qMark=(()=>{const s=textSprite();const c=s.userData.cv,g=c.getContext('2d');g.clearRect(0,0,512,160);g.fillStyle='#ffc766';g.beginPath();g.arc(256,80,62,0,7);g.fill();
     g.fillStyle='#2a1a0c';g.font='700 92px "IBM Plex Sans KR",sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText('!',256,86);s.material.map.needsUpdate=true;s.scale.set(0.9,0.28,1);scene.add(s);return s;})();
@@ -1441,12 +1460,13 @@ function start(CFG){
   function fitViewport(){vw=innerWidth;vh=innerHeight;if(vw<2||vh<2)return;camera.aspect=vw/vh;camera.updateProjectionMatrix();renderer.setSize(vw,vh,false);if(composer)composer.setSize(vw,vh);letterbox();}
   renderer.setAnimationLoop(()=>{const dt=Math.min(clock.getDelta(),0.1);if(innerWidth!==vw||innerHeight!==vh)fitViewport();if(vw<2||vh<2)return;T+=dt;
     if(!intro.active&&!cine.active&&!ARR.active)updatePlayer(dt);
+    if(me.actions){const mv=player.speed>0.3;me.hold=mv?'walk':'idle';if(me.actions.walk)me.actions.walk.timeScale=clamp(player.speed/((PM.model&&PM.model.step)||1.0),0.6,2.6);}   /* GLB 플레이어: 걸을 때 걷기 동작, 속도에 맞춰 배속 */
     me.update(dt,T,{pos:player.pos,facing:player.facing});updateNPC(dt);STAGE.updateStage(dt,T);updateFX(dt);
     if(PZ.active)updatePlaza(dt);
     if(cine.active)updateEnding(dt);else if(ARR.active)updateArrival(dt);else updateCamera(dt);
     if(useBloom&&composer)composer.render(dt);else renderer.render(scene,camera);});
   addEventListener('resize',fitViewport);fitViewport();
-  window.__world={CFG,Q,J,player,startEnding,restartAll,goMission,talkGuide,refreshChoices,get intro(){return intro;},get cine(){return cine;},get human(){return human;},enterDoor,showPick,startArrival,skipArrival,get arr(){return ARR;},get rini(){return RINI_GLB;},
+  window.__world={CFG,Q,J,player,startEnding,restartAll,goMission,talkGuide,refreshChoices,get intro(){return intro;},get cine(){return cine;},get human(){return human;},get me(){return me;},get guide(){return guide;},enterDoor,showPick,startArrival,skipArrival,get arr(){return ARR;},get rini(){return RINI_GLB;},
     get pz(){return PZ;},get city(){return CITY;},get dir(){return DIR;},get mp(){return MP;},enterPlaza,exitPlaza,startGuide,arriveNow,dockArrive,startFly,landFr,backFromFr,keys:KEYS,joy:JOY};
 }
 window.WorldEngine={start};
