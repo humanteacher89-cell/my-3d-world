@@ -197,6 +197,13 @@
     body.plaza #journey{left:50%;right:auto;transform:translateX(-50%);width:calc(100vw - 24px);bottom:calc(10px + env(safe-area-inset-bottom,0px))}
     body.plaza #joy{bottom:calc(var(--jh,0px) + 22px + env(safe-area-inset-bottom,0px));width:112px;height:112px}
   }
+  /* 어두운 무대(궤도 플랫폼): 왼쪽 위 제목과 시작 화면을 밝은 글씨로 */
+  body.darkstage{background:#070b1c}
+  body.darkstage #brand{color:#eaf2ff;text-shadow:0 1px 10px rgba(0,0,0,.6)}
+  body.darkstage #intro{background:radial-gradient(ellipse at 50% 42%,rgba(20,30,70,.45),rgba(6,10,28,.7) 58%,rgba(3,5,14,.9));color:#eef3ff}
+  body.darkstage #introGo{background:#eaf2ff;color:#0b1230;border-color:#eaf2ff;box-shadow:0 10px 26px rgba(0,0,0,.35)}
+  body.darkstage #introGo:hover{background:#ffffff}
+  body.darkstage #introSkip{background:rgba(255,255,255,.1);color:#eef3ff;border-color:rgba(255,255,255,.28)}
   /* 문 너머: '누구의 월드로 들어갈까요?' 고르기 화면(엑스리아 월드). 끝 화면(#end)과 같은 밝은 종이 느낌 */
   #pick{position:fixed;inset:0;z-index:7;display:grid;place-items:center;background:#fbf8f2;color:#15161f;padding:24px 24px 64px;box-sizing:border-box;overflow:auto;animation:pickIn .7s ease-out}
   @keyframes pickIn{from{opacity:0}to{opacity:1}}
@@ -221,6 +228,7 @@
 </style>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/DRACOLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/shaders/CopyShader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/shaders/GammaCorrectionShader.js"></script>

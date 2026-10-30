@@ -179,7 +179,183 @@ function start(CFG){
     return{group:g,R,floorAt,spots,door:{group:door,pos:D,open:doorOpen},guide:{pos:new THREE.Vector3(0,0,-1.0),facing:0},hub:new THREE.Vector3(0,0,1.15),
       doorNode:new THREE.Vector3(0,0,-5.3),gate:new THREE.Vector3(0,0,-7.55),human:new THREE.Vector3(0,0,-6.2),meet:new THREE.Vector3(0,0,-3.5),updateStage};
   }
-  const STAGE=buildPlaceholderStage();
+  /* =====================================================================
+     STAGE — 'holodeck': 화이트 홀로그램 데크(엑스리아 월드 시안 C, 2026-10-30).
+     밝은 흰 데크 + 하늘색 격자 빛 + 떠 있는 홀로그램 패널 + 미끄러져 열리는 빛 포털. 자리 좌표·반환값은 placeholder와 같다.
+     ===================================================================== */
+  function buildHoloDeckStage(){
+    const R=9,g=new THREE.Group();scene.add(g);
+    const acc=new THREE.Color(ST.edge||'#4fd8ff'),accHex='#'+acc.getHexString(),floorCol=ST.floor||'#f4f6f9';
+    const rgba=a=>'rgba('+Math.round(acc.r*255)+','+Math.round(acc.g*255)+','+Math.round(acc.b*255)+','+a+')';
+    // 데크: 두꺼운 흰 원판 + 아래 받침 + 가장자리 빛 띠 둘
+    const top=new THREE.Mesh(new THREE.CylinderGeometry(R,R,0.5,128),std(floorCol,{roughness:.38,metalness:.04}));top.position.y=-0.25;top.receiveShadow=true;g.add(top);
+    const under=new THREE.Mesh(new THREE.CylinderGeometry(R-0.5,R-1.8,1.5,96),std('#c9d2de',{roughness:.6}));under.position.y=-1.25;g.add(under);
+    const rimMat=new THREE.MeshStandardMaterial({color:acc,emissive:acc,emissiveIntensity:1.2,roughness:.3});
+    const rim=new THREE.Mesh(new THREE.TorusGeometry(R-0.05,0.04,10,200),rimMat);rim.rotation.x=Math.PI/2;rim.position.y=0.02;g.add(rim);
+    const rim2=new THREE.Mesh(new THREE.TorusGeometry(R+0.01,0.03,8,200),new THREE.MeshStandardMaterial({color:acc,emissive:acc,emissiveIntensity:.9,roughness:.3,transparent:true,opacity:.75}));rim2.rotation.x=Math.PI/2;rim2.position.y=-0.32;g.add(rim2);
+    // 격자 빛: 캔버스(격자 + 동심원)를 바닥 위에 살짝 띄운 원판에
+    const gridTex=canvasTex(1024,1024,gg=>{gg.clearRect(0,0,1024,1024);gg.strokeStyle=rgba(0.32);gg.lineWidth=2;for(let i=0;i<=16;i++){const p=i*64;gg.beginPath();gg.moveTo(p,0);gg.lineTo(p,1024);gg.stroke();gg.beginPath();gg.moveTo(0,p);gg.lineTo(1024,p);gg.stroke();}
+      gg.strokeStyle=rgba(0.8);gg.lineWidth=5;for(const r of[140,290,440]){gg.beginPath();gg.arc(512,512,r,0,Math.PI*2);gg.stroke();}});
+    const grid=new THREE.Mesh(new THREE.CircleGeometry(R-0.12,96),new THREE.MeshBasicMaterial({map:gridTex,transparent:true,opacity:.9,depthWrite:false,toneMapped:false}));grid.rotation.x=-Math.PI/2;grid.position.y=0.008;g.add(grid);
+    // 가장자리 기둥 여섯: 가는 흰 기둥 + 빛나는 끝
+    const postMat=std('#eef2f7',{roughness:.35,metalness:.1}),tipMat=new THREE.MeshStandardMaterial({color:acc,emissive:acc,emissiveIntensity:1.4});
+    for(let i=0;i<6;i++){const a=i/6*Math.PI*2+Math.PI/6;const x=Math.sin(a)*(R-0.5),z=Math.cos(a)*(R-0.5);if(z<-6)continue;
+      const post=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.07,2.6,12),postMat);post.position.set(x,1.3,z);g.add(post);
+      const tip=new THREE.Mesh(new THREE.SphereGeometry(0.1,14,10),tipMat);tip.position.set(x,2.68,z);tip.castShadow=false;g.add(tip);}
+    const floorAt=(x,z)=>Math.hypot(x,z)<=R+0.3?0:-30;
+    // 조각 자리 셋: 흰 받침 + 떠 있는 빛 고리 + 구슬 + 기둥 없이 떠 있는 홀로그램 표지판
+    const SPOT_POS=[[-6.4,0.6],[6.4,0.6],[0,6.6]];
+    const spots=M.map((m,i)=>{const p=SPOT_POS[i%SPOT_POS.length];const pos=new THREE.Vector3(p[0],0,p[1]);const toC=new THREE.Vector3(-pos.x,0,-pos.z).normalize();
+      const stand=pos.clone().addScaledVector(toC,1.75);const col=new THREE.Color(m.color||'#ffffff');
+      const sg=new THREE.Group();sg.position.copy(pos);g.add(sg);
+      const pad=new THREE.Mesh(new THREE.CylinderGeometry(1.15,1.2,0.1,64),std('#ffffff',{roughness:.3,metalness:.05}));pad.position.y=0.05;sg.add(pad);
+      const padRing=new THREE.Mesh(new THREE.TorusGeometry(1.12,0.03,8,96),new THREE.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:1.1,roughness:.4}));padRing.rotation.x=Math.PI/2;padRing.position.y=0.11;sg.add(padRing);
+      const ped=new THREE.Mesh(new THREE.CylinderGeometry(0.2,0.26,0.9,32),std('#e3e8ef',{roughness:.4,metalness:.1}));ped.position.y=0.55;sg.add(ped);
+      const halo=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.42,0.03,48),new THREE.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:.8,transparent:true,opacity:.55,depthWrite:false}));halo.position.y=1.08;sg.add(halo);
+      const orb=new THREE.Mesh(new THREE.SphereGeometry(0.26,32,24),new THREE.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:1.7,roughness:.25}));orb.position.y=1.65;orb.castShadow=false;sg.add(orb);
+      const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:col,transparent:true,opacity:.75,depthWrite:false,toneMapped:false}));glow.scale.setScalar(1.7);glow.position.y=1.65;sg.add(glow);
+      const light=new THREE.PointLight(col,0.55,4,2);light.position.y=1.8;sg.add(light);
+      const out=toC.clone().negate();const sign=new THREE.Group();sign.position.copy(out.clone().multiplyScalar(1.45));sign.rotation.y=Math.atan2(-out.x,-out.z);sg.add(sign);
+      const tex=canvasTex(512,320,gg=>{gg.clearRect(0,0,512,320);gg.fillStyle=rgba(0.18);gg.fillRect(0,0,512,320);gg.strokeStyle=rgba(0.9);gg.lineWidth=6;gg.strokeRect(3,3,506,314);gg.fillStyle=m.color||'#fff';gg.fillRect(0,0,22,320);
+        gg.fillStyle='#0b2a3a';gg.font='900 90px "Noto Sans KR",sans-serif';gg.fillText(m.label||'',56,124);
+        gg.fillStyle='#17546e';gg.font='500 38px "Noto Sans KR",sans-serif';gg.fillText(m.title||'',56,206,430);
+        gg.fillStyle='#3b7f99';gg.font='400 30px "Noto Sans KR",sans-serif';gg.fillText(m.sub||'',56,262,430);});
+      const board=new THREE.Mesh(new THREE.PlaneGeometry(1.4,0.875),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,side:THREE.DoubleSide,toneMapped:false}));board.position.y=1.55;sign.add(board);
+      const beam=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,1.1,8),new THREE.MeshStandardMaterial({color:acc,emissive:acc,emissiveIntensity:.9,transparent:true,opacity:.5,depthWrite:false}));beam.position.y=0.55;sign.add(beam);
+      shadowize(sg,true,true);orb.castShadow=false;glow.castShadow=false;board.castShadow=false;halo.castShadow=false;beam.castShadow=false;
+      return{i,m,pos,stand,group:sg,orb,glow,light,padRing,col,board,yaw:Math.atan2(pos.x-stand.x,pos.z-stand.z)};});
+    // 빛 포털(문): 흰 기둥 둘 + 빛 띠, 닫혀 있을 땐 반투명 유리 막 둘, 열리면 양옆으로 미끄러지며 사라지고 가운데가 빛난다
+    const D=new THREE.Vector3(0,0,-8.0);const door=new THREE.Group();door.position.copy(D);g.add(door);
+    const white=std('#f2f5f9',{roughness:.35,metalness:.1});
+    for(const s of[-1,1]){const pil=new THREE.Mesh(new THREE.BoxGeometry(0.42,4.0,0.42),white);pil.position.set(1.6*s,2.0,0);door.add(pil);
+      const strip=new THREE.Mesh(new THREE.BoxGeometry(0.06,3.6,0.08),new THREE.MeshStandardMaterial({color:acc,emissive:acc,emissiveIntensity:1.3}));strip.position.set(1.36*s,2.0,0.18);door.add(strip);
+      const base=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.6,0.2,32),white);base.position.set(1.6*s,0.1,0);door.add(base);}
+    const lintel=new THREE.Mesh(new THREE.BoxGeometry(4.1,0.4,0.5),white);lintel.position.y=4.2;door.add(lintel);
+    const lintelRing=new THREE.Mesh(new THREE.BoxGeometry(3.4,0.06,0.52),new THREE.MeshStandardMaterial({color:acc,emissive:acc,emissiveIntensity:1.2}));lintelRing.position.y=3.98;door.add(lintelRing);
+    const paneMat=new THREE.MeshStandardMaterial({color:'#dff3ff',transparent:true,opacity:.42,roughness:.1,metalness:0,emissive:acc,emissiveIntensity:.15,depthWrite:false,side:THREE.DoubleSide});
+    const hinges=[-1,1].map(s=>{const h=new THREE.Group();door.add(h);const p=new THREE.Mesh(new THREE.BoxGeometry(1.4,3.6,0.06),paneMat);p.position.set(0.7*s,1.9,0);p.castShadow=false;h.add(p);return{h,s};});
+    const glowPlane=new THREE.Mesh(new THREE.PlaneGeometry(2.9,3.7),new THREE.MeshBasicMaterial({color:'#eafcff',transparent:true,opacity:0,toneMapped:false,depthWrite:false,side:THREE.DoubleSide}));glowPlane.position.set(0,1.95,-0.1);door.add(glowPlane);
+    const doorLight=new THREE.PointLight(acc,0,9,2);doorLight.position.set(0,2,0.8);door.add(doorLight);
+    shadowize(door,true,true);glowPlane.castShadow=false;hinges.forEach(x=>x.h.traverse(m=>{if(m.isMesh)m.castShadow=false;}));
+    const doorOpen=k=>{hinges.forEach(({h,s})=>{h.position.x=s*0.9*k;});paneMat.opacity=0.42*(1-k);glowPlane.material.opacity=k*0.95;doorLight.intensity=k*3.5;};
+    // 떠 있는 홀로그램 패널 아홉(데크 바깥 둘레, 천천히 떠오르내림)
+    const pr=mulberry32(5),panels=[];
+    const panelTex=canvasTex(256,160,gg=>{gg.clearRect(0,0,256,160);gg.fillStyle=rgba(0.16);gg.fillRect(0,0,256,160);gg.strokeStyle=rgba(0.85);gg.lineWidth=4;gg.strokeRect(2,2,252,156);gg.fillStyle=rgba(0.7);for(let i=0;i<5;i++)gg.fillRect(22,30+i*24,60+((i*73)%140),8);});
+    for(let i=0;i<9;i++){const a=(i/9)*Math.PI*2+0.3,r=R+1.8+pr()*3,y=2.2+pr()*2.6;const p=new THREE.Mesh(new THREE.PlaneGeometry(1.6,1.0),new THREE.MeshBasicMaterial({map:panelTex,transparent:true,opacity:.85,depthWrite:false,side:THREE.DoubleSide,toneMapped:false}));
+      p.position.set(Math.sin(a)*r,y,Math.cos(a)*r);p.rotation.y=a+Math.PI;p.userData.b=[y,pr()*6.28];g.add(p);panels.push(p);}
+    // 떠다니는 빛 알갱이
+    const N=70,mg=new THREE.BufferGeometry(),mp=new Float32Array(N*3),mb=[];const r2=mulberry32(11);
+    for(let i=0;i<N;i++){const a=r2()*Math.PI*2,r=3+r2()*13,y=0.4+r2()*6;mb.push([Math.sin(a)*r,y,Math.cos(a)*r,r2()*6.28]);mp.set(mb[i].slice(0,3),i*3);}
+    mg.setAttribute('position',new THREE.BufferAttribute(mp,3));
+    const motes=new THREE.Points(mg,new THREE.PointsMaterial({color:accHex,size:0.12,map:GLOW,transparent:true,opacity:.6,depthWrite:false,sizeAttenuation:true}));g.add(motes);
+    const updateStage=(dt,T)=>{const a=mg.attributes.position;for(let i=0;i<N;i++){const b=mb[i];a.setXYZ(i,b[0]+Math.sin(T*0.35+b[3])*0.6,b[1]+Math.sin(T*0.7+b[3]*2)*0.25,b[2]+Math.cos(T*0.3+b[3])*0.6);}a.needsUpdate=true;
+      spots.forEach(s=>{s.orb.position.y=1.65+Math.sin(T*1.4+s.i)*0.08;s.glow.position.y=s.orb.position.y;s.orb.rotation.y+=dt*0.6;s.board.position.y=1.55+Math.sin(T*1.1+s.i*2)*0.04;});
+      panels.forEach(p=>{const b=p.userData.b;p.position.y=b[0]+Math.sin(T*0.6+b[1])*0.15;});rimMat.emissiveIntensity=1.1+Math.sin(T*1.3)*0.25;};
+    return{group:g,R,floorAt,spots,door:{group:door,pos:D,open:doorOpen},guide:{pos:new THREE.Vector3(0,0,-1.0),facing:0},hub:new THREE.Vector3(0,0,1.15),
+      doorNode:new THREE.Vector3(0,0,-5.3),gate:new THREE.Vector3(0,0,-7.55),human:new THREE.Vector3(0,0,-6.2),meet:new THREE.Vector3(0,0,-3.5),updateStage};
+  }
+  /* =====================================================================
+     STAGE — 'orbit': 궤도 플랫폼(엑스리아 월드 시안 A, 2026-10-30).
+     우주 하늘(별·오로라) + 아래 푸른 행성 + 어두운 유리 육각 판에 빛 테두리 + 도는 빛 고리 + 빛 기둥 게이트. 자리 좌표·반환값은 같다.
+     ===================================================================== */
+  function buildOrbitStage(){
+    const R=9,g=new THREE.Group();scene.add(g);document.body.classList.add('darkstage');
+    const fb=new THREE.Group();g.add(fb);const fbHide=[];   /* 코드로 그린 구조물(블렌더 GLB 무대를 불러오면 숨긴다) */
+    const acc=new THREE.Color(ST.edge||'#4fd8ff'),accHex='#'+acc.getHexString();
+    const rgba=a=>'rgba('+Math.round(acc.r*255)+','+Math.round(acc.g*255)+','+Math.round(acc.b*255)+','+a+')';
+    // 밤 조명: 해는 차갑고 약하게, 하늘빛은 푸르게
+    sun.intensity=0.95;sun.color.set('#cfe0ff');hemi.intensity=0.4;hemi.color.set('#9fb8ff');hemi.groundColor.set('#141a33');
+    // 별: 먼 구 위에 점 900개(안개 영향 없음)
+    const SN=900,sg=new THREE.BufferGeometry(),sp=new Float32Array(SN*3),sr=mulberry32(21);
+    for(let i=0;i<SN;i++){const u=sr()*2-1,t=sr()*Math.PI*2,r=240+sr()*30,s=Math.sqrt(1-u*u);sp.set([s*Math.cos(t)*r,Math.abs(u)*r*0.9+2,s*Math.sin(t)*r],i*3);}
+    sg.setAttribute('position',new THREE.BufferAttribute(sp,3));
+    const stars=new THREE.Points(sg,new THREE.PointsMaterial({color:'#e8f0ff',size:1.8,sizeAttenuation:false,transparent:true,opacity:.9,fog:false,depthWrite:false}));g.add(stars);
+    // 오로라: 먼 하늘에 세로 그라데이션 띠 셋(더하기 섞기, 천천히 흐름)
+    const auTex=canvasTex(64,256,gg=>{const gr=gg.createLinearGradient(0,0,0,256);gr.addColorStop(0,'rgba(80,255,200,0)');gr.addColorStop(0.35,'rgba(80,255,200,0.55)');gr.addColorStop(0.6,'rgba(90,160,255,0.35)');gr.addColorStop(1,'rgba(90,160,255,0)');gg.fillStyle=gr;gg.fillRect(0,0,64,256);});
+    const auroras=[];for(let i=0;i<3;i++){const m=new THREE.Mesh(new THREE.PlaneGeometry(140+i*40,34+i*8,24,1),new THREE.MeshBasicMaterial({map:auTex,transparent:true,opacity:.35-i*0.08,blending:THREE.AdditiveBlending,depthWrite:false,fog:false,side:THREE.DoubleSide}));
+      const a=-0.5+i*0.5;m.position.set(Math.sin(a)*170,48+i*9,-Math.cos(a)*170);m.rotation.y=-a;m.userData.i=i;g.add(m);auroras.push(m);}
+    // 행성: 무대 아래 큰 푸른 구 + 대기 테두리
+    const plTex=canvasTex(512,256,gg=>{gg.fillStyle='#163a7a';gg.fillRect(0,0,512,256);const pr=mulberry32(3);gg.fillStyle='#1f6a8f';for(let i=0;i<26;i++){gg.beginPath();gg.ellipse(pr()*512,pr()*256,20+pr()*60,10+pr()*30,pr()*3,0,Math.PI*2);gg.fill();}
+      gg.fillStyle='rgba(255,255,255,0.35)';for(let i=0;i<40;i++){gg.beginPath();gg.ellipse(pr()*512,pr()*256,15+pr()*50,4+pr()*10,pr()*3,0,Math.PI*2);gg.fill();}});
+    const planet=new THREE.Mesh(new THREE.SphereGeometry(120,64,40),new THREE.MeshStandardMaterial({map:plTex,roughness:.9,emissive:'#0b2a5a',emissiveIntensity:.5,fog:false}));planet.position.set(0,-158,-20);g.add(planet);
+    const atmo=new THREE.Mesh(new THREE.SphereGeometry(124,64,40),new THREE.MeshBasicMaterial({color:'#4fa3ff',transparent:true,opacity:.22,side:THREE.BackSide,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));atmo.position.copy(planet.position);g.add(atmo);
+    // 육각 유리 판: 어두운 유리 + 위 격자 빛 + 빛 테두리(위·아래)
+    const HR=9.6;const slab=new THREE.Mesh(new THREE.CylinderGeometry(HR,HR,0.6,6),std('#0f1626',{roughness:.18,metalness:.55}));slab.position.y=-0.3;slab.receiveShadow=true;fb.add(slab);
+    const slab2=new THREE.Mesh(new THREE.CylinderGeometry(HR-1.2,HR-2.6,1.6,6),std('#0a0f1c',{roughness:.5,metalness:.3}));slab2.position.y=-1.4;fb.add(slab2);
+    const gridTex=canvasTex(1024,1024,gg=>{gg.clearRect(0,0,1024,1024);gg.strokeStyle=rgba(0.28);gg.lineWidth=2;for(let i=0;i<=16;i++){const p=i*64;gg.beginPath();gg.moveTo(p,0);gg.lineTo(p,1024);gg.stroke();gg.beginPath();gg.moveTo(0,p);gg.lineTo(1024,p);gg.stroke();}
+      gg.strokeStyle=rgba(0.7);gg.lineWidth=5;for(const r of[140,290,440]){gg.beginPath();gg.arc(512,512,r,0,Math.PI*2);gg.stroke();}});
+    const grid=new THREE.Mesh(new THREE.CircleGeometry(R-0.1,96),new THREE.MeshBasicMaterial({map:gridTex,transparent:true,opacity:.85,depthWrite:false,toneMapped:false}));grid.rotation.x=-Math.PI/2;grid.position.y=0.06;g.add(grid);
+    const edgeMat=new THREE.MeshBasicMaterial({color:acc,toneMapped:false,side:THREE.DoubleSide});
+    const edge=new THREE.Mesh(new THREE.RingGeometry(HR-0.1,HR+0.08,6),edgeMat);edge.rotation.x=-Math.PI/2;edge.position.y=0.012;fb.add(edge);
+    const edge2=new THREE.Mesh(new THREE.RingGeometry(HR-0.02,HR+0.2,6),new THREE.MeshBasicMaterial({color:acc,toneMapped:false,transparent:true,opacity:.6,side:THREE.DoubleSide}));edge2.rotation.x=-Math.PI/2;edge2.position.y=-0.62;fb.add(edge2);
+    // 도는 빛 고리 둘(기울어져 천천히 돈다)
+    const rings=[11.5,13.5].map((rr,i)=>{const m=new THREE.Mesh(new THREE.TorusGeometry(rr,0.045,8,220),new THREE.MeshBasicMaterial({color:acc,toneMapped:false,transparent:true,opacity:i?.45:.8}));m.rotation.x=Math.PI/2+(i?-0.12:0.1);m.position.y=i?6.4:-1.3;g.add(m);return m;});
+    // 가장자리 빛 기둥 여섯
+    const tipMat=new THREE.MeshStandardMaterial({color:acc,emissive:acc,emissiveIntensity:1.6});
+    for(let i=0;i<6;i++){const a=i/6*Math.PI*2;const x=Math.sin(a)*(HR-0.7),z=Math.cos(a)*(HR-0.7);if(z<-6)continue;
+      const post=new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,2.4,10),new THREE.MeshStandardMaterial({color:acc,emissive:acc,emissiveIntensity:.7,transparent:true,opacity:.75}));post.position.set(x,1.2,z);post.castShadow=false;fb.add(post);
+      const tip=new THREE.Mesh(new THREE.SphereGeometry(0.1,14,10),tipMat);tip.position.set(x,2.48,z);tip.castShadow=false;fb.add(tip);}
+    // 허공의 데이터 기둥(멀리, 세로 빛줄기)
+    const dr=mulberry32(9),pillars=[];for(let i=0;i<14;i++){const a=dr()*Math.PI*2,r=15+dr()*9,h=5+dr()*9;const m=new THREE.Mesh(new THREE.PlaneGeometry(0.18,h),new THREE.MeshBasicMaterial({color:acc,toneMapped:false,transparent:true,opacity:.18+dr()*0.2,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));
+      m.position.set(Math.sin(a)*r,-2+h/2+dr()*2,Math.cos(a)*r);m.rotation.y=a+Math.PI;m.userData.b=[m.position.y,dr()*6.28];g.add(m);pillars.push(m);}
+    const floorAt=(x,z)=>Math.hypot(x,z)<=R+0.3?0:-30;
+    // 조각 자리 셋: 떠 있는 어두운 받침 + 빛 고리 + 구슬 + 홀로그램 표지판
+    const SPOT_POS=[[-6.4,0.6],[6.4,0.6],[0,6.6]];
+    const spots=M.map((m,i)=>{const p=SPOT_POS[i%SPOT_POS.length];const pos=new THREE.Vector3(p[0],0,p[1]);const toC=new THREE.Vector3(-pos.x,0,-pos.z).normalize();
+      const stand=pos.clone().addScaledVector(toC,1.75);const col=new THREE.Color(m.color||'#ffffff');
+      const sgp=new THREE.Group();sgp.position.copy(pos);g.add(sgp);
+      const pad=new THREE.Mesh(new THREE.CylinderGeometry(1.15,1.05,0.12,64),std('#18213a',{roughness:.3,metalness:.5}));pad.position.y=0.26;sgp.add(pad);fbHide.push(pad);
+      const padRing=new THREE.Mesh(new THREE.TorusGeometry(1.12,0.03,8,96),new THREE.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:1.2,roughness:.4}));padRing.rotation.x=Math.PI/2;padRing.position.y=0.42;sgp.add(padRing);
+      const under=new THREE.Mesh(new THREE.CylinderGeometry(0.9,0.6,0.22,48),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.35,toneMapped:false,depthWrite:false}));under.position.y=0.1;sgp.add(under);fbHide.push(under);
+      const ped=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.22,0.8,32),new THREE.MeshStandardMaterial({color:'#1b2440',emissive:col,emissiveIntensity:.25,roughness:.3,metalness:.4}));ped.position.y=0.72;sgp.add(ped);fbHide.push(ped);
+      const halo=new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.42,0.03,48),new THREE.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:.9,transparent:true,opacity:.55,depthWrite:false}));halo.position.y=1.15;sgp.add(halo);
+      const orb=new THREE.Mesh(new THREE.SphereGeometry(0.26,32,24),new THREE.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:1.9,roughness:.25}));orb.position.y=1.65;orb.castShadow=false;sgp.add(orb);
+      const glow=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:col,transparent:true,opacity:.8,depthWrite:false,toneMapped:false}));glow.scale.setScalar(1.9);glow.position.y=1.65;sgp.add(glow);
+      const light=new THREE.PointLight(col,0.8,5,2);light.position.y=1.8;sgp.add(light);
+      const out=toC.clone().negate();const sign=new THREE.Group();sign.position.copy(out.clone().multiplyScalar(1.45));sign.rotation.y=Math.atan2(-out.x,-out.z);sgp.add(sign);
+      const tex=canvasTex(512,320,gg=>{gg.clearRect(0,0,512,320);gg.fillStyle=rgba(0.2);gg.fillRect(0,0,512,320);gg.strokeStyle=rgba(0.95);gg.lineWidth=6;gg.strokeRect(3,3,506,314);gg.fillStyle=m.color||'#fff';gg.fillRect(0,0,22,320);
+        gg.fillStyle='#eefbff';gg.font='900 90px "Noto Sans KR",sans-serif';gg.fillText(m.label||'',56,124);
+        gg.fillStyle='#bfefff';gg.font='500 38px "Noto Sans KR",sans-serif';gg.fillText(m.title||'',56,206,430);
+        gg.fillStyle='#8fd3ea';gg.font='400 30px "Noto Sans KR",sans-serif';gg.fillText(m.sub||'',56,262,430);});
+      const board=new THREE.Mesh(new THREE.PlaneGeometry(1.4,0.875),new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,side:THREE.DoubleSide,toneMapped:false}));board.position.y=1.6;sign.add(board);
+      const beam=new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,1.2,8),new THREE.MeshBasicMaterial({color:acc,toneMapped:false,transparent:true,opacity:.5,depthWrite:false}));beam.position.y=0.6;sign.add(beam);fbHide.push(beam);
+      shadowize(sgp,true,true);orb.castShadow=false;glow.castShadow=false;board.castShadow=false;halo.castShadow=false;beam.castShadow=false;under.castShadow=false;
+      return{i,m,pos,stand,group:sgp,orb,glow,light,padRing,col,board,yaw:Math.atan2(pos.x-stand.x,pos.z-stand.z)};});
+    // 게이트(문): 빛 기둥 둘 + 빛 들보, 닫혀 있을 땐 푸른 빛 장막 둘, 열리면 장막이 걷히고 가운데가 빛난다
+    const D=new THREE.Vector3(0,0,-8.0);const door=new THREE.Group();door.position.copy(D);g.add(door);
+    const dark=std('#121a2e',{roughness:.35,metalness:.5});
+    for(const s of[-1,1]){const base=new THREE.Mesh(new THREE.CylinderGeometry(0.45,0.6,0.3,6),dark);base.position.set(1.6*s,0.15,0);door.add(base);fbHide.push(base);
+      const core=new THREE.Mesh(new THREE.CylinderGeometry(0.13,0.13,4.0,16),new THREE.MeshBasicMaterial({color:'#dff8ff',toneMapped:false}));core.position.set(1.6*s,2.3,0);core.castShadow=false;door.add(core);fbHide.push(core);
+      const halo2=new THREE.Mesh(new THREE.CylinderGeometry(0.26,0.26,4.0,16,1,true),new THREE.MeshBasicMaterial({color:acc,toneMapped:false,transparent:true,opacity:.3,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));halo2.position.set(1.6*s,2.3,0);halo2.castShadow=false;door.add(halo2);fbHide.push(halo2);}
+    const lintel=new THREE.Mesh(new THREE.BoxGeometry(3.8,0.1,0.1),new THREE.MeshBasicMaterial({color:'#dff8ff',toneMapped:false}));lintel.position.y=4.3;lintel.castShadow=false;door.add(lintel);fbHide.push(lintel);
+    const paneMat=new THREE.MeshBasicMaterial({color:acc,transparent:true,opacity:.28,toneMapped:false,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
+    const hinges=[-1,1].map(s=>{const h=new THREE.Group();door.add(h);const p=new THREE.Mesh(new THREE.PlaneGeometry(1.45,3.9),paneMat);p.position.set(0.725*s,2.25,0);p.castShadow=false;h.add(p);return{h,s};});
+    const glowPlane=new THREE.Mesh(new THREE.PlaneGeometry(3.0,4.0),new THREE.MeshBasicMaterial({color:'#eafcff',transparent:true,opacity:0,toneMapped:false,depthWrite:false,side:THREE.DoubleSide}));glowPlane.position.set(0,2.25,-0.1);glowPlane.castShadow=false;door.add(glowPlane);
+    const doorLight=new THREE.PointLight(acc,0.6,9,2);doorLight.position.set(0,2,0.8);door.add(doorLight);
+    const doorOpen=k=>{hinges.forEach(({h,s})=>{h.position.x=s*0.9*k;});paneMat.opacity=0.28*(1-k);glowPlane.material.opacity=k*0.95;doorLight.intensity=0.6+k*3.5;};
+    // 떠다니는 빛 알갱이
+    const N=90,mg=new THREE.BufferGeometry(),mp=new Float32Array(N*3),mb=[];const r2=mulberry32(11);
+    for(let i=0;i<N;i++){const a=r2()*Math.PI*2,r=3+r2()*14,y=0.4+r2()*7;mb.push([Math.sin(a)*r,y,Math.cos(a)*r,r2()*6.28]);mp.set(mb[i].slice(0,3),i*3);}
+    mg.setAttribute('position',new THREE.BufferAttribute(mp,3));
+    const motes=new THREE.Points(mg,new THREE.PointsMaterial({color:accHex,size:0.14,map:GLOW,transparent:true,opacity:.75,depthWrite:false,sizeAttenuation:true}));g.add(motes);
+    // 블렌더로 짓고 빛을 구운 무대 GLB(설정 stage.model: url PC판, lite 폰판). BK_ = 구운 그림 그대로(조명 없이), EM_ = 발광 띠. 불러오면 코드 구조물을 숨기고 그림자 판만 얹는다
+    const GM=ST.model||null;
+    if(GM&&GM.url){const url=(IS_TOUCH&&GM.lite)?GM.lite:GM.url;
+      loadGltf(url).then(gltf=>{const s=gltf.scene;s.traverse(o=>{if(!o.isMesh)return;const nm=o.name||'';o.castShadow=false;o.receiveShadow=false;
+          if(nm.indexOf('BK_')===0){const map=o.material&&o.material.map;if(map){map.anisotropy=renderer.capabilities.getMaxAnisotropy();}o.material=new THREE.MeshBasicMaterial({map:map||null,color:map?'#ffffff':'#222a3a'});}
+          else if(o.material){const m=o.material;if(m.emissiveIntensity>2.2)m.emissiveIntensity=2.2;m.needsUpdate=true;}});
+        g.add(s);fb.visible=false;fbHide.forEach(o=>{o.visible=false;});
+        const sh=new THREE.Mesh(new THREE.CircleGeometry(R,64),new THREE.ShadowMaterial({opacity:.38}));sh.rotation.x=-Math.PI/2;sh.position.y=0.058;sh.receiveShadow=true;g.add(sh);
+        console.info('[world] 블렌더 무대 GLB 불러옴:',url);})
+      .catch(e=>{console.warn('[world] 무대 GLB를 불러오지 못해 코드 무대를 씁니다:',e);});}
+    const updateStage=(dt,T)=>{const a=mg.attributes.position;for(let i=0;i<N;i++){const b=mb[i];a.setXYZ(i,b[0]+Math.sin(T*0.35+b[3])*0.6,b[1]+Math.sin(T*0.7+b[3]*2)*0.25,b[2]+Math.cos(T*0.3+b[3])*0.6);}a.needsUpdate=true;
+      spots.forEach(s=>{s.orb.position.y=1.65+Math.sin(T*1.4+s.i)*0.08;s.glow.position.y=s.orb.position.y;s.orb.rotation.y+=dt*0.6;s.board.position.y=1.6+Math.sin(T*1.1+s.i*2)*0.04;s.group.position.y=Math.sin(T*0.8+s.i*1.7)*0.05;});
+      rings[0].rotation.z+=dt*0.08;rings[1].rotation.z-=dt*0.05;planet.rotation.y+=dt*0.004;stars.rotation.y+=dt*0.002;
+      auroras.forEach(m=>{m.material.opacity=(0.3-m.userData.i*0.07)+Math.sin(T*0.25+m.userData.i)*0.06;});pillars.forEach(m=>{const b=m.userData.b;m.position.y=b[0]+Math.sin(T*0.4+b[1])*0.4;});};
+    return{group:g,R,floorAt,spots,door:{group:door,pos:D,open:doorOpen},guide:{pos:new THREE.Vector3(0,0,-1.0),facing:0},hub:new THREE.Vector3(0,0,1.15),
+      doorNode:new THREE.Vector3(0,0,-5.3),gate:new THREE.Vector3(0,0,-7.55),human:new THREE.Vector3(0,0,-6.2),meet:new THREE.Vector3(0,0,-3.5),updateStage};
+  }
+  const STAGE=ST.preset==='holodeck'?buildHoloDeckStage():ST.preset==='orbit'?buildOrbitStage():buildPlaceholderStage();
   // 문 너머 도시는 x=CITY_X에 따로 짓는다(월드 1 무대와 겹치지 않게). 그쪽 바닥은 평지
   const CITY_X=300,floorAt=(x,z)=>x>CITY_X-120?0:STAGE.floorAt(x,z);
 
@@ -435,7 +611,7 @@ function start(CFG){
   }
   function loadGltf(url){if(!THREE.GLTFLoader||!window.fetch)return Promise.reject(new Error('GLTFLoader 없음'));
     return fetch(url).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.arrayBuffer();})
-      .then(buf=>new Promise((res,rej)=>{const loader=new THREE.GLTFLoader();const cib=window.createImageBitmap;
+      .then(buf=>new Promise((res,rej)=>{const loader=new THREE.GLTFLoader();if(THREE.DRACOLoader){if(!loadGltf.draco){loadGltf.draco=new THREE.DRACOLoader();loadGltf.draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/libs/draco/gltf/');}loader.setDRACOLoader(loadGltf.draco);}const cib=window.createImageBitmap;
         // createImageBitmap을 잠시 숨기면 GLTFLoader가 fetch 대신 <img>로 내장 텍스처를 읽는다(아티팩트에서 blob fetch가 막혔던 문제 회피)
         try{window.createImageBitmap=undefined;loader.parse(buf,'',res,rej);}finally{window.createImageBitmap=cib;}}));}
   function loadGlbHuman(o){if(!THREE.GLTFLoader||!window.fetch)return;

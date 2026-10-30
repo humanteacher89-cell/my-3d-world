@@ -26,11 +26,16 @@ window.WORLD_CONFIG = {
     mainWorld: '엑스리아 월드'
   },
 
-  // 무대: 월드 1과 같은 임시 원형 무대. 하늘·바닥만 로봇 월드 느낌(푸른 새벽)으로.
+  // 무대: 'holodeck' = 시안 C 화이트 홀로그램 데크(2026-10-30, 시험판 — 휴먼쌤 확인 전). 'placeholder'로 바꾸면 월드 1과 같은 임시 원형 무대.
+  // edge = 홀로그램 빛 색(격자·테두리·포털), floor = 데크 색
+  // 시안 비교용(2026-10-30): 'orbit' = A 궤도 플랫폼, 'holodeck' = C 화이트 홀로그램 데크. 하늘 색은 무대마다 아래 둘 중 하나를 쓴다.
+  //   holodeck: sky { top '#8fb8e6', hor '#e6eff8', bot '#f6f8fb' }, floor '#f4f6f9', fog '#e6eff8'
   stage: {
-    preset: 'placeholder',
-    sky: { top: '#2b3b6e', hor: '#9fb7d9', bot: '#e9eef5' },
-    floor: '#d9dde6', edge: '#4fd8ff', fog: '#9fb7d9'
+    preset: 'orbit',
+    sky: { top: '#05081a', hor: '#1a2a55', bot: '#04060f' },
+    floor: '#0f1626', edge: '#4fd8ff', fog: '#0f1a3a',
+    // 블렌더로 짓고 빛을 구운 무대(휴먼쌤 10-30 "A로 만들어줘"): PC판·폰판. 만드는 법은 tools\unity\projects\vr-maps\xrea\blender\orbit_build.py. 못 불러오면 코드 무대
+    model: { url: 'assets/stage-orbit.glb', lite: 'assets/stage-orbit-m.glb' }
   },
 
   // 안내 로봇. robot: 판(plate)·몸(body)·관절(joint)·강조(accent)·눈(eye)·발(feet) 색. true만 써도 기본 색으로 로봇이 된다.
