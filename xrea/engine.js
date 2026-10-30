@@ -571,6 +571,7 @@ function start(CFG){
       (o.talkIdles||[]).forEach((k,n)=>{const c=clip(String(k).toLowerCase());if(c&&c!==idle&&c!==idle2)this.actions['talk'+n]=mixer.clipAction(c);});
       this.talkSet=['idle'].concat(this.actions.idle2?['idle2']:[],Object.keys(this.actions).filter(k=>/^talk\d/.test(k)));
       this.talkOpt=Object.assign({idleSwap:6,gesture:1},o.talk||{});
+      this.armTuck=o.armTuck||0;   /* 걷기 동작에서 팔이 옆으로 벌어지면 위팔을 몸 쪽으로 모으는 각(라디안). 만화풍 휴먼쌤 걷기용(휴먼쌤 10-30 "팔 벌리고 걷고있음") */
       // waveEnd(초): 손 인사 동작을 앞부분만 쓴다(wave_goodbye_02는 2.8초 뒤 제자리걸음이 들어 있음)
       // waveStart(초): 앞쪽 가만히 있는 부분을 건너뛴다(리니 wave2는 1.6초까지 움직임 없음)
       let wv=clip((o.wave||'wave_goodbye_02').toLowerCase())||clip('wave');
@@ -600,6 +601,8 @@ function start(CFG){
         this.rot(B.Spine,BODY_UP,tb*Math.sin(t*0.8)*0.035);
         this.rot(B.RightArm,BODY_SIDE,-tb*env*0.36);this.rot(B.RightForeArm,BODY_SIDE,-tb*env*0.5);
         const p2=((t+2.6)%6.3)/6.3,env2=sstep(0.15,0.45,p2)*(1-sstep(0.6,0.9,p2));this.rot(B.LeftArm,BODY_SIDE,-tb*env2*0.2);this.rot(B.LeftForeArm,BODY_SIDE,-tb*env2*0.36);}
+      // 걷기 동작의 팔 벌어짐 줄이기: 걷기 가중치만큼 위팔을 몸 쪽으로(UE 뼈 이름 upperarm_l/r, Mixamo면 LeftArm/RightArm)
+      if(this.armTuck&&this.actions.walk){const ww=this.actions.walk.getEffectiveWeight();if(ww>0.001){this.rot(B.upperarm_l||B.LeftArm,BODY_FORWARD,-this.armTuck*ww);this.rot(B.upperarm_r||B.RightArm,BODY_FORWARD,this.armTuck*ww);}}
       // 문을 열어 줄 때: 두 팔을 벌려 맞이하는 자세
       const ob=this.openBlend||0;if(ob>0.001)for(const [side,s] of[['Left',1],['Right',-1]]){this.rot(B[side+'Arm'],BODY_FORWARD,s*ob*0.5);this.rot(B[side+'Arm'],BODY_SIDE,-ob*0.3);this.rot(B[side+'ForeArm'],BODY_SIDE,-ob*0.25);}}
     update(dt,T,inp){this.root.position.copy(inp.pos);this.root.rotation.y=inp.facing;const talking=this.act==='talk';
