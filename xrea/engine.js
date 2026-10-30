@@ -357,7 +357,7 @@ function start(CFG){
   }
   const STAGE=ST.preset==='holodeck'?buildHoloDeckStage():ST.preset==='orbit'?buildOrbitStage():buildPlaceholderStage();
   // 문 너머 도시는 x=CITY_X에 따로 짓는다(월드 1 무대와 겹치지 않게). 그쪽 바닥은 평지
-  const CITY_X=300,floorAt=(x,z)=>x>CITY_X-120?0:STAGE.floorAt(x,z);
+  const CITY_X=300,floorAt=(x,z)=>x>CITY_X-120?0:(Math.abs(x)<1.3&&z<-7&&z>-11.5)?0:STAGE.floorAt(x,z);   /* 문(z -8) 너머 좁은 통로는 걸을 수 있게(문 밖으로 걸어 나가는 연출) */
 
   /* =====================================================================
      CHARACTER — 하늘섬 Char 그대로 (절차적 몸체, 발 IK, 표정). 머리 모양 2=짧은 머리 추가
@@ -639,11 +639,12 @@ function start(CFG){
   const player={pos:STAGE.hub.clone(),vx:0,vz:0,facing:Math.PI,faceT:null,speed:0,path:[],base:2.3};
   let me=new Char(lsGet(KEY+'look',[0,1,0,0,0]));scene.add(me.root);
   const GD=CFG.guide||{},HM=CFG.human||{};
+  const NOHOST=!!(CFG.ending&&CFG.ending.noHost);   /* 엔딩에 주인(휴먼쌤·로봇)이 안 나오고 조각이 모이면 문만 열린다(엑스리아 월드, 휴먼쌤 10-30) */
   let guide=new Char(GD.look||[1,5,2,2,1],{bag:false,robot:GD.robot});guide.setName(GD.name||'안내자');guide.tag.visible=true;scene.add(guide.root);
   const gState={pos:STAGE.guide.pos.clone(),facing:0};
   let human=new Char(HM.look||[0,0,0,5,2],{bag:false,pants:'#3a3f52',shoe:'#4a3a2a',robot:HM.robot});human.setName(HM.name||'휴먼쌤');human.tag.visible=true;human.root.visible=false;scene.add(human.root);
   const hState={pos:STAGE.human.clone(),facing:0,scale:0};
-  if(HM.model&&HM.model.url)loadGlbHuman(HM.model);
+  if(HM.model&&HM.model.url&&!NOHOST)loadGlbHuman(HM.model);
   const PM=CFG.player||{};if(GD.model&&GD.model.url)loadGlbGuide(GD.model);if(PM.model&&PM.model.url)loadGlbMe(PM.model);
   // "!" marker over the guide until met
   const qMark=(()=>{const s=textSprite();const c=s.userData.cv,g=c.getContext('2d');g.clearRect(0,0,512,160);g.fillStyle='#ffc766';g.beginPath();g.arc(256,80,62,0,7);g.fill();
@@ -675,7 +676,7 @@ function start(CFG){
   const GUIDED=(CFG.missionOrder||'guided')!=='free';
   function checklistUI(){const rows=[{t:UI.rowMeet||'안내자 만나기',d:Q.met}];
     M.forEach((m,i)=>rows.push({t:m.label+(m.collectAll&&!missionDone(i)&&gotList(i).length?` ${gotList(i).length}/${m.choices.length}`:''),d:missionDone(i),c:m.color,n:i+1}));
-    rows.push({t:UI.rowHuman||'휴먼쌤 만나기',d:Q.human},{t:UI.rowDoor||'문 열기',d:Q.entered});
+    if(!NOHOST)rows.push({t:UI.rowHuman||'휴먼쌤 만나기',d:Q.human});rows.push({t:UI.rowDoor||'문 열기',d:Q.entered});
     const cur=rows.findIndex(r=>!r.d),done=rows.filter(r=>r.d).length;$('#clTitle').textContent=UI.checklist||'미션';$('#clCount').textContent=`${done}/${rows.length}`;
     const ol=$('#clList');ol.textContent='';rows.forEach((r,i)=>{const li=document.createElement('li');li.className=(r.d?'done':i===cur?'now':'');
       const b=document.createElement('span');b.className='box';if(r.n)b.textContent=String(r.n);const t=document.createElement('span');t.className='txt';t.textContent=r.t;li.append(b,t);
@@ -688,13 +689,13 @@ function start(CFG){
   /* =====================================================================
      TRAVEL — nodes, straight routes that step around the guide
      ===================================================================== */
-  const NODES={hub:STAGE.hub,door:STAGE.doorNode,gate:STAGE.gate,meet:STAGE.meet};STAGE.spots.forEach(s=>NODES['s'+s.i]=s.stand);
+  const NODES={hub:STAGE.hub,door:STAGE.doorNode,gate:STAGE.gate,meet:STAGE.meet,beyond:new THREE.Vector3(0,0,-10.3)};STAGE.spots.forEach(s=>NODES['s'+s.i]=s.stand);   /* beyond: 문 밖(걸어 나가는 연출 끝 자리) */
   function route(from,to){const A=NODES[from]||player.pos,B=NODES[to];const G=gState.pos;const path=[];
     if(distSeg(G.x,G.z,A,B)<1.25&&Math.hypot(B.x-G.x,B.z-G.z)>1.0&&Math.hypot(A.x-G.x,A.z-G.z)>1.0){const vx=B.x-A.x,vz=B.z-A.z,l=Math.hypot(vx,vz)||1;const nx=-vz/l,nz=vx/l;
       const side=((G.x-A.x)*nx+(G.z-A.z)*nz)>=0?-1:1;path.push({x:G.x+nx*side*1.7,z:G.z+nz*side*1.7});}
     path.push({x:B.x,z:B.z});return path;}
   const J={node:'hub',dest:null,traveling:false,onArrive:null,stuck:0,busy:false,label:'',staying:false};let walkTo=null;
-  function placeName(id){if(id==='hub')return(UI.where&&UI.where.hub)||'안내자 곁';if(id==='door'||id==='meet'||id==='gate')return(UI.where&&UI.where.door)||'문 앞';
+  function placeName(id){if(id==='hub')return(UI.where&&UI.where.hub)||'안내자 곁';if(id==='door'||id==='meet'||id==='gate')return(UI.where&&UI.where.door)||'문 앞';if(id==='beyond')return(UI.where&&UI.where.beyond)||'문 너머';
     if(id&&id[0]==='s'){const m=M[+id.slice(1)];return m?pieceName(m):'';}return T_(CFG.title);}
   function hideChoices(){$('#journey').hidden=true;}
   function setChoices(where,list){$('#jWhere').textContent=where;const box=$('#jBtns');box.textContent='';
@@ -848,12 +849,13 @@ function start(CFG){
   function setSub(who,text){$('#cineWho').textContent=who;$('#cineText').textContent=text;$('#cineSubs').classList.toggle('show',!!(who||text));}
   function startEnding(replay){if(cine.active)return;if(talk.open)closeTalk();if(cardOpen){$('#card').hidden=true;cardOpen=false;}
     hideChoices();clearShot();$('#toast').classList.remove('show');J.busy=true;J.traveling=false;player.path=[];walkTo=null;
-    Object.assign(cine,{active:true,phase:replay?PH.APPEAR:PH.GATHER,pt:0,li:0,ci:0,full:'',cut:true,replay:!!replay,orbs:[],doorK:0,appearSnd:false,lines:(END.lines||['안녕하세요.']).map(l=>T_(l))});
+    Object.assign(cine,{active:true,phase:replay?(NOHOST?PH.DOOR:PH.APPEAR):PH.GATHER,pt:0,li:0,ci:0,full:'',cut:true,replay:!!replay,orbs:[],doorK:0,appearSnd:false,lines:NOHOST?[]:(END.lines||['안녕하세요.']).map(l=>T_(l))});
+    if(NOHOST&&replay){SND('sfx','door');}
     SND('music','ending');if(!replay)SND('sfx','gather');
     letterbox();document.body.classList.add('cine','talking');$('#cine').hidden=false;setSub('','');$('#cineNext').hidden=true;$('#cineSkip').textContent=UI.skip||'건너뛰기';$('#cineNext').textContent=UI.tapNext||'눌러서 계속';$('#cineFade').classList.remove('on');
     player.pos.copy(STAGE.meet);player.vx=player.vz=0;player.faceT=null;player.facing=Math.PI;J.node='meet';
     hState.pos.copy(STAGE.human);hState.facing=Math.atan2(player.pos.x-hState.pos.x,player.pos.z-hState.pos.z);human.root.visible=false;hState.scale=0;human.act=null;STAGE.door.open(0);
-    if(replay){cineTitle('');}else{cineTitle(T_(END.gatherTitle||''));
+    if(replay){cineTitle(NOHOST?T_(END.doorTitle||''):'');}else{cineTitle(T_(END.gatherTitle||''));
       cine.orbs=STAGE.spots.map(s=>{const o=new THREE.Mesh(new THREE.SphereGeometry(0.22,24,18),new THREE.MeshStandardMaterial({color:s.col,emissive:s.col,emissiveIntensity:2,roughness:.3}));o.position.copy(s.pos).setY(1.65);
         const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:GLOW,color:s.col,transparent:true,opacity:.8,depthWrite:false,toneMapped:false}));gl.scale.setScalar(1.4);o.add(gl);scene.add(o);return{o,from:o.position.clone(),col:s.col};});}}
   function nextPhase(){cine.phase++;cine.pt=0;cine.cut=true;}
@@ -862,7 +864,7 @@ function start(CFG){
     if(p===PH.TALK){if(cine.ci<cine.full.length){cine.ci=cine.full.length;setSub(human.name,cine.full);human.act=null;$('#cineNext').hidden=false;return;}
       cine.li++;if(cine.li>=cine.lines.length){setSub('','');$('#cineNext').hidden=true;human.act='open';nextPhase();SND('sfx','door');cineTitle(T_(END.doorTitle||''));}else cineShowLine();return;}
     if(cine.pt>0.6)cine.pt+=99;}
-  function finishEnding(){SND('music','day');cine.orbs.forEach(x=>scene.remove(x.o));cine.orbs=[];hState.scale=1;human.root.visible=true;human.act=null;STAGE.door.open(1);cine.doorK=1;
+  function finishEnding(){SND('music','day');cine.orbs.forEach(x=>scene.remove(x.o));cine.orbs=[];hState.scale=NOHOST?0:1;human.root.visible=!NOHOST;human.act=null;STAGE.door.open(1);cine.doorK=1;
     hState.pos.set(2.1,0,-6.0);hState.facing=Math.atan2(player.pos.x-hState.pos.x,player.pos.z-hState.pos.z);
     Q.human=true;qSave();checklistUI();cine.active=false;document.body.classList.remove('cine','talking');$('#cine').hidden=true;cineTitle('');setSub('','');J.busy=false;J.node='meet';DIR.init=false;camYaw=0;camPitch=0.3;refreshChoices();}
   $('#cine').addEventListener('pointerdown',e=>{if(e.target.closest('#cineSkip,#arrGo'))return;e.preventDefault();if(END.autoAdvance===false)cineAdvance();});
@@ -872,7 +874,9 @@ function start(CFG){
       case PH.GATHER:{const k=Math.min(1,pt/3.4),e=ez(k);const tgt=new THREE.Vector3(Hp.x,2.4,Hp.z);
         cine.orbs.forEach((x,i)=>{const f=x.from;const a=Math.min(1,Math.max(0,(k-i*0.08)/0.8));const ee=ez(a);x.o.position.set(lerp(f.x,tgt.x,ee),lerp(f.y,tgt.y+Math.sin(a*Math.PI)*2.2,ee),lerp(f.z,tgt.z,ee));x.o.scale.setScalar(1+Math.sin(T*6+i)*0.08);});
         const a=0.9-e*0.9;cPos.set(Math.sin(a)*12,8.5-e*5,Math.cos(a)*12-2);cLook.set(0,1.6-e*0.4,lerp(0,Hp.z,e));rate=2.6;
-        if(k>=1){cine.orbs.forEach(x=>{burst(x.o.position,x.col,80,5,1.3);scene.remove(x.o);});cine.orbs=[];burst(new THREE.Vector3(Hp.x,1.4,Hp.z),'#fff6dc',160,5,1.6);SND('sfx','appear');cineTitle(T_(END.appearTitle||''));nextPhase();}break;}
+        if(k>=1){cine.orbs.forEach(x=>{burst(x.o.position,x.col,80,5,1.3);scene.remove(x.o);});cine.orbs=[];burst(new THREE.Vector3(Hp.x,1.4,Hp.z),'#fff6dc',160,5,1.6);
+          if(NOHOST){SND('sfx','door');cineTitle(T_(END.doorTitle||''));cine.phase=PH.DOOR;cine.pt=0;cine.cut=true;}   /* 주인 없이: 조각이 모이면 바로 문이 열린다 */
+          else{SND('sfx','appear');cineTitle(T_(END.appearTitle||''));nextPhase();}}break;}
       case PH.APPEAR:{const k=Math.min(1,pt/2.2);human.root.visible=true;hState.scale=ez(k);if(cine.pt<0.05&&cine.replay&&!cine.appearSnd){cine.appearSnd=true;burst(new THREE.Vector3(Hp.x,1.4,Hp.z),'#fff6dc',160,5,1.6);SND('sfx','appear');}
         {const f=hState.facing;cPos.set(Hp.x+Math.sin(f)*2.4+Math.cos(f)*1.5,1.4-k*0.1,Hp.z+Math.cos(f)*2.4-Math.sin(f)*1.5);cLook.set(Hp.x,1.2,Hp.z);rate=3.2;}
         if(k>=1){cineTitle('');human.emote('wave');nextPhase();cineShowLine();}break;}
@@ -892,7 +896,8 @@ function start(CFG){
     if(cine.cut){DIR.pos.copy(cPos);DIR.look.copy(cLook);cine.cut=false;}
     DIR.pos.lerp(cPos,1-Math.exp(-dt*rate));DIR.look.lerp(cLook,1-Math.exp(-dt*(rate+1)));camera.position.copy(DIR.pos);camera.lookAt(DIR.look);}
   function enterDoor(){hideChoices();J.busy=true;const D=STAGE.door.pos;
-    travel('gate',()=>{if(AD){startArrival();return;}if(PK){Q.entered=true;qSave();checklistUI();setTimeout(showPick,350);return;}$('#cineFade').classList.add('on');setTimeout(()=>{Q.entered=true;qSave();checklistUI();showEnd();},1100);},T_(END.doorTitle||'문'));
+    travel('gate',()=>{if(AD){startArrival();return;}
+      if(PK){travel('beyond',()=>{Q.entered=true;qSave();checklistUI();setTimeout(showPick,250);},T_(PK.walkLabel||'문 너머로'));return;}   /* 문을 지나 밖으로 몇 걸음 더 걸어 나간 뒤 고르기 화면 */$('#cineFade').classList.add('on');setTimeout(()=>{Q.entered=true;qSave();checklistUI();showEnd();},1100);},T_(END.doorTitle||'문'));
     shot((k,pos,look)=>{const P=player.pos;pos.set(P.x+1.6,1.7,P.z+3.4-k*0.5);look.set(D.x,1.8,D.z);},9,null,false);}
 
   /* =====================================================================
@@ -1622,7 +1627,7 @@ function start(CFG){
   // 처음부터: 저장된 진행을 지우고 처음부터 시작한다
   $('#introGo').onclick=()=>{SND('unlock');SND('sfx','select');SND('music','day');if(Q.met||Q.human||Q.entered||Object.keys(Q.got).some(k=>gotList(k).length))restartAll(true);closeIntro();
     if(IS_TOUCH&&innerHeight>innerWidth)toast(UI.rotateHint||'가로로 돌리면 더 잘 보여요.');
-    if(Q.human){STAGE.door.open(1);human.root.visible=true;hState.scale=1;hState.pos.set(2.1,0,-6.0);hState.facing=Math.atan2(0-2.1,-3.5+6.0);}
+    if(Q.human){STAGE.door.open(1);human.root.visible=!NOHOST;hState.scale=NOHOST?0:1;hState.pos.set(2.1,0,-6.0);hState.facing=Math.atan2(0-2.1,-3.5+6.0);}
     if(!Q.met){hideChoices();setTimeout(()=>{if(!talk.open&&!cine.active)talkGuide();},700);}else refreshChoices();};
   checklistUI();
 
@@ -1638,7 +1643,7 @@ function start(CFG){
   const clock=new THREE.Clock();
   function fitViewport(){vw=innerWidth;vh=innerHeight;if(vw<2||vh<2)return;camera.aspect=vw/vh;camera.updateProjectionMatrix();renderer.setSize(vw,vh,false);if(composer)composer.setSize(vw,vh);letterbox();}
   renderer.setAnimationLoop(()=>{const dt=Math.min(clock.getDelta(),0.1);if(innerWidth!==vw||innerHeight!==vh)fitViewport();if(vw<2||vh<2)return;T+=dt;
-    if(!intro.active&&!cine.active&&!ARR.active)updatePlayer(dt);
+    if(!intro.active&&!cine.active&&!ARR.active)updatePlayer(dt);else{player.vx=player.vz=0;player.speed=0;}   /* 연출 중에는 속도를 0으로 — 걷기 자세가 남지 않게(휴먼쌤 10-30 "걷는 포즈가 안없어져") */
     if(me.actions){const mv=player.speed>0.3;me.hold=mv?'walk':'idle';if(me.actions.walk)me.actions.walk.timeScale=clamp(player.speed/((PM.model&&PM.model.step)||1.0),0.6,2.6);}   /* GLB 플레이어: 걸을 때 걷기 동작, 속도에 맞춰 배속 */
     me.update(dt,T,{pos:player.pos,facing:player.facing});updateNPC(dt);STAGE.updateStage(dt,T);updateFX(dt);
     if(PZ.active)updatePlaza(dt);

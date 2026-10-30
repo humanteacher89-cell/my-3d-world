@@ -60,14 +60,15 @@ window.WORLD_CONFIG = {
       { text: '엑스리아가 무엇인지 궁금해서 오셨죠?', choices: [{ label: '네, 궁금해요' }, { label: '엑스리아가 뭐예요?' }] },
       '좋아요. 교실에서 시작한 작은 연구회가 어떻게 협회가 됐는지, 어제·오늘·내일을 담은 조각이 세 곳에 흩어져 있어요.',
       '제가 길을 안내할게요. 어제의 조각부터 차례로 모아 보세요. 오른쪽 위 목록에 지금 갈 곳이 표시돼요.',
-      { text: '세 조각이 다 모이면 엑스리아가 직접 나와 문을 열어 줄 거예요. 준비됐나요?', choices: [{ label: '네, 출발할게요' }] }
+      { text: '세 조각이 다 모이면 저 뒤의 문이 열려요. 준비됐나요?', choices: [{ label: '네, 출발할게요' }] }
     ],
     help: ['화면 아래 버튼을 누르면 제가 안내한 곳으로 알아서 걸어가요. 화면을 끌면 주변을 둘러볼 수 있어요.'],
-    afterAll: ['세 조각이 다 모였어요. 이제 엑스리아를 만나러 가요.'],
-    afterMeet: ['문 너머에서 누구의 월드로 갈지 고를 수 있어요. 문으로 가 보세요.']
+    afterAll: ['세 조각이 다 모였어요. 문 앞으로 가 보세요. 조각이 모이면 문이 열릴 거예요.'],
+    afterMeet: ['문이 열렸어요. 문을 지나 밖으로 나가면 누구의 월드로 갈지 고를 수 있어요.']
   },
 
-  // 세 조각이 모이면 나오는 주인 로봇 '엑스리아'
+  // (안 씀) 세 조각이 모였을 때 나오던 주인 로봇 '엑스리아'. 휴먼쌤 10-30 "로봇 없애고 주인공이 걸어가서 문 밖으로 나가는 컨셉" → ending.noHost: true 로 끔.
+  // noHost를 지우면 예전처럼 이 로봇이 나와 인사하고 문을 연다.
   human: {
     name: '엑스리아',
     role: '(사)한국가상융합교육협회 안내 로봇',
@@ -152,11 +153,12 @@ window.WORLD_CONFIG = {
   ],
 
   ending: {
+    noHost: true,               // 주인(로봇) 없이: 세 조각이 문 앞에 모이면 문이 열리고, 주인공이 문을 지나 밖으로 걸어 나간 뒤 '누구의 월드로' 고르기
     autoAdvance: true,
     lineHold: 1.1,
     gatherTitle: '세 조각이 모였어요',
-    appearTitle: '그리고, 엑스리아가',
-    // 엑스리아의 인사말
+    appearTitle: '그리고, 엑스리아가',   // noHost일 때는 안 씀
+    // 엑스리아의 인사말(noHost일 때는 안 씀)
     lines: [
       '안녕하세요. 엑스리아 월드를 지키는 로봇, 엑스리아예요.',
       '어제, 오늘, 내일. 세 조각을 모아 주셔서 고마워요. 교실에서 시작한 작은 연구회가 이제 사단법인 한국가상융합교육협회가 됐어요.',
@@ -170,17 +172,19 @@ window.WORLD_CONFIG = {
     // worlds[]: name(이름) · sub(한 줄) · url(같은 사이트 안 상대 주소) · urlAbs(그 밖에서 열 때 절대 주소) · ready:false(준비 중, 누르면 안내만).
     // 월드를 더하려면 이 목록에 한 줄만 더한다.
     pickWorld: {
-      asker: '엑스리아', askerRole: '(사)한국가상융합교육협회 안내 로봇',
+      asker: 'XREA', askerRole: '(사)한국가상융합교육협회',
       kicker: 'XREA · 문 너머',
       title: '누구의 월드로 들어갈까요?',
       sub: '엑스리아와 함께하는 선생님들의 월드예요. 고르면 바로 이어져요.',
+      walkLabel: '문 너머로',
+      // 휴먼쌤 10-30: "마지막에 '휴먼쌤월드'로 연결하지 말고, 차라리 이 'https://humanssaem-world.pages.dev/ai/' 이걸로 해줘"
       worlds: [
-        { name: '휴먼쌤의 월드', sub: '회장 김수현 · 휴먼쌤이 누구인가', url: '../world1/', urlAbs: 'https://humanssaem-world.pages.dev/world1/' },
+        { name: 'AI가 지은 섬', sub: 'AI가 생각하고 사는 방식 · 휴먼쌤 월드', url: 'https://humanssaem-world.pages.dev/ai/', urlAbs: 'https://humanssaem-world.pages.dev/ai/' },
         { name: '다음 선생님의 월드', sub: '준비 중', ready: false }
       ],
       soonToast: '그 월드는 아직 준비 중이에요.',
       back: '조금 더 머물기',
-      leaving: '{name}로 이동합니다'
+      leaving: '{name}(으)로 이동합니다'
     },
 
     // pickWorld를 지우면 예전처럼 '곧 열립니다' 화면
@@ -209,9 +213,9 @@ window.WORLD_CONFIG = {
     back: '돌아가기',
     next: '다음 조각',
     nowBadge: '지금',
-    meetHuman: '엑스리아 만나러 가기',
+    meetHuman: '문 앞으로 가기',
     meetHumanSub: '세 조각이 모였어요',
-    meetAgain: '엑스리아 다시 만나기',
+    meetAgain: '문 열림 다시 보기',
     toDoor: '문으로 가기',
     restart: '처음부터 다시',
     restartAsk: '처음부터 다시 할까요?',
@@ -229,6 +233,6 @@ window.WORLD_CONFIG = {
     endExit: '종료',
     endReplay: '엔딩 다시 보기',
     endRestart: '처음부터 다시',
-    where: { hub: '안내 로봇 곁', door: '문 앞' }
+    where: { hub: '안내 로봇 곁', door: '문 앞', beyond: '문 너머' }
   }
 };
