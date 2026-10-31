@@ -89,7 +89,7 @@ window.WORLD_CONFIG = {
   // 못 불러오면 월드 1의 만화풍 여행자 캐릭터. step: 걷기 동작 1배속에서 발이 나가는 속도(m/초) — 미끄러지면 이 값을 고친다
   player: {
     model: {
-      url: 'assets/humanssam_toon.glb', height: 1.65, idle: 'idle', walk: 'walk', wave: 'wave', glow: 0.25, step: 1.4,   /* 걷기 FBX 측정값 1.40m/초(walk_info.json) */
+      url: 'assets/humanssam_toon.glb?v=1031b', height: 1.65,   /* 10-31 걷기의 팔 비틀림(약 90도) 고쳐 다시 구움 — 뒤에서 손바닥 → 손등(toon_export.py 3차) */ idle: 'idle', walk: 'walk', wave: 'wave', glow: 0.25, step: 1.4,   /* 걷기 FBX 측정값 1.40m/초(walk_info.json) */
       armTuck: 0,   /* 걷기 동작에서 팔이 벌어지면 몸 쪽으로 모으는 각(라디안). 10-30 저녁 걷기를 다시 구워 0으로 둠 */
       talk: { idleSwap: 0, gesture: 0 },
       poseFix: { armSpread: 0, shoulderLift: 0, armLength: 1, spineBend: 0, neckBend: 0, headBend: 0 }
@@ -186,30 +186,50 @@ window.WORLD_CONFIG = {
     stayLabel: '조금 더 머물기',
 
     // 문 너머: '누구의 월드로 들어갈까요?' 고르기 화면(휴먼쌤 10-30). 고르면 그 주소로 간다.
-    // worlds[]: name(이름) · sub(한 줄) · url(같은 사이트 안 상대 주소) · urlAbs(그 밖에서 열 때 절대 주소) · ready:false(준비 중, 누르면 안내만).
-    // 월드를 더하려면 이 목록에 한 줄만 더한다.
+    // 10-31 가안(휴먼쌤 "이걸 회원들 프로필처럼 만들어줘. 나중에 가상의 프로필 아바타도 넣을 수 있께. 우선 가안만"):
+    //   members[] = 회원 카드. 카드를 누르면 '○○의 월드' 화면에 그 회원의 worlds[]가 나온다.
+    //   회원 칸: name(이름) · role(하는 일 한 줄) · intro(소개 한 줄) · color(아바타 테두리 색) · avatar(아바타 그림 주소, 정사각형 — 비우면 이름 첫 글자) · initial(머리글자 바꿀 때)
+    //            · worlds[] · ready:false(빈 자리: 사람 모양 점선 카드, 누르면 toast 한 줄).
+    //   회원을 더하려면 이 목록에 한 덩이를 더하고, 아바타 그림은 assets/avatars/에 정사각형(320px 안팎, 배경 투명)으로 둔다.
+    // worlds[]: name(이름) · short(카드 칩에 쓸 짧은 이름, 없으면 name) · sub(한 줄) · url(같은 사이트 안 상대 주소) · urlAbs(그 밖에서 열 때 절대 주소) · ready:false(준비 중, 누르면 안내만).
+    //   children이 있으면 누르면 그 안 목록(돌아가기 있음). members를 지우고 worlds만 두면 예전처럼 목록 하나.
     pickWorld: {
       asker: 'XREA', askerRole: '(사)한국가상융합교육협회',
       kicker: 'XREA · 문 너머',
       title: '누구의 월드로 들어갈까요?',
-      sub: '엑스리아와 함께하는 선생님들의 월드예요. 고르면 바로 이어져요.',
+      sub: '엑스리아 회원 선생님들의 월드예요. 프로필을 누르면 그 선생님의 월드가 열려요.',
       walkLabel: '문 너머로',
-      // 휴먼쌤 10-30: "마지막에 '휴먼쌤월드'로 연결하지 말고, 차라리 이 'https://humanssaem-world.pages.dev/ai/' 이걸로 해줘"
-      //            "여기에다가 AI타운말고 로봇학교 교실, 융합광장, xr과학실험실(5종) 3개 연결되도록 넣어줘" → 넷. children이 있으면 누르면 그 안 목록(돌아가기 있음)
-      worlds: [
-        { name: 'AI가 지은 섬', sub: 'AI가 생각하고 사는 방식', url: 'https://humanssaem-world.pages.dev/ai/', urlAbs: 'https://humanssaem-world.pages.dev/ai/' },
-        { name: '로봇 학교 교실', sub: 'Delightex Edu · 칠판 앞의 리니', url: 'https://edu.delightex.com/AGG-QBY', urlAbs: 'https://edu.delightex.com/AGG-QBY' },
-        { name: '융합 광장', sub: '블렌더로 지은 학교 교정 · 걷기·VR', url: 'https://humanssaem-world.pages.dev/plaza/', urlAbs: 'https://humanssaem-world.pages.dev/plaza/' },
-        { name: 'XR 과학 실험실', sub: '다섯 가지 · 손으로 하는 과학', pickSub: '하나를 고르면 바로 실험실이 열려요.', children: [
-          { name: '공기 분자 실험실', sub: '혼합현실 · 손 집기', url: 'https://humanssaem-world.pages.dev/air/', urlAbs: 'https://humanssaem-world.pages.dev/air/' },
-          { name: '빛과 그림자 실험실', sub: '손전등·거울·그림자', url: 'https://humanssaem-world.pages.dev/light/', urlAbs: 'https://humanssaem-world.pages.dev/light/' },
-          { name: '물의 상태 변화 실험실', sub: '얼음·물·수증기', url: 'https://humanssaem-world.pages.dev/phase/', urlAbs: 'https://humanssaem-world.pages.dev/phase/' },
-          { name: '손 위의 태양계', sub: '행성 여덟 · 공전', url: 'https://humanssaem-world.pages.dev/solar/', urlAbs: 'https://humanssaem-world.pages.dev/solar/' },
-          { name: '심장과 폐 탐험실', sub: '숨쉬기 · 피의 길', url: 'https://humanssaem-world.pages.dev/body/', urlAbs: 'https://humanssaem-world.pages.dev/body/' }
-        ] }
+      memberTitle: '{name}의 월드',
+      members: [
+        {
+          // 아바타 = 문을 걸어 들어간 만화풍 휴먼쌤 3D를 블렌더로 찍은 것(out\엑스리아\toon-work\avatar_render.py, 10-31)
+          name: '휴먼쌤 김수현', initial: '휴', role: '엑스리아 회장', intro: '생각주도력 키우는 교사아빠',
+          color: '#ffcf5a', avatar: 'assets/avatars/humanssaem.webp',
+          // 휴먼쌤 10-30: "마지막에 '휴먼쌤월드'로 연결하지 말고, 차라리 이 'https://humanssaem-world.pages.dev/ai/' 이걸로 해줘"
+          //            "여기에다가 AI타운말고 로봇학교 교실, 융합광장, xr과학실험실(5종) 3개 연결되도록 넣어줘" → 넷.
+          // 10-31: 섬 이름은 'AI타운'(휴먼쌤 10-15 결정, ai/ 화면 이름도 10-31에 바꿈)
+          worlds: [
+            { name: 'AI타운', sub: 'AI가 생각하고 사는 방식', url: 'https://humanssaem-world.pages.dev/ai/', urlAbs: 'https://humanssaem-world.pages.dev/ai/' },
+            { name: '로봇 학교 교실', sub: 'Delightex Edu · 칠판 앞의 리니', url: 'https://edu.delightex.com/AGG-QBY', urlAbs: 'https://edu.delightex.com/AGG-QBY' },
+            { name: '융합 광장', sub: '블렌더로 지은 학교 교정 · 걷기·VR', url: 'https://humanssaem-world.pages.dev/plaza/', urlAbs: 'https://humanssaem-world.pages.dev/plaza/' },
+            { name: 'XR 과학 실험실', short: '과학 실험실 5', sub: '다섯 가지 · 손으로 하는 과학', pickSub: '하나를 고르면 바로 실험실이 열려요.', children: [
+              { name: '공기 분자 실험실', sub: '혼합현실 · 손 집기', url: 'https://humanssaem-world.pages.dev/air/', urlAbs: 'https://humanssaem-world.pages.dev/air/' },
+              { name: '빛과 그림자 실험실', sub: '손전등·거울·그림자', url: 'https://humanssaem-world.pages.dev/light/', urlAbs: 'https://humanssaem-world.pages.dev/light/' },
+              { name: '물의 상태 변화 실험실', sub: '얼음·물·수증기', url: 'https://humanssaem-world.pages.dev/phase/', urlAbs: 'https://humanssaem-world.pages.dev/phase/' },
+              { name: '손 위의 태양계', sub: '행성 여덟 · 공전', url: 'https://humanssaem-world.pages.dev/solar/', urlAbs: 'https://humanssaem-world.pages.dev/solar/' },
+              { name: '심장과 폐 탐험실', sub: '숨쉬기 · 피의 길', url: 'https://humanssaem-world.pages.dev/body/', urlAbs: 'https://humanssaem-world.pages.dev/body/' }
+            ] }
+          ]
+        },
+        // 빈 자리(가안에서 카드 모양을 보이려고 셋). 회원 월드가 생기면 이 자리를 채운다
+        { name: '회원 선생님', role: '월드 준비 중', ready: false },
+        { name: '회원 선생님', role: '월드 준비 중', ready: false },
+        { name: '회원 선생님', role: '월드 준비 중', ready: false }
       ],
-      soonToast: '그 월드는 아직 준비 중이에요.',
+      chipMax: 2,   // 회원 카드에 보일 월드 이름 칩 수(나머지는 +n)
+      soonToast: '그 선생님의 월드는 아직 준비 중이에요.',
       backList: '← 돌아가기',
+      backMembers: '← 회원 목록',
       credit: '음악: "Pamgaea" · "Dreamer" Kevin MacLeod (incompetech.com) · CC BY 4.0',   /* 무료 곡 출처 표기(assets/music/LICENSE.txt) */
       back: '조금 더 머물기',
       leaving: '{name}(으)로 이동합니다'

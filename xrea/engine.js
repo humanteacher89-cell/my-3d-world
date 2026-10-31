@@ -52,7 +52,7 @@ const UI_HTML=`
 <div id="end" hidden><div class="box"><p class="kicker"></p><h1></h1><p class="sub"></p><button id="endExit"></button><small id="endVer"></small></div>
   <div class="btns"><button id="endReplay"></button><button id="endRestart"></button></div>
   <div id="exit" hidden><p class="kicker"></p><h1></h1><p class="sub"></p><a id="exitLink" hidden></a></div></div>
-<div id="pick" hidden role="dialog" aria-labelledby="pickTitle"><div class="box"><p class="kicker"></p><div class="who"><b id="pickName"></b><span id="pickRole"></span></div><h1 id="pickTitle"></h1><p class="sub" id="pickSub"></p><div id="pickList"></div><p id="pickCredit" hidden></p></div>
+<div id="pick" hidden role="dialog" aria-labelledby="pickTitle"><div class="box"><p class="kicker"></p><div class="who"><b id="pickName"></b><span id="pickRole"></span></div><div id="pickHero" hidden></div><h1 id="pickTitle"></h1><p class="sub" id="pickSub"></p><div id="pickList"></div><p id="pickCredit" hidden></p></div>
   <div class="btns"><button id="pickBack"></button></div></div>`;
 
 function start(CFG){
@@ -1613,21 +1613,42 @@ function start(CFG){
      문을 지나면 주인 로봇이 묻는 화면이 뜨고, 월드 하나를 고르면 그 주소로 간다. worlds[]는 설정에서만 고친다. */
   // 같은 사이트 안(http·https)에서 열었으면 상대 주소(url), 파일로 열었거나 url이 없으면 절대 주소(urlAbs)
   function pickUrl(w){const rel=w.url,abs=w.urlAbs||w.url;if(!rel)return abs||'';return /^https?:$/.test(location.protocol)?rel:abs;}
+  // 회원 프로필(휴먼쌤 10-31 "회원들 프로필처럼 … 나중에 가상의 프로필 아바타도"): PK.members[]가 있으면 회원 카드 → 그 회원의 월드 목록 → (묶음이면) 그 안 목록.
+  // 없으면 예전처럼 PK.worlds 목록 하나. 회원 칸은 설정 파일 머리말 참고(avatar = 그림 주소, 없으면 머리글자 동그라미, ready:false = 빈 자리)
+  const MEMBERS=PK&&Array.isArray(PK.members)?PK.members:null;
+  function pel(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e;}
+  const AV_EMPTY='<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="25" r="11"/><path d="M12 56c2-11 10-17 20-17s18 6 20 17z"/></svg>';
+  function avatarEl(m,big){const d=pel('span','av'+(big?' lg':''));d.style.setProperty('--c',m.color||'#c9b28a');
+    const initial=()=>{d.classList.add('ini');d.textContent=T_(m.initial||String(m.name||'?').trim().charAt(0));};
+    if(m.avatar){const i=pel('img');i.alt='';i.decoding='async';i.onerror=()=>{i.remove();initial();};i.src=m.avatar;d.appendChild(i);}
+    else if(m.ready===false){d.classList.add('empty');d.innerHTML=AV_EMPTY;}else initial();
+    return d;}
+  function pickHero(m){const h=$('#pickHero');h.textContent='';h.hidden=!m;$('#pick').classList.toggle('member',!!m);if(!m)return;h.appendChild(avatarEl(m,true));if(m.role)h.appendChild(pel('span','rl',T_(m.role)));}
   function showPick(){if(!PK)return;hideChoices();J.busy=true;
     $('#pick .kicker').textContent=T_(PK.kicker||V.mainWorld||'');$('#pickName').textContent=T_(PK.asker||human.name||'');$('#pickRole').textContent=T_(PK.askerRole||HM.role||'');
     $('#pickTitle').textContent=T_(PK.title||'누구의 월드로 들어갈까요?');$('#pickSub').textContent=T_(PK.sub||'');$('#pickBack').textContent=T_(PK.back||END.stayLabel||'조금 더 머물기');
-    renderPick(PK.worlds||[],null);
+    if(MEMBERS)renderMembers();else renderPick(PK.worlds||[],null,null);
     const cr=$('#pickCredit');cr.textContent=T_(PK.credit||'');cr.hidden=!PK.credit;   /* 음악 등 출처 한 줄(CC BY 표기) */
-    const el=$('#pick');el.classList.remove('leaving');el.hidden=false;}
-  // 목록 그리기. 묶음(w.children)은 누르면 그 안 목록으로 들어가고 '뒤로'가 생긴다(예: XR 과학 실험실 다섯)
-  function renderPick(items,parent){const list=$('#pickList');list.textContent='';
+    const el=$('#pick');el.classList.remove('leaving');el.hidden=false;el.scrollTop=0;}
+  // 회원 카드: 아바타 · 이름 · 하는 일 · 한 줄 소개 · 월드 이름 칩(PK.chipMax개까지, 기본 둘 + 나머지 수). 빈 자리는 점선 카드, 누르면 '준비 중' 한 줄
+  function renderMembers(){const list=$('#pickList');list.textContent='';list.className='members';pickHero(null);
+    $('#pickTitle').textContent=T_(PK.title||'누구의 월드로 들어갈까요?');$('#pickSub').textContent=T_(PK.sub||'');
+    MEMBERS.forEach(m=>{const ws=Array.isArray(m.worlds)?m.worlds:[];const empty=m.ready===false||!ws.length;const b=pel('button','mcard'+(empty?' empty':''));b.style.setProperty('--c',m.color||'#c9b28a');
+      b.appendChild(avatarEl(m));const tx=pel('span','tx');tx.appendChild(pel('b','nm',T_(m.name||'')));if(m.role)tx.appendChild(pel('span','rl',T_(m.role)));if(m.intro)tx.appendChild(pel('span','in',T_(m.intro)));
+      if(!empty){const ch=pel('span','chips'),k=PK.chipMax||2;ws.slice(0,k).forEach(w=>ch.appendChild(pel('i','',T_(w.short||w.name||''))));if(ws.length>k)ch.appendChild(pel('i','more','+'+(ws.length-k)));tx.appendChild(ch);}
+      b.appendChild(tx);if(!empty)b.appendChild(pel('span','ar','›'));
+      b.onclick=()=>{SND('sfx','click');if(empty){$('#pickSub').textContent=T_(m.toast||PK.soonToast||'아직 준비 중이에요.');return;}renderPick(ws,null,m);$('#pick').scrollTop=0;};list.appendChild(b);});}
+  // 월드 목록 그리기(member = 그 회원의 월드, 없으면 예전 목록). 묶음(w.children)은 누르면 그 안 목록으로 들어가고 '뒤로'가 생긴다(예: XR 과학 실험실 다섯)
+  function renderPick(items,parent,member){const list=$('#pickList');list.textContent='';list.className='';pickHero(member);
     if(parent){$('#pickTitle').textContent=T_(parent.name||'');$('#pickSub').textContent=T_(parent.pickSub||parent.sub||'');}
+    else if(member){$('#pickTitle').textContent=T_(PK.memberTitle||'{name}의 월드',{name:T_(member.name||'')});$('#pickSub').textContent=T_(member.intro||'');}
     else{$('#pickTitle').textContent=T_(PK.title||'누구의 월드로 들어갈까요?');$('#pickSub').textContent=T_(PK.sub||'');}
     items.forEach(w=>{const group=Array.isArray(w.children)&&w.children.length>0;const soon=!group&&(w.ready===false||!(w.url||w.urlAbs));const b=document.createElement('button');b.className='jb'+(soon?' soon':' hot');
       const t=document.createElement('span');t.className='t';t.textContent=T_(w.name||'');b.appendChild(t);if(w.sub){const s=document.createElement('span');s.className='s';s.textContent=T_(w.sub);b.appendChild(s);}
       if(group){const a=document.createElement('span');a.className='ar';a.textContent='›';b.appendChild(a);}
-      b.onclick=()=>{SND('sfx','click');if(group){renderPick(w.children,w);return;}if(soon){$('#pickSub').textContent=T_(w.toast||PK.soonToast||'아직 준비 중이에요.');return;}goWorld(w);};list.appendChild(b);});
-    if(parent){const back=document.createElement('button');back.className='jb back';back.textContent=T_(PK.backList||'← 돌아가기');back.onclick=()=>{SND('sfx','click');renderPick(PK.worlds||[],null);};list.appendChild(back);}}
+      b.onclick=()=>{SND('sfx','click');if(group){renderPick(w.children,w,member);return;}if(soon){$('#pickSub').textContent=T_(w.toast||PK.soonToast||'아직 준비 중이에요.');return;}goWorld(w);};list.appendChild(b);});
+    if(parent||member){const back=document.createElement('button');back.className='jb back';back.textContent=T_(parent?(PK.backList||'← 돌아가기'):(PK.backMembers||'← 회원 목록'));
+      back.onclick=()=>{SND('sfx','click');if(parent)renderPick(member?member.worlds:(PK.worlds||[]),null,member);else renderMembers();};list.appendChild(back);}}
   function goWorld(w){const url=pickUrl(w);if(!url)return;SND('sfx','whoosh');$('#pick').classList.add('leaving');if(PK.leaving)$('#pickSub').textContent=T_(PK.leaving,{name:T_(w.name||'')});
     setTimeout(()=>{try{location.href=url;}catch(e){}},700);}
   $('#pickBack').onclick=()=>{SND('sfx','click');leaveEnd();refreshChoices();};
