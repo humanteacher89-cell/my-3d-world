@@ -1,7 +1,10 @@
 /* 「지하철을 타요」 v0.1 — 한국어 학습맵 4판: 지하철역에서 교통카드 충전·길 묻기·갈아타기·출구 찾기 (2026-10-21)
    휴먼쌤 10-21 "그냥 바로 올려 승인받지말고" → 기획안 추천대로: 역무원 = 하나, 갈아타기 한 번, 역 이름 가상, 안내 방송 = 하나 목소리 + 방송 소리, 뜻풀이 fr 기본.
    대사·문화 한 줄·뜻풀이는 모두 [확인 전] 초안. 노선도·역 이름·교통카드는 가상(실제 회사·로고 없음).
-   소리 내는 문장은 키 이름이 text 또는 line인 것(tools/voice_lines.mjs가 모은다). 숫자는 소리 낼 때 '일호선·삼 번'처럼 읽는다. */
+   소리 내는 문장은 키 이름이 text 또는 line인 것(tools/voice_lines.mjs가 모은다). 숫자는 소리 낼 때 '일호선·삼 번'처럼 읽는다.
+   10-31 검수: 역무원이 "오늘은 같이 지하철을 타 봐요" 해 놓고 매표소에서 "조심히 가세요"로 헤어진 뒤에도 열차 안에서 하나가 말하던 것 →
+   역무원은 "지하철 타는 것을 도와 드릴게요"·개찰구를 지나면 "조심히 가세요"로 헤어지고, 그 뒤 승강장·열차·출구 안내는 '나'의 생각(note, 글만·소리 없음)으로.
+   친구 메시지는 맨 앞(역에 온 까닭)으로, 하나가 "친구한테서 메시지가 왔어요"라고 하던 것은 휴대폰 알림으로, 끝에는 친구가 맞아 줌. */
 window.SUBWAY = {
   kicker: '휴먼쌤 월드 · 한국어 배우기',
   title: '지하철을 타요',
@@ -47,7 +50,7 @@ window.SUBWAY = {
 
   hello: [
     { text: '안녕하세요! 여기는 하나역이에요.', choices: ['안녕하세요!'], gloss: { fr: 'Bonjour ! Ici, c\'est la station Hana.', en: 'Hello! This is Hana Station.' } },
-    { text: '저는 역무원 하나예요. 오늘은 같이 지하철을 타 봐요.', choices: ['좋아요!'], gloss: { fr: 'Je suis Hana, agente de station. Aujourd\'hui, prenons le métro ensemble.', en: 'I\'m Hana, the station staff. Today let\'s take the subway together.' } },
+    { text: '저는 역무원 하나예요. 지하철 타는 것을 도와 드릴게요.', choices: ['감사합니다!'], gloss: { fr: 'Je suis Hana, agente de station. Je vais vous aider à prendre le métro. → Merci !', en: 'I\'m Hana, the station staff. I\'ll help you take the subway. → Thank you!' } },
     { text: '먼저 역에 있는 것들 이름을 들어 봐요.', choices: ['네!'], gloss: { fr: 'D\'abord, écoutons les noms des choses de la station.', en: 'First, let\'s listen to the names of things in the station.' } }
   ],
   listen: { title: '이름 듣기', counter: '들은 말',
@@ -57,9 +60,9 @@ window.SUBWAY = {
     ask: { text: '제가 말하면 따라 말해 보세요.' }, done: { text: '목소리가 좋아요!' } },
 
   charge: { title: '충전하기',
-    msgIntro: { text: '친구한테서 메시지가 왔어요.', choices: ['읽어 볼게요'], gloss: { fr: 'Vous avez reçu un message d\'un ami.', en: 'You got a message from a friend.' } },
+    msgIntro: { note: '친구한테서 메시지가 왔어요.', choices: ['읽어 볼게요'], gloss: { fr: 'Vous avez reçu un message d\'un ami.', en: 'You got a message from a friend.' } },   // 맨 앞(인사 전)에 휴대폰 알림으로
     msg: { from: '친구 메시지', body: '바다역에서 만나요! 바다 쪽 출구로 나와요.', gloss: { fr: 'On se retrouve à la station Bada (la mer) ! Prends la sortie côté mer.', en: 'Let\'s meet at Bada (Sea) Station! Come out the exit on the sea side.' } },
-    first: { text: '먼저 교통카드를 충전해요.', choices: ['네!'], gloss: { fr: 'D\'abord, rechargeons la carte de transport.', en: 'First, let\'s top up the transit card.' } },
+    first: { text: '교통카드부터 충전하세요.', choices: ['네!'], gloss: { fr: 'Commencez par recharger votre carte de transport.', en: 'Start by topping up your transit card.' } },
     ask: { me: '교통카드 어디서 충전해요?', gloss: { fr: 'Où est-ce que je recharge la carte de transport ?', en: 'Where do I top up my transit card?' } },
     answer: { text: '저기 기계에서 충전해요.', gloss: { fr: 'On la recharge à la machine, là-bas.', en: 'You top it up at the machine over there.' } },
     put: { text: '교통카드를 눌러 기계에 올려 주세요.' },
@@ -75,32 +78,33 @@ window.SUBWAY = {
     q2: { text: '어디에서 갈아타요?', choices: ['공원역', '시장역'], answer: 0, gloss: { fr: 'Où est-ce qu\'on change ?', en: 'Where do you transfer?' },
       ok: { text: '맞아요! 공원역에서 갈아타요.' }, wrong: { text: '아니에요. 공원역에서 갈아타요.' } },
     exitAsk: { me: '몇 번 출구예요?', gloss: { fr: 'C\'est quelle sortie ?', en: 'Which exit is it?' } },
-    exitAnswer: { text: '바다는 3번 출구예요.', choices: ['감사합니다!'], gloss: { fr: 'Pour la mer, c\'est la sortie 3.', en: 'For the sea, it\'s Exit 3.' } },
-    bye: { text: '조심히 가세요!', choices: ['안녕히 계세요!'], gloss: { fr: 'Bon trajet ! (litt. allez prudemment) → Au revoir !', en: 'Have a safe trip! → Goodbye!' } } },
+    exitAnswer: { text: '바다는 3번 출구예요.', choices: ['감사합니다!'], gloss: { fr: 'Pour la mer, c\'est la sortie 3.', en: 'For the sea, it\'s Exit 3.' } } },
 
+  // 개찰구까지는 역무원 하나가 말한다(text, 하나 목소리). 하나가 "조심히 가세요"로 헤어진 뒤는 '나'의 생각(note, 글만)과 안내 방송(ann, 소리)
   ride: { title: '지하철 타기',
-    gate: { text: '이제 개찰구로 가요. 교통카드를 눌러 개찰구에 대 보세요.' },
+    gate: { text: '이제 개찰구로 가세요. 교통카드를 눌러 개찰구에 대 보세요.' },
     beep: '삑!',
     gateOk: { text: '좋아요. 지나가세요.' },
-    dir: { text: '공원역 방향 표지판을 찾아 눌러 보세요.' },
-    dirOk: { text: '네, 맞아요! 공원역 방향이에요.' },
-    dirWrong: { text: '그건 학교역 방향이에요. 공원역 방향을 찾아 보세요.' },
-    come: { text: '지하철이 와요. 타 볼까요?', choices: ['타요!'], gloss: { fr: 'Le métro arrive. On monte ?', en: 'The train is coming. Shall we get on?' } },
+    bye: { text: '조심히 가세요!', choices: ['안녕히 계세요!'], gloss: { fr: 'Bon trajet ! (litt. allez prudemment) → Au revoir !', en: 'Have a safe trip! → Goodbye!' } },
+    dir: { note: '공원역 방향 표지판을 찾아 눌러 보세요.' },
+    dirOk: { note: '맞아요! 공원역 방향이에요.' },
+    dirWrong: { note: '그건 학교역 방향이에요. 공원역 방향을 찾아 보세요.' },
+    come: { note: '지하철이 와요. 타 볼까요?', choices: ['타요!'], gloss: { fr: 'Le métro arrive. On monte ?', en: 'The train is coming. Shall I get on?' } },
     ann1: { text: '이번 역은 공원역입니다. 2호선으로 갈아타실 분은 이번 역에서 내리세요.', gloss: { fr: 'Prochaine station : Gongwon. Correspondance pour la ligne 2, descendez ici.', en: 'This stop is Gongwon. Transfer here for Line 2.' } },
-    q1: { text: '공원역이에요. 어떻게 해요?', choices: ['내려서 갈아타요', '계속 타요'], answer: 0, gloss: { fr: 'C\'est Gongwon. Que faites-vous ? → Je descends et je change / Je reste', en: 'It\'s Gongwon. What do you do? → Get off and transfer / Stay on' },
-      wrong: { text: '공원역에서 2호선으로 갈아타야 해요.' } },
-    transfer: { text: '갈아타는 곳 표지판을 눌러 보세요.' },
-    transferOk: { text: '2호선 타는 곳으로 가요.' },
-    come2: { text: '2호선 지하철이 와요. 타요!', choices: ['타요!'], gloss: { fr: 'Le métro de la ligne 2 arrive. On monte !', en: 'The Line 2 train is coming. Let\'s get on!' } },
+    q1: { note: '공원역이에요. 어떻게 해요?', choices: ['내려서 갈아타요', '계속 타요'], answer: 0, gloss: { fr: 'C\'est Gongwon. Que faire ? → Je descends et je change / Je reste', en: 'It\'s Gongwon. What do I do? → Get off and transfer / Stay on' },
+      wrong: { note: '공원역에서 2호선으로 갈아타야 해요.' } },
+    transfer: { note: '갈아타는 곳 표지판을 눌러 보세요.' },
+    transferOk: { note: '2호선 타는 곳으로 가요.' },
+    come2: { note: '2호선 지하철이 와요. 타요!', choices: ['타요!'], gloss: { fr: 'Le métro de la ligne 2 arrive. On monte !', en: 'The Line 2 train is coming. Let\'s get on!' } },
     ann2: { text: '이번 역은 바다역입니다. 내리실 문은 오른쪽입니다.', gloss: { fr: 'Prochaine station : Bada. Descente à droite.', en: 'This stop is Bada. Doors open on the right.' } },
-    q2: { text: '바다역이에요. 어떻게 해요?', choices: ['내려요', '계속 타요'], answer: 0, gloss: { fr: 'C\'est Bada. Que faites-vous ? → Je descends / Je reste', en: 'It\'s Bada. What do you do? → Get off / Stay on' },
-      wrong: { text: '바다역에서 내려야 해요.' } } },
+    q2: { note: '바다역이에요. 어떻게 해요?', choices: ['내려요', '계속 타요'], answer: 0, gloss: { fr: 'C\'est Bada. Que faire ? → Je descends / Je reste', en: 'It\'s Bada. What do I do? → Get off / Stay on' },
+      wrong: { note: '바다역에서 내려야 해요.' } } },
 
   exit: { title: '출구 찾기',
-    ask: { text: '바다역이에요! 바다는 몇 번 출구였지요? 출구 표지판을 눌러 보세요.' },
-    wrong: [{ text: '그건 1번 출구예요. 바다는 3번 출구예요.' }, { text: '그건 2번 출구예요. 바다는 3번 출구예요.' }, null, { text: '그건 4번 출구예요. 바다는 3번 출구예요.' }],
-    ok: { text: '네, 3번 출구예요! 바다가 보여요.' },
-    met: { text: '친구를 만났어요! 오늘 지하철을 잘 탔어요.', choices: ['감사합니다!'], gloss: { fr: 'Vous avez retrouvé votre ami ! Vous avez bien pris le métro aujourd\'hui.', en: 'You met your friend! You did great on the subway today.' } } },
+    ask: { note: '바다역이에요! 바다는 몇 번 출구였지요? 출구 표지판을 눌러 보세요.' },
+    wrong: [{ note: '그건 1번 출구예요. 바다는 3번 출구예요.' }, { note: '그건 2번 출구예요. 바다는 3번 출구예요.' }, null, { note: '그건 4번 출구예요. 바다는 3번 출구예요.' }],
+    ok: { note: '3번 출구예요! 바다가 보여요.' },
+    met: { from: '친구', note: '여기예요! 잘 찾아왔네요!', choices: ['네, 반가워요!'], gloss: { fr: 'Je suis là ! Tu as bien trouvé ! → Oui, ravi(e) de te voir !', en: 'Over here! You found it! → Yes, nice to see you!' } } },
 
   phrases: [
     { ko: '○○역 어떻게 가요?', fr: 'Comment je vais à la station ○○ ?', en: 'How do I get to ○○ Station?' },

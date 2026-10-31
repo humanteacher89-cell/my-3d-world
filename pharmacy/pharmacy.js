@@ -1,8 +1,9 @@
-/* 「약국에 가요」 v0.1 — 한국어 학습맵 5판 (2026-10-21, 공용 엔진 core.js, 2판 store.js의 틀을 이어 씀)
-   흐름: 인사 → ① 몸 이름 듣기(그림판의 몸 톡 → 한글·로마자·뜻) → ② 따라 말하기 → ③ 아픈 곳 말하기(빨간 곳 → "어디가 아프세요?"에 답하고 열·기침 물음에 답한 뒤 선반에서 그 상자 찾기)
-         → ④ 묻고 답하기(어디가 아파요? · 하루에 몇 번 먹어요?) → ⑤ 약 받기(하루에 세 번·값·카드·빨리 나으세요·인사) → 오늘 배운 말 카드
+/* 「약국에 가요」 v0.2 — 한국어학습 XR콘텐츠 5판 (2026-10-21, 10-31 흐름 다듬음. 공용 엔진 core.js, 2판 store.js의 틀을 이어 씀)
+   흐름: 인사("어디가 아프세요?" → 한국어를 잘 못해요 → 그림판으로 알려 드릴게요) → ① 몸 이름 듣기(그림판의 몸 톡 → 한글·로마자·뜻) → ② 따라 말하기
+         → ③ 묻고 답하기(연습: 그림판 사람은 어디가 아파요?) → ④ 아픈 곳 말하기(내 감기: 빨간 곳 → "어디가 아프세요?"·"또 어디가 아프세요?"에 답하고 열·기침 물음에 답한 뒤 선반에서 그 상자 찾기)
+         → ⑤ 약 받기(봉투·하루에 세 번 + 몇 번 확인·값·카드·빨리 나으세요·인사) → 오늘 배운 말 카드
    의학적 조언 없음: 약 상자는 가상 상품, 약사 말은 일반 표현만(content.js 머리글).
-   주소 옵션: ?lang=fr|en|ko (뜻 언어, 기본 fr) · ?jump=listen|repeat|tell|quiz|pay|ending · ?autotest=1 · ?mrtest=1 · ?slow=1 · ?tts=1   */
+   주소 옵션: ?lang=fr|en|ko (뜻 언어, 기본 fr) · ?jump=listen|repeat|quiz|tell|pay|ending · ?autotest=1 · ?mrtest=1 · ?slow=1 · ?tts=1   */
 (function () {
   'use strict';
   const H = window.HW, A = window.PHARM, S = window.PHARM_SPACE;
@@ -179,7 +180,7 @@
   function missionInfo(t, extra) { task = t || ''; taskExtra = extra || ''; if (boardP) drawBoard(); }
   function buildBoard() { boardP = new Panel('board', 620, 'rgba(33,31,46,0.88)'); drawBoard(); boardP.mesh.visible = false; boardP.mesh.position.copy(BOARD); H.world.add(boardP.mesh); boardP.mesh.lookAt(V3(POS.start[0], 1.6, POS.start[1])); }
   function showBoard() { if (H.useHud()) H.hud(boardP, 'topLeft', (H.handheld ? innerWidth / innerHeight : H.camera.aspect) < 1 ? 0.56 : 0.36); boardP.mesh.visible = true; drawWrist(); }
-  const MISSIONS = [A.listen.title, A.repeat.title, A.tell.title, A.quiz.title, A.pay.title], done = MISSIONS.map(() => false);
+  const MISSIONS = [A.listen.title, A.repeat.title, A.quiz.title, A.tell.title, A.pay.title], done = MISSIONS.map(() => false);
   let wrist, curMission = -1;
   function drawWrist() {
     const p = wrist; p.clear();
@@ -315,19 +316,19 @@
     missionInfo(''); finish(1); shot('room'); await riniSay(A.repeat.done);
   }
   async function tellStage() {
-    stage = 'tell'; curMission = 2; log('state tell');
+    stage = 'tell'; curMission = 3; log('state tell');
     const T = A.tell;
     shot('board'); missionInfo(T.ask);
     await riniSay(T.ask, null, '네');
     const symOf = id => fill(T.sym, W[id]);
-    for (const c of A.cases) {
-      const w = W[c.part];
-      setPain(c.part, c.extra); shot('board'); missionInfo(T.q);
+    for (const [ci, c] of A.cases.entries()) {
+      const w = W[c.part], q = ci ? T.qMore : T.q;   // 한 손님의 감기라 둘째부터 "또 어디가 아프세요?"
+      setPain(c.part, c.extra); shot('board'); missionInfo(q);
       // 어디가 아프세요? → 아픈 곳 고르기(틀리면 다시)
-      const opts = shuffle(A.cases.map(o => symOf(o.part))), correct = opts.indexOf(symOf(c.part));
+      const opts = shuffle(A.tellChoices.map(symOf)), correct = opts.indexOf(symOf(c.part));
       for (;;) {
-        riniSpeak(T.q);
-        const i = await choiceCard(A.guide.name + ': ' + T.q, opts, correct, byId[c.part]);
+        riniSpeak(q);
+        const i = await choiceCard(A.guide.name + ': ' + q, opts, correct, byId[c.part]);
         if (i === correct) { H.sfx('piece'); const ok = fill(T.ok, w); riniToast(ok, 2.2); await riniSpeak(ok); break; }
         const msg = fill(T.wrong, w); toast(msg, 2.5); await riniSpeak(msg);
       }
@@ -344,10 +345,10 @@
       stage = 'tell'; hint(target, false);
       await wait(0.9); riniToast(T.boxOk, 2); await riniSpeak(T.boxOk); await wait(0.3);
     }
-    target = null; missionInfo(''); finish(2); shot('room'); await riniSay(T.done);
+    target = null; missionInfo(''); finish(3); shot('room'); await riniSay(T.done);
   }
   async function quizStage() {
-    stage = 'quiz'; curMission = 3; log('state quiz');
+    stage = 'quiz'; curMission = 2; log('state quiz');
     const Q = A.quiz;
     await riniSay(Q.ask, null, '네'); missionInfo(Q.q);
     const symOf = id => fill(A.tell.sym, W[id]);
@@ -362,14 +363,7 @@
       else { const msg = fill(Q.wrong, W[id]); toast(msg, 2.5); await riniSpeak(msg); }
       setPain(null, null); await wait(0.4);
     }
-    // 하루에 몇 번?
-    { const q = A.timesQuiz;
-      shot('room'); riniToast(Q.timesSay, 3); await riniSpeak(Q.timesSay);
-      riniSpeak(Q.timesQ);
-      const i = await choiceCard(Q.timesQ, q.choices, q.answer, null);
-      if (i === q.answer) { toast(Q.ok, 1.4); H.sfx('complete'); await riniSpeak(Q.ok); }
-      else { toast(Q.timesWrong, 2.5); await riniSpeak(Q.timesWrong); } }
-    missionInfo(''); finish(3); await riniSay(Q.done);
+    missionInfo(''); finish(2); await riniSay(Q.done);
   }
   async function payStage() {
     stage = 'pay'; curMission = 4; log('state pay');
@@ -382,6 +376,13 @@
     H.sfx('piece'); await flyTo(bag, V3(C.x - 0.2, C.h, C.z + 0.15), 0.5, 0.1);
     missionInfo(Y.title);
     await riniSay(Y.take.text, Y.take.choices, null, Y.take.gloss);
+    // 방금 들은 "하루에 세 번" 확인
+    { const q = Y.times;
+      riniSpeak(q.q);
+      const i = await choiceCard(q.q, q.choices, q.answer, null);
+      if (i === q.answer) { toast(A.quiz.ok, 1.4); H.sfx('complete'); await riniSpeak(A.quiz.ok); }
+      else { toast(q.wrong, 2.5); await riniSpeak(q.wrong); }
+      ui.toast.show(false); }   // 알림이 다음 '얼마예요?' 버튼 위에 남지 않게
     await myLine(Y.how.text, Y.how.gloss);
     await riniSay(Y.total.text, Y.total.choices, null, Y.total.gloss);
     await riniSay(Y.card.text, Y.card.choices, null, Y.card.gloss);
@@ -423,14 +424,14 @@
       location.reload(); return;
     }
   }
-  const JUMP = ['listen', 'repeat', 'tell', 'quiz', 'pay', 'ending'].indexOf(H.Q.get('jump'));
+  const JUMP = ['listen', 'repeat', 'quiz', 'tell', 'pay', 'ending'].indexOf(H.Q.get('jump'));
   async function main() {
     await intro();
     if (JUMP < 0) await hello();
     showBoard();
     if (JUMP > 0) { for (let i = 0; i < Math.min(JUMP, 5); i++) done[i] = true; drawWrist(); }
-    if (JUMP > 2) for (const c of A.cases) await toCounter(boxes[c.box]);
-    const stages = [listenStage, repeatStage, tellStage, quizStage, payStage, ending];
+    if (JUMP > 3) for (const c of A.cases) await toCounter(boxes[c.box]);
+    const stages = [listenStage, repeatStage, quizStage, tellStage, payStage, ending];
     for (let i = Math.max(0, JUMP); i < stages.length; i++) await stages[i]();
   }
 

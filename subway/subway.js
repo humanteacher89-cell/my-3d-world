@@ -194,14 +194,14 @@
   function tapDir(right) {
     if (stage !== 'dir') { if (!right) { toast('학교역 방면', 1.5); } return; }
     if (right) { dirDone = true; stage = 'busy'; return; }
-    const m = A.ride.dirWrong.text; riniToast(m, 3.5); riniSpeak(m); hint(byId.banghyang, true);
+    toast(A.ride.dirWrong.note, 3.5); hint(byId.banghyang, true);
   }
   let exitPicked = -1;
   function tapExit(i) {
     if (stage !== 'exit') return;
     const e = A.exits[i];
     if (e.n === A.exitAnswer) { exitPicked = i; stage = 'busy'; return; }
-    const m = A.exit.wrong[i].text; riniToast(m, 3.5); riniSpeak(m);
+    toast(A.exit.wrong[i].note, 3.5);
     exitSigns[A.exitAnswer - 1].userData.halo.material.opacity = 0.7;
   }
   async function doorsOpen(open) { H.sfx('door'); await H.tween(1.0, k => { const v = open ? k : 1 - k; doors.open(v); train.open(v); }); }
@@ -236,6 +236,9 @@
   const annSpk = () => ({ name: A.announcer.name, role: A.announcer.role, dot: A.announcer.dot, char: null, pos: null });
   async function riniSay(text, choices, single, g, auto) { ui.toast.show(false); H.speak(text); return say(spk(), text, choices, single || '다음', { at: TALK, sub: gloss(g) || undefined, auto }); }
   async function annSay(o) { ui.toast.show(false); chime(); await wait(0.9); H.speak(o.text); return say(annSpk(), o.text, null, '다음', { ahead: true, sub: gloss(o.gloss) || undefined }); }
+  // 하나와 헤어진 뒤의 '나'의 생각·휴대폰 알림·친구 말(10-31): 글만(note), 하나 목소리로 읽지 않는다
+  const noteSpk = name => ({ name, role: '', dot: '#8a8698', char: null, pos: null });
+  async function noteSay(o, name) { ui.toast.show(false); return say(noteSpk(name || A.me), o.note, o.choices || null, '다음', { ahead: true, sub: gloss(o.gloss) || undefined }); }
 
   // ───────────── 화면 모드 카메라 ─────────────
   const portrait = () => H.camera.aspect < 1;
@@ -293,17 +296,19 @@
     await waitPick(p, 0, 1.0); p.show(false); H.sfx('piece');
   }
   // 보기 고르기(맞을 때까지): 틀리면 wrong을 말하고 다시
+  // 물음이 text면 하나가 읽고, note('나'의 생각)면 글만
   async function choose(q, speaker, it) {
+    const qt = q.text || q.note;
     for (;;) {
       const p = ui.card; p.clear(); p.pad = 36;
-      p.text(q.text, 40, INK, { bold: true, align: 'center', gap: gloss(q.gloss) ? 6 : 16 });
+      p.text(qt, 40, INK, { bold: true, align: 'center', gap: gloss(q.gloss) ? 6 : 16 });
       if (gloss(q.gloss)) p.text(gloss(q.gloss), 24, DIM, { align: 'center', gap: 14 });
       buttonRow(p, q.choices, '#3b3550', 96);
       p.finish(); placeCard(p, it); p.show(true);
-      if (speaker !== 'none') riniSpeak(q.text);
+      if (speaker !== 'none' && q.text) riniSpeak(q.text);
       const i = await waitPick(p, q.answer, H.Q.get('slow') ? 4 : 1.0); p.show(false);
-      if (i === q.answer) { H.sfx('complete'); if (q.ok) { toast(q.ok.text, 2); await riniSpeak(q.ok.text); } return; }
-      toast(q.wrong.text, 3); await riniSpeak(q.wrong.text); await wait(0.3);
+      if (i === q.answer) { H.sfx('complete'); if (q.ok) { toast(q.ok.text || q.ok.note, 2); if (q.ok.text) await riniSpeak(q.ok.text); else await wait(1.2); } return; }
+      toast(q.wrong.text || q.wrong.note, 3); if (q.wrong.text) await riniSpeak(q.wrong.text); else await wait(1.8); await wait(0.3);
     }
   }
 
@@ -325,7 +330,20 @@
     await wait(0.3);
     if (!H.hasKoVoice() && !H.AUTOTEST) toast('이 기기에는 한국어 음성이 없어요. 글로만 보여 줄게요.', 4);
   }
-  async function hello() { log('state hello'); shot('booth'); if (rini) rini.wave(); for (const l of A.hello) await riniSay(l.text, l.choices, null, l.gloss); }
+  async function hello() {
+    log('state hello'); shot('booth');
+    // 친구 메시지(역에 온 까닭, 10-31 맨 앞으로): 휴대폰 알림 → 휴대폰 화면 같은 카드
+    const C = A.charge;
+    H.sfx('card'); await noteSay(C.msgIntro);
+    { const p = ui.card; p.clear(); p.pad = 40;
+      p.text(C.msg.from, 26, '#2a9d8f', { bold: true, align: 'center', gap: 10 });
+      p.text(C.msg.body, 44, INK, { bold: true, align: 'center', gap: gloss(C.msg.gloss) ? 8 : 20 });
+      if (gloss(C.msg.gloss)) p.text(gloss(C.msg.gloss), 24, DIM, { align: 'center', gap: 18 });
+      p.button('확인', null, '#2a9d8f', null, 88);
+      p.finish(); placeCard(p, null); p.show(true); H.sfx('card');
+      await waitPick(p, 0, 1.5); p.show(false); }
+    if (rini) rini.wave(); for (const l of A.hello) await riniSay(l.text, l.choices, null, l.gloss);
+  }
   async function listenStage() {
     stage = 'listen'; curMission = 0; log('state listen');
     shot('listen');
@@ -362,16 +380,6 @@
   async function chargeStage() {
     stage = 'charge'; curMission = 2; log('state charge');
     const C = A.charge;
-    await riniSay(C.msgIntro.text, C.msgIntro.choices, null, C.msgIntro.gloss);
-    { // 친구 메시지(휴대폰 화면 같은 카드)
-      const p = ui.card; p.clear(); p.pad = 40;
-      p.text(C.msg.from, 26, '#2a9d8f', { bold: true, align: 'center', gap: 10 });
-      p.text(C.msg.body, 44, INK, { bold: true, align: 'center', gap: gloss(C.msg.gloss) ? 8 : 20 });
-      if (gloss(C.msg.gloss)) p.text(gloss(C.msg.gloss), 24, DIM, { align: 'center', gap: 18 });
-      p.button('확인', null, '#2a9d8f', null, 88);
-      p.finish(); placeCard(p, null); p.show(true); H.sfx('card');
-      await waitPick(p, 0, 1.5); p.show(false);
-    }
     missionInfo(C.msg.body);
     await riniSay(C.first.text, C.first.choices, null, C.first.gloss);
     await myLine(C.ask.me, C.ask.gloss);
@@ -419,8 +427,6 @@
     missionInfo(W.exitAsk.me);
     await myLine(W.exitAsk.me, W.exitAsk.gloss);
     await riniSay(W.exitAnswer.text, W.exitAnswer.choices, null, W.exitAnswer.gloss);
-    if (rini) rini.wave();
-    await riniSay(W.bye.text, W.bye.choices, null, W.bye.gloss);
     missionInfo(''); finish(3);
   }
   async function rideTo(line, annO, q, nextStn, led) {
@@ -452,26 +458,29 @@
     if (H.AUTOTEST) wait(1.2).then(() => tap(byId.kadeu));
     await until(() => { if (!gatePassed && H.now > at) { hint(byId.kadeu, true); hint(byId.gaechalgu, true); } return gatePassed && cardGone; });
     riniToast(R.gateOk.text, 2); await riniSpeak(R.gateOk.text);
+    // 하나와 헤어지기(10-31: 매표소가 아니라 개찰구를 지난 뒤) — 여기부터는 '나'의 생각(글만)과 안내 방송
+    if (rini) rini.wave();
+    await riniSay(R.bye.text, R.bye.choices, null, R.bye.gloss);
     // 방향 표지
-    shot('signs'); stage = 'dir'; missionInfo(R.dir.text); riniToast(R.dir.text, 4); riniSpeak(R.dir.text);
+    shot('signs'); stage = 'dir'; missionInfo(R.dir.note); toast(R.dir.note, 4);
     at = H.now + 8;
     if (H.AUTOTEST) wait(1.2).then(() => tap(byId.banghyang));
     await until(() => { if (!dirDone && H.now > at) hint(byId.banghyang, true); return dirDone; });
-    hint(byId.banghyang, false); H.sfx('complete'); riniToast(R.dirOk.text, 2.5); await riniSpeak(R.dirOk.text);
+    hint(byId.banghyang, false); H.sfx('complete'); toast(R.dirOk.note, 2.5); await wait(1.4);
     // 1호선 타기 → 공원역
     shot('platform');
     await trainArrive(1);
-    await riniSay(R.come.text, R.come.choices, null, R.come.gloss);
+    await noteSay(R.come);
     await rideTo(1, R.ann1, R.q1, 'park', '공원역');
     // 갈아타기
-    stage = 'transfer'; missionInfo(R.transfer.text); riniToast(R.transfer.text, 4); riniSpeak(R.transfer.text);
+    stage = 'transfer'; missionInfo(R.transfer.note); toast(R.transfer.note, 4);
     at = H.now + 7;
     if (H.AUTOTEST) wait(1.2).then(() => tap(byId.garatayo));
     await until(() => { if (!transferDone && H.now > at) hint(byId.garatayo, true); return transferDone; });
-    hint(byId.garatayo, false); H.sfx('complete'); riniToast(R.transferOk.text, 2.5); await riniSpeak(R.transferOk.text);
+    hint(byId.garatayo, false); H.sfx('complete'); toast(R.transferOk.note, 2.5); await wait(1.4);
     shot('platform');
     await trainArrive(2);
-    await riniSay(R.come2.text, R.come2.choices, null, R.come2.gloss);
+    await noteSay(R.come2);
     await rideTo(2, R.ann2, R.q2, 'sea', '바다역');
     missionInfo(''); finish(4);
   }
@@ -479,15 +488,15 @@
     stage = 'busy'; curMission = 5; log('state exit');
     const X = A.exit;
     shot('exits');
-    missionInfo(X.ask.text, A.charge.msg.body);
-    stage = 'exit'; riniToast(X.ask.text, 5); riniSpeak(X.ask.text);
+    missionInfo(X.ask.note, A.charge.msg.body);
+    stage = 'exit'; toast(X.ask.note, 5);
     const at = H.now + 9;
     if (H.AUTOTEST) wait(1.4).then(() => tapExit(0)).then(() => wait(2.5)).then(() => tapExit(2));
     await until(() => { if (exitPicked < 0 && H.now > at) exitSigns[A.exitAnswer - 1].userData.halo.material.opacity = 0.7; return exitPicked >= 0; });
     exitSigns.forEach(s => { s.userData.halo.material.opacity = 0; });
     H.sfx('complete'); H.burst(exitSigns[exitPicked].getWorldPosition(V3()), '#ffe27a', 30, 0.7, 0.8, 0.03);
-    toast(X.ok.text, 2.5); await riniSpeak(X.ok.text);
-    await riniSay(X.met.text, X.met.choices, null, X.met.gloss);
+    toast(X.ok.note, 2.5); await wait(1.4);
+    await noteSay(X.met, X.met.from);
     missionInfo(''); finish(5);
   }
   async function ending() {

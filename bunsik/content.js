@@ -1,5 +1,7 @@
-/* 「분식집에 가요」 v0.1 — 한국어 학습맵 3판: 동네 분식집에서 메뉴 이름·주문·계산·먹는 말 배우기 (2026-10-21)
+/* 「분식집에 가요」 v0.2 — 한국어학습 XR콘텐츠 3판: 동네 분식집에서 메뉴 이름·주문·계산·먹는 말 배우기 (2026-10-21, 10-31 흐름 다듬음)
    10-21 추천안대로 확정(휴먼쌤 "그냥 바로 올려 승인받지말고"): 점원 = 하나(분식집 빨간 앞치마), '하나·두 개' + 합계 '만 원', 현금, 낱말 10개, 뜻풀이 fr 기본.
+   10-31 검수: 음식을 받아 놓고 묻고 답하기를 한 뒤에 계산·먹기로 가던 것 → 묻고 답하기를 주문 앞으로(주문 → 계산 → 먹기가 이어지게),
+   점원이 "쪽지를 보세요. 이걸 주문해요."라고 하던 것 → "뭐 드릴까요?" + 안내 말, 손님에게는 "알려 드릴게요".
    하나 대사·문화 한 줄·뜻풀이는 모두 [확인 전] 초안. 값은 배우기 쉬운 숫자로 맞춘 예시(실제 값과 다를 수 있음). 가게 이름은 가상, 실제 상표 없음. */
 window.BUNSIK = {
   kicker: '휴먼쌤 월드 · 한국어 배우기',
@@ -39,10 +41,10 @@ window.BUNSIK = {
     { text: '여기는 하나 분식이에요. 떡볶이, 김밥, 라면이 있어요.', choices: ['와, 맛있겠다!'], gloss: { fr: 'Ici, c\'est le snack de Hana. Il y a des tteokbokki, du gimbap et des ramyeon. → Oh, ça a l\'air bon !', en: 'This is Hana\'s snack bar. We have tteokbokki, gimbap and ramyeon. → Wow, looks delicious!' } },
     { text: '먼저 메뉴 이름을 들어 봐요.', choices: ['좋아요'], gloss: { fr: 'D\'abord, écoutons les noms du menu.', en: 'First, let\'s listen to the menu names.' } }
   ],
-  listen: { title: '메뉴 듣기', ask: '음식을 톡 눌러 보세요. 이름과 값을 말해 줄게요. 다섯 개 들으면 다음으로 가요.', counter: '들은 말', done: '잘 들었어요! 이제 따라 말해 봐요.',
+  listen: { title: '메뉴 듣기', ask: '음식을 톡 눌러 보세요. 이름과 값을 알려 드릴게요. 다섯 개 들으면 다음으로 가요.', counter: '들은 말', done: '잘 들었어요! 이제 따라 말해 봐요.',
             say: '이건 {이에요}.', price: '{price}이에요.' },
   repeat: { title: '따라 말하기', ask: '제가 말하면 따라 말해 보세요.', card: '따라 말해 보세요', again: '다시 듣기', said: '말했어요', good: '좋아요!', done: '목소리가 좋아요!' },
-  order: { title: '주문하기', ask: '쪽지를 보세요. 이걸 주문해요.', note: '쪽지',
+  order: { title: '주문하기', ask: '뭐 드릴까요? 쪽지를 보고 주문해 보세요.', note: '쪽지',
            pick: '{을를} 눌러 보세요.', line: '{ko} {n} 주세요.', ok: '네, {ko} {n}요.', wrong: '그건 {그이에요}. {을를} 눌러 보세요.', here: '여기 있어요.',
            spicy: { text: '떡볶이 맵게 해 드릴까요?', choices: ['네, 맵게 해 주세요.', '아니요, 안 맵게 해 주세요.'], gloss: { fr: 'Je vous fais les tteokbokki épicés ? → Oui, épicés s\'il vous plaît. / Non, pas épicés s\'il vous plaît.', en: 'Shall I make the tteokbokki spicy? → Yes, spicy please. / No, not spicy please.' },
              reply: ['네, 맵게 해 드릴게요.', '네, 안 맵게 해 드릴게요.'] },

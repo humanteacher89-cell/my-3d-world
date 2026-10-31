@@ -1,5 +1,7 @@
-/* 「편의점에 가요」 v0.1 — 한국어 학습맵 2판: 동네 편의점에서 물건 이름·찾기·계산하는 말 배우기 (2026-10-20)
+/* 「편의점에 가요」 v0.2 — 한국어학습 XR콘텐츠 2판: 동네 편의점에서 물건 이름·찾기·계산하는 말 배우기 (2026-10-20, 10-31 흐름 다듬음)
    휴먼쌤 10-20 기획 승인("전부다 너가 추천하는대로 할게"): 점원 = 하나(편의점 옷), 낱말 10개, 값은 천 원 단위, 뜻풀이 fr 기본.
+   10-31 검수(휴먼쌤 "흐름을 하나하나 짚어가면서 개선해줘"): 점원이 "같이 장을 봐요"·"이 물건들을 사야 해요"라고 하던 것 → 점원 말("천천히 둘러보세요")과 안내 말(쪽지)을 나눔,
+   묻고 답하기를 바구니 담기 앞으로(담은 뒤 계산대 가는 길에 퀴즈가 끼지 않게), "바구니를 드세요"(먹다·들다 헷갈림) → "가져오세요", 손님에게는 "알려 드릴게요".
    하나 대사·문화 한 줄·뜻풀이는 모두 [확인 전] 초안. 값은 배우기 쉬운 숫자로 맞춘 예시(실제 값과 다를 수 있음). 가게 이름은 가상, 실제 상표 없음. */
 window.STORE = {
   kicker: '휴먼쌤 월드 · 한국어 배우기',
@@ -38,14 +40,14 @@ window.STORE = {
   hello: [
     { text: '어서 오세요!', choices: ['안녕하세요!'], gloss: { fr: 'Bienvenue !', en: 'Welcome!' } },
     { text: '안녕하세요! 여기는 하나 편의점이에요.', choices: ['네!'], gloss: { fr: 'Bonjour ! Ici, c\'est la supérette de Hana.', en: 'Hello! This is Hana\'s convenience store.' } },
-    { text: '오늘은 같이 장을 봐요. 먼저 물건 이름을 들어 봐요.', choices: ['좋아요'], gloss: { fr: 'Aujourd\'hui, on fait les courses ensemble. D\'abord, écoutons les noms des produits.', en: 'Today we\'ll shop together. First, let\'s listen to the names of things.' } }
+    { text: '천천히 둘러보세요.', choices: ['네, 감사합니다.'], gloss: { fr: 'Prenez votre temps pour regarder. → Oui, merci.', en: 'Take your time looking around. → Yes, thank you.' } }
   ],
-  listen: { title: '이름 듣기', ask: '물건을 톡 눌러 보세요. 이름과 값을 말해 줄게요. 다섯 개 들으면 다음으로 가요.', counter: '들은 말', done: '잘 들었어요! 이제 따라 말해 봐요.',
+  listen: { title: '이름 듣기', ask: '물건을 톡 눌러 보세요. 이름과 값을 알려 드릴게요. 다섯 개 들으면 다음으로 가요.', counter: '들은 말', done: '잘 들었어요! 이제 따라 말해 봐요.',
             say: '이건 {이에요}.', price: '{price}이에요.' },
   repeat: { title: '따라 말하기', ask: '제가 말하면 따라 말해 보세요.', card: '따라 말해 보세요', again: '다시 듣기', said: '말했어요', good: '좋아요!', done: '목소리가 좋아요!' },
-  find: { title: '찾아서 담기', ask: '쪽지를 보세요. 이 물건들을 사야 해요.', note: '쪽지', basket: '먼저 바구니를 드세요.', basketHint: '문 옆에 있는 바구니를 눌러 보세요.', basketOk: '네, 바구니예요.',
-          askBtn: '{은는} 어디 있어요?', answer: '{은는} {place}에 있어요.', pick: '{을를} 바구니에 담아 주세요.', ok: '네, 맞아요! {이에요}.', wrong: '그건 {그이에요}. {을를} 찾아 보세요.', hint: '반짝이는 것을 눌러 보세요.',
-          done: '다 담았어요! 이제 계산대로 가요.' },
+  find: { title: '찾아서 담기', ask: '쪽지를 보세요. 오늘 살 물건이에요.', note: '쪽지', basket: '먼저 바구니를 가져오세요.', basketHint: '문 옆에 있는 바구니를 눌러 보세요.', basketOk: '네, 바구니예요.',
+          askBtn: '{은는} 어디 있어요?', answer: '{은는} {place}에 있어요.', pick: '{을를} 바구니에 담아 보세요.', ok: '네, 맞아요! {이에요}.', wrong: '그건 {그이에요}. {을를} 찾아 보세요.', hint: '반짝이는 것을 눌러 보세요.',
+          done: '다 담았어요!' },
   quiz: { title: '묻고 답하기', ask: '이제 제가 물어볼게요.', q: '이게 뭐예요?', pq: '{은는} 얼마예요?', ok: '맞아요!', wrong: '아니에요. 이건 {이에요}.', pwrong: '아니에요. {price}이에요.', done: '잘했어요!' },
   pay: { title: '계산하기',
     move: { text: '계산대로 오세요.', choices: ['네!'], gloss: { fr: 'Venez à la caisse.', en: 'Come to the counter.' } },

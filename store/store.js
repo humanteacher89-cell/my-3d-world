@@ -177,7 +177,7 @@
   function missionInfo(t, extra) { task = t || ''; taskExtra = extra || ''; if (board) drawBoard(); }
   function buildBoard() { board = new Panel('board', 620, 'rgba(33,31,46,0.88)'); drawBoard(); board.mesh.visible = false; board.mesh.position.copy(BOARD); H.world.add(board.mesh); board.mesh.lookAt(V3(POS.start[0], 1.6, POS.start[1])); }
   function showBoard() { if (H.useHud()) H.hud(board, 'topLeft', (H.handheld ? innerWidth / innerHeight : H.camera.aspect) < 1 ? 0.56 : 0.36); board.mesh.visible = true; drawWrist(); }
-  const MISSIONS = [A.listen.title, A.repeat.title, A.find.title, A.quiz.title, A.pay.title], done = MISSIONS.map(() => false);
+  const MISSIONS = [A.listen.title, A.repeat.title, A.quiz.title, A.find.title, A.pay.title], done = MISSIONS.map(() => false);   // 10-31: 묻고 답하기를 담기 앞으로
   let wrist, curMission = -1;
   function drawWrist() {
     const p = wrist; p.clear();
@@ -297,7 +297,7 @@
   }
   const listText = () => A.find.note + ': ' + A.list.map(id => byId[id].w.ko).join(' · ');
   async function findStage() {
-    stage = 'intro'; curMission = 2; log('state find');
+    stage = 'intro'; curMission = 3; log('state find');
     missionInfo(A.find.ask, listText());
     await riniSay(A.find.ask, null, '네');
     // 바구니 들기
@@ -322,10 +322,10 @@
       stage = 'intro'; hint(target, false);
       await wait(0.8); const ok = fill(A.find.ok, w); riniToast(ok, 2.2); await riniSpeak(ok); await wait(0.3);
     }
-    target = null; missionInfo(''); finish(2); shot('room'); await riniSay(A.find.done);
+    target = null; missionInfo(''); finish(3); shot('room'); await riniSay(A.find.done);
   }
   async function quizStage() {
-    stage = 'quiz'; curMission = 3; log('state quiz');
+    stage = 'quiz'; curMission = 2; log('state quiz');
     await riniSay(A.quiz.ask, null, '네'); missionInfo(A.quiz.q);
     const goods = A.words.filter(w => w.price);
     for (const id of A.quizWords) {
@@ -357,7 +357,7 @@
       if (i === q.answer) { toast(A.quiz.ok, 1.4); H.sfx('complete'); await riniSpeak(A.quiz.ok); }
       else { const m = fill(A.quiz.pwrong, it.w); toast(m, 2.5); await riniSpeak(m); }
       it.halo.material.opacity = 0; others.forEach(o => { o.tag.visible = true; }); await wait(0.4); }
-    missionInfo(''); finish(3); shot('room'); await riniSay(A.quiz.done);
+    missionInfo(''); finish(2); shot('room'); await riniSay(A.quiz.done);
   }
   async function payStage() {
     stage = 'pay'; curMission = 4; log('state pay');
@@ -412,14 +412,14 @@
       location.reload(); return;
     }
   }
-  const JUMP = ['listen', 'repeat', 'find', 'quiz', 'pay', 'ending'].indexOf(H.Q.get('jump'));
+  const JUMP = ['listen', 'repeat', 'quiz', 'find', 'pay', 'ending'].indexOf(H.Q.get('jump'));
   async function main() {
     await intro();
     if (JUMP < 0) await hello();
     showBoard();
     if (JUMP > 0) { for (let i = 0; i < Math.min(JUMP, 5); i++) done[i] = true; drawWrist(); }
-    if (JUMP > 2) { await takeBasket(); for (const id of A.list) await intoBasket(byId[id]); }
-    const stages = [listenStage, repeatStage, findStage, quizStage, payStage, ending];
+    if (JUMP > 3) { await takeBasket(); for (const id of A.list) await intoBasket(byId[id]); }
+    const stages = [listenStage, repeatStage, quizStage, findStage, payStage, ending];
     for (let i = Math.max(0, JUMP); i < stages.length; i++) await stages[i]();
   }
 

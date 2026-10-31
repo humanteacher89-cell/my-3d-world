@@ -34,7 +34,7 @@ window.HANOK = {
   repeatWords: ['bap', 'kimchi', 'jeotgarak'],                              // 따라 말하기
 
   hello: [
-    { text: '어서 오세요! 여기는 하나네 집이에요.', choices: ['안녕하세요!'], gloss: { fr: 'Bienvenue ! Ici, c\'est chez Hana.', en: 'Welcome! This is Hana\'s house.' } },
+    { text: '어서 오세요! 여기가 우리 집이에요.', choices: ['안녕하세요!'], gloss: { fr: 'Bienvenue ! Voici ma maison.', en: 'Welcome! This is my house.' } },   // 10-31: 하나가 제 집을 '하나네 집'이라 하던 것 → '우리 집'
     { text: '안녕하세요! 들어오세요.', choices: ['네!'], gloss: { fr: 'Bonjour ! Entrez.', en: 'Hello! Come in.' } },
     { text: '오늘은 같이 밥상을 차려요. 먼저 부엌 물건 이름을 들어 봐요.', choices: ['좋아요'], gloss: { fr: 'Aujourd\'hui, on met la table ensemble. D\'abord, écoutons les noms des objets de la cuisine.', en: 'Today we set the table together. First, let\'s listen to the names of kitchen things.' } }
   ],
@@ -49,7 +49,7 @@ window.HANOK = {
     lines: [
       { text: '자, 같이 먹어요!', choices: ['잘 먹겠습니다!'], gloss: { fr: 'Allez, mangeons ensemble ! → « Bon appétit » (je vais bien manger)', en: 'Let\'s eat together! → "I will eat well" (said before a meal)' } },
       { text: '맛있어요?', choices: ['네, 맛있어요!', '조금 매워요.'], gloss: { fr: 'C\'est bon ? → Oui, c\'est bon ! / C\'est un peu épicé.', en: 'Is it good? → Yes, it\'s delicious! / It\'s a little spicy.' },
-        reply: ['다행이에요!', '김치가 조금 맵죠? 물 드세요.'] },
+        reply: ['다행이에요!', '김치가 조금 맵죠? 물 드릴게요.'] },   // 10-31: 밥상에 물이 없어 "물 드세요" → "물 드릴게요"
       { text: '더 드세요.', choices: ['네, 더 주세요.', '아니요, 괜찮아요.'], gloss: { fr: 'Servez-vous encore. → Oui, encore un peu. / Non merci, ça va.', en: 'Have some more. → Yes, more please. / No, I\'m fine.' },
         reply: ['많이 드세요!', '네, 알겠어요.'] },
       { text: '다 먹었어요?', choices: ['잘 먹었습니다!'], gloss: { fr: 'Vous avez fini ? → « Merci pour le repas » (j\'ai bien mangé)', en: 'All done? → "I ate well" (said after a meal)' } },
