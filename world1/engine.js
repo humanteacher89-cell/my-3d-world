@@ -902,7 +902,7 @@ function start(CFG){
       const archT=label(256,32,(c,w,h)=>{const gg=c.createLinearGradient(0,0,w,0);gg.addColorStop(0,'#9ff0dc');gg.addColorStop(.5,'#b9a2ff');gg.addColorStop(1,'#ffb3d9');c.fillStyle=gg;c.fillRect(0,0,w,h);});
       const arch=new THREE.Mesh(new THREE.TorusGeometry(2.1,0.16,10,48,Math.PI),new THREE.MeshStandardMaterial({map:archT,emissiveMap:archT,emissive:'#ffffff',emissiveIntensity:1.1,roughness:.3}));arch.position.set(0,y0+0.05,az);o.add(arch);
       const signT=label(1024,300,(c,w,h)=>{c.fillStyle='#2a2466';c.fillRect(0,0,w,h);c.strokeStyle='#9ff0dc';c.lineWidth=10;c.strokeRect(12,12,w-24,h-24);
-        c.textAlign='center';c.textBaseline='middle';c.fillStyle='#ffffff';c.font=`900 ${Math.round(h*0.34)}px ${FONT}`;c.fillText(T_(F.signTitle||F.name||'AI가 지은 섬'),w/2,h*0.42);
+        c.textAlign='center';c.textBaseline='middle';c.fillStyle='#ffffff';c.font=`900 ${Math.round(h*0.34)}px ${FONT}`;c.fillText(T_(F.signTitle||F.name||'AI타운'),w/2,h*0.42);
         c.fillStyle='#9ff0dc';c.font=`500 ${Math.round(h*0.15)}px ${FONT}`;c.fillText(T_(F.signSub||''),w/2,h*0.77);});
       const sg=new THREE.Mesh(new THREE.PlaneGeometry(4.4,1.28),new THREE.MeshStandardMaterial({map:signT,emissiveMap:signT,emissive:'#ffffff',emissiveIntensity:.9,roughness:.6}));sg.position.set(0,y0+3.0,az);o.add(sg);
       // 생각의 핵: 떠서 도는 다면체 + 고리 둘(뒤쪽 가운데)
@@ -917,7 +917,7 @@ function start(CFG){
       const plateM=c=>new THREE.MeshStandardMaterial({color:c,emissive:c,emissiveIntensity:.25,roughness:.4});
       [[-6.6,-3.4,'#dcd3ff'],[-3.6,-7.2,'#d2f5e3'],[3.6,-7.2,'#ffe6d2'],[6.6,-3.4,'#f7d9f0']].forEach(([x,z,c],k)=>{const p=new THREE.Mesh(new THREE.CylinderGeometry(1.7,1.4,0.5,6),plateM(c));p.position.set(x*1.12,y0+0.9+k%2*0.4,z*1.12);o.add(p);
         const b=new THREE.Mesh(new THREE.BoxGeometry(0.5,0.06,Math.hypot(x,z)*0.5),new THREE.MeshBasicMaterial({color:'#bdebff',transparent:true,opacity:.7,toneMapped:false}));b.position.set(x*0.8,y0+0.5,z*0.8);b.rotation.y=Math.atan2(x,z);o.add(b);});
-      // 깨어나는 마을: 희미한 주민 셋 + 깜빡이는 서버 상자(오른쪽 앞)
+      // 첫 정거장(옛 '깨어나는 마을', 10-31): 희미한 주민 셋 + 깜빡이는 서버 상자(오른쪽 앞)
       const resM=new THREE.MeshStandardMaterial({color:'#e6e0ff',transparent:true,opacity:.55,emissive:'#7c6ce0',emissiveIntensity:.35,roughness:.4});
       [[-4.6,1.6],[-5.8,3.6],[-3.4,3.8]].forEach(([x,z])=>{const s=new THREE.Mesh(new THREE.SphereGeometry(0.5,16,12),resM);s.scale.y=1.1;s.position.set(x,y0+0.9,z);o.add(s);});
       const svM=std('#7a70c4',{roughness:.5});
@@ -931,7 +931,7 @@ function start(CFG){
       // 광장에서 보이는 섬 이름표
       const nt=label(1024,256,(c,w,h)=>{c.fillStyle='rgba(42,36,102,.85)';if(c.roundRect){c.beginPath();c.roundRect(8,8,w-16,h-16,h*0.4);c.fill();}else c.fillRect(8,8,w-16,h-16);
         c.strokeStyle='#9ff0dc';c.lineWidth=8;if(c.roundRect){c.beginPath();c.roundRect(8,8,w-16,h-16,h*0.4);c.stroke();}
-        c.fillStyle='#ffffff';c.font=`900 ${Math.round(h*0.42)}px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillText(T_(F.name||'AI가 지은 섬'),w/2,h/2+4);});
+        c.fillStyle='#ffffff';c.font=`900 ${Math.round(h*0.42)}px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillText(T_(F.name||'AI타운'),w/2,h/2+4);});
       const ns=new THREE.Sprite(new THREE.SpriteMaterial({map:nt,transparent:true,depthWrite:false,fog:false,toneMapped:false}));ns.scale.set(r*1.9,r*0.475,1);ns.position.y=r*1.62+3;o.add(ns);
       out.dest.ai={o,r,pad,arch:new THREE.Vector3(0,y0+2.4,az),label:ns};}
     // 북쪽 하늘의 섬들: 떠 있는 바위 + 풀밭 + 나무 + 꺼진 등(섬이 열리면 켜진다). 주제가 정해지기 전이라 이름은 없다

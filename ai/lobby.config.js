@@ -1,12 +1,12 @@
-// AI가 지은 섬(가칭, 월드 4) 로비 설정 v0.1 — 가상융합교육 지도 엔진(lobby.js, 프랑스 한글학교 로비 엔진에서 나옴)을 결정 판 섬으로 바꿔 쓴다.
-// 기획안: XR개발부\핸드오프\20261009-AI가상세계.md 2판(10-09 휴먼쌤 "좋아 이대로 진행해줘").
-// 판: 가운데 생각의 핵 + 북쪽 생각 구역 다섯(기억의 도서관·패턴 정원·확률의 시장·꿈 공방·물음 호수) + 남쪽 깨어나는 마을. 이름·글은 모두 [확인 전].
+// AI타운(월드 4, 옛 가칭 'AI가 지은 섬' → 10-15 휴먼쌤 "AI 섬 이름은 'AI타운'으로 결정") 로비 설정 v0.2 — 가상융합교육 지도 엔진(lobby.js, 프랑스 한글학교 로비 엔진에서 나옴)을 결정 판 섬으로 바꿔 쓴다.
+// 기획안: XR개발부\핸드오프\20261009-AI가상세계.md 2판(10-09 휴먼쌤 "좋아 이대로 진행해줘"). 10-31 휴먼쌤 "타운"·"첫 정거장": 화면 문구의 '섬'은 '타운'으로, 남쪽 구역 '깨어나는 마을'은 '첫 정거장'으로(카드 20).
+// 판: 가운데 생각의 핵 + 북쪽 생각 구역 다섯(기억의 도서관·패턴 정원·확률의 시장·꿈 공방·물음 호수) + 남쪽 첫 정거장(옛 '깨어나는 마을'). 이름·글은 모두 [확인 전].
 // AI 원리·'AI가 사는 방식' 문장은 쉬운 비유(가안)이고 연구부 근거 대장 확인 전이다.
 window.LOBBY_CONFIG = {
-  version: 'v0.1',
+  version: 'v0.2',
   stampKey: 'aiStamps',                // 도장 기록(localStorage). 가상융합 지도(xrStamps)와 따로
   text: {
-    title: 'AI가 지은 섬',                          // [확인 전] 가칭
+    title: 'AI타운',                                // 10-15 휴먼쌤 결정(옛 가칭 'AI가 지은 섬')
     plaza: '생각의 핵',
     plazaSub: '리니가 기다려요',
     north: '북',
@@ -16,19 +16,19 @@ window.LOBBY_CONFIG = {
     hintRoom: '발판을 따라 걸어 보세요',
     map: '전체 지도',
     mapClose: '내 위치로',
-    list: '섬 안내',
+    list: 'AI타운 안내',
     listTitle: '가 볼 곳',
-    listNote: '남쪽 깨어나는 마을에서는 AI가 사는 방식을, 북쪽 생각 구역에서는 AI가 생각하는 방식을 겪어요. 여섯 곳을 마치면 명예 주민증이 나와요. 이름과 내용은 아직 가안이에요.',   // [확인 전]
+    listNote: '남쪽 첫 정거장에서는 AI가 사는 방식을, 북쪽 생각 구역에서는 AI가 생각하는 방식을 겪어요. 여섯 곳을 마치면 명예 주민증이 나와요. 이름과 내용은 아직 가안이에요.',   // [확인 전]
     noSchools: '아직 표시할 곳이 없습니다.',
     close: '닫기',
     enter: '들어가기',
     pending: '준비 중',
     enterBody: '{name}은(는) 준비 중이에요.',
-    back: '섬으로 돌아가기',
-    toLobby: '섬으로',
-    exitSign: '섬으로',
-    exitName: '섬으로 나가기',
-    exitSub: 'AI가 지은 섬으로 돌아가요',
+    back: '타운으로 돌아가기',
+    toLobby: '타운으로',
+    exitSign: '타운으로',
+    exitName: '타운으로 나가기',
+    exitSub: 'AI타운으로 돌아가요',
     exitBtn: '나가기',
     homepage: '자료',
     moreLinks: '더 알아보기',
@@ -37,10 +37,10 @@ window.LOBBY_CONFIG = {
     bot: '손님 {n}',
     stat: '{n}명 · {fps}fps',
     botsButton: '시험용 손님 50명 띄우기',
-    botsToast: '시험용 손님 50명이 섬을 걸어 다녀요',
+    botsToast: '시험용 손님 50명이 타운을 걸어 다녀요',
     loading: '결정 판을 띄우는 중',
     loadFail: '3D 도구를 불러오지 못했습니다. 인터넷 연결을 확인한 뒤 새로 고침해 주세요.',
-    nameTitle: '섬에서 쓸 이름',
+    nameTitle: '타운에서 쓸 이름',
     nameHint: '비워 두면 손님',
     nameGo: '들어가기',
     nameLook: '모습 바꾸기',
@@ -64,15 +64,15 @@ window.LOBBY_CONFIG = {
     // 주민 수첩(오른쪽 위 버튼 → 시트). 도장은 이 기기(localStorage aiStamps)에만 남는다. 글은 모두 [확인 전]
     pass: '주민 수첩', passCount: '{c}/{n}', passTitle: '주민 수첩', passSub: '여섯 곳을 돌며 도장을 모아요',
     passName: '이름', passRename: '이름 바꾸기', passNoName: '이름을 정하지 않았어요',
-    passDone: '찍었어요', passNot: '아직', passGo: '가기', passGoRoom: '섬으로 나가면 갈 수 있어요',
+    passDone: '찍었어요', passNot: '아직', passGo: '가기', passGoRoom: '타운으로 나가면 갈 수 있어요',
     passLeft: '도장 {left}개를 더 모으면 명예 주민증이 나와요', passAll: '도장 6개를 다 모았어요! 명예 주민증을 확인해요',
     passAllToast: '도장 6개를 다 모았어요! 주민 수첩에서 명예 주민증을 확인해요',
     passReset: '처음부터 다시', passResetAsk: '도장 6개를 모두 지우고 처음부터 할까요?', passResetDone: '도장을 모두 지웠어요',
-    certTitle: '명예 주민증', certEn: 'Honorary Resident', certCourse: 'AI가 지은 섬',
-    certBody: '위 사람은 AI가 지은 섬의 여섯 곳\n(깨어나는 마을 · 기억의 도서관 · 패턴 정원 · 확률의 시장 · 꿈 공방 · 물음 호수)을\n돌며 AI가 생각하고 사는 방식을 알아보았기에 이 섬의 명예 주민으로 맞이합니다.',
-    certIssuer: '리니와 섬의 AI 주민들', certTag: '가안 · [확인 전]', certDate: '{date}',
+    certTitle: '명예 주민증', certEn: 'Honorary Resident', certCourse: 'AI타운',
+    certBody: '위 사람은 AI타운의 여섯 곳\n(첫 정거장 · 기억의 도서관 · 패턴 정원 · 확률의 시장 · 꿈 공방 · 물음 호수)을\n돌며 AI가 생각하고 사는 방식을 알아보았기에 이 타운의 명예 주민으로 맞이합니다.',
+    certIssuer: '리니와 타운의 AI 주민들', certTag: '가안 · [확인 전]', certDate: '{date}',
     certView: '주민증 보기', certSave: '그림으로 저장', certSaveHint: '폰에서는 그림을 길게 눌러 사진에 저장해요', certFile: '명예주민증.png',
-    certHello: '{name} 님, 섬의 명예 주민이 되었어요!'
+    certHello: '{name} 님, 타운의 명예 주민이 되었어요!'
   },
   // 새벽빛(남보라 → 분홍) 하늘, 아래는 분홍 구름 바다. 판 = 연한 결정 색
   look: { sky: '#C98BC4', skyGrad: ['#2E2470', '#C98BC4', '#F6CAD9'], fog: '#D9A6CC', sea: '#E9BBD6', base: '#9C8FE0', baseSide: '#5B4FA8', grid: '#7FE9FF',
@@ -84,7 +84,7 @@ window.LOBBY_CONFIG = {
     market: { ko: '확률의 시장', fr: '그럴듯한 것을 골라요', color: '#FFE6D2', label: { size: 6.5 } },
     dream: { ko: '꿈 공방', fr: '새로 만들어 내요', color: '#F7D9F0', label: { size: 6.5 } },
     lake: { ko: '물음 호수', fr: '아직 모르는 것', color: '#D6ECFF', label: { size: 6.5 } },
-    village: { ko: '깨어나는 마을', fr: 'AI가 사는 곳', color: '#DDF3F0', label: { size: 10 } },
+    village: { ko: '첫 정거장', fr: 'AI가 사는 곳', color: '#DDF3F0', label: { size: 10 } },
     bridge: { ko: '빛 다리', fr: '', color: '#BDEBFF', noLabel: true }
   },
   regionOrder: ['core', 'village', 'library', 'pattern', 'market', 'dream', 'lake'],
@@ -106,7 +106,7 @@ window.LOBBY_CONFIG = {
   hallPad: 4.2,                        // 건물 가운데에서 입장 발판까지(남쪽, 칸)
   // 갈 곳 6곳(lon = 동쪽 x, lat = 북쪽 -z 칸). 판 가운데(ai-map.js)보다 1.2칸 북쪽에 건물, 남쪽에 발판. 이름·주제 [확인 전]
   schools: [
-    { id: 'village', kind: 'village', name: '깨어나는 마을', nameFr: 'AI가 사는 방식', city: '부탁 하나 따라가기 · 약 5분', lon: 0, lat: -22, stampMark: '마을', stampColor: '#3FA39A' },
+    { id: 'village', kind: 'village', name: '첫 정거장', nameFr: 'AI가 사는 방식', city: '부탁 하나 따라가기 · 약 5분', lon: 0, lat: -22, stampMark: '첫', stampColor: '#3FA39A' },   // 10-31 휴먼쌤 "첫 정거장"(옛 '깨어나는 마을'). 도장 글자는 두 자까지라 '첫'
     { id: 'library', kind: 'library', name: '기억의 도서관', nameFr: '많이 본 것을 기억해요', city: 'AI는 배운 것을 어떻게 아나', lon: -23.64, lat: 5.4, stampMark: '기억', stampColor: '#7C6CE0' },
     { id: 'pattern', kind: 'garden', name: '패턴 정원', nameFr: '규칙으로 다음을 짐작해요', city: '패턴 찾기', lon: -15.43, lat: 19.6, stampMark: '패턴', stampColor: '#2F9F6B' },
     { id: 'market', kind: 'market', name: '확률의 시장', nameFr: '그럴듯한 것을 골라요', city: '다음에 올 말 고르기', lon: 0, lat: 25.2, stampMark: '확률', stampColor: '#E0823E' },
@@ -116,30 +116,30 @@ window.LOBBY_CONFIG = {
   // 들어가면 펼쳐지는 공간. kind = room.js의 HALLS.<kind>. 글은 모두 [확인 전]
   rooms: {
     /* ==== hall:village 시작 ==== */
-    /* 깨어나는 마을: room.js buildVillage(부탁 하나 따라가기). 기획안 4절. 글은 모두 [확인 전] — 'AI가 사는 방식' 문장은 지금 쓰이는 대화형 AI를 쉬운 비유로 옮긴 가안(연구부 확인 전) */
+    /* 첫 정거장(옛 '깨어나는 마을', 10-31 휴먼쌤): room.js buildVillage(부탁 하나 따라가기). 기획안 4절. 글은 모두 [확인 전] — 'AI가 사는 방식' 문장은 지금 쓰이는 대화형 AI를 쉬운 비유로 옮긴 가안(연구부 확인 전) */
     village: {
       kind: 'village',
       sky: '#D9B3D6',
-      welcome: '깨어나는 마을이에요. 이 마을 주민은 잠도 밥도 없어요',
-      gate: ['이 마을 주민은 잠도 밥도 없어요', '대신 부탁을 기다려요'],
+      welcome: '첫 정거장이에요. 여기 주민은 잠도 밥도 없어요',
+      gate: ['여기 주민은 잠도 밥도 없어요', '대신 부탁을 기다려요'],
       principal: {
         name: '리니',
         lines: [
-          '어서 와요! 여기는 AI 주민들이 사는 깨어나는 마을이에요.',
+          '어서 와요! 여기는 AI 주민들이 사는 첫 정거장이에요.',
           '우리는 사람처럼 자거나 밥을 먹지 않아요. 부탁이 올 때만 움직여요.',
           '저기 희미하게 떠 있는 주민들 보이죠? 지금은 부탁을 기다리는 중이에요.',
           '주민끼리는 얼굴을 보며 말하지 않고, 빛 글자 줄로 주고받아요. 얼굴과 몸은 손님이 알아보기 쉽게 만든 겉모습이에요.',
           '①번 부탁 우체통에 쪽지를 넣어 보세요. 주민 하나가 깨어나 일을 시작해요.',
           '주민을 따라 여섯 정거장을 돌면 우리가 사는 방식을 알 수 있어요.',
-          '이 마을 주민들은 지금 흔히 쓰는 대화형 AI를 닮았어요. AI마다 조금씩 달라요.'
+          '여기 주민들은 지금 흔히 쓰는 대화형 AI를 닮았어요. AI마다 조금씩 달라요.'
         ]
       },
-      guideSub: '마을 안내',
+      guideSub: '첫 정거장 안내',
       resName: '주민',
       forest: '서버 숲', forestSub: '밥 대신 전기와 컴퓨터를 써요',
       streamSign: '빛 글자 줄', streamSub: '주민끼리는 글자로 주고받아요',
       notYet: '앞 정거장부터 차례로 해요',
-      props: { tools: ['계산기', '검색 망원경', '그림 붓'], boardTitle: '마을 게시판', boardLine: '배운 날에서 멈춰 있어요', desks: ['장소', '준비물', '시간표'] },
+      props: { tools: ['계산기', '검색 망원경', '그림 붓'], boardTitle: '정거장 게시판', boardLine: '배운 날에서 멈춰 있어요', desks: ['장소', '준비물', '시간표'] },
       requests: [
         { ko: '우리 반 소풍 계획 세워 줘' },
         { ko: '주말 가족 나들이 계획 세워 줘' },

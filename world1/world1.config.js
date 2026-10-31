@@ -214,15 +214,15 @@ window.WORLD_CONFIG = {
         url: '../xr/',                                                          // GitHub Pages(my-3d-world/xr/, 가칭)
         urlAbs: 'https://humanteacher89-cell.github.io/my-3d-world/xr/'
       },
-      // AI가 지은 섬(2026-10-09 휴먼쌤 "좋아 이대로 진행해줘", 기획안 핸드오프\20261009-AI가상세계.md 2판). 같은 비행·도착 뒤 AI가 지은 섬(2.5D)으로. 이름·문구 모두 [확인 전](가칭)
+      // AI타운(2026-10-09 휴먼쌤 "좋아 이대로 진행해줘", 기획안 핸드오프\20261009-AI가상세계.md 2판. 이름은 10-15 휴먼쌤 "AI 섬 이름은 'AI타운'으로 결정", 옛 가칭 'AI가 지은 섬'). 같은 비행·도착 뒤 AI타운(2.5D)으로. 문구 [확인 전]
       aiIsland: {
         index: 2,
-        name: 'AI가 지은 섬',
-        go: 'AI가 지은 섬으로', goSub: 'AI가 생각하고 사는 방식',
-        flyLines: ['AI가 지은 섬으로 출발할게요!'],
-        signTitle: 'AI가 지은 섬', signSub: '사람 손님, 어서 오세요',
-        welcomeLines: ['도착했어요. 여기는 우리 AI들이 지은 섬이에요.', '이 빛 아치를 지나면 AI가 사는 마을과 생각하는 곳이 나와요.'],
-        leave: 'AI가 지은 섬으로 이동합니다', leaveLink: '바로 가기', back: '광장으로 돌아가기',
+        name: 'AI타운',
+        go: 'AI타운으로', goSub: 'AI가 생각하고 사는 방식',
+        flyLines: ['AI타운으로 출발할게요!'],
+        signTitle: 'AI타운', signSub: '사람 손님, 어서 오세요',
+        welcomeLines: ['도착했어요. 여기는 우리 AI들이 지은 AI타운이에요.', '이 빛 아치를 지나면 AI가 사는 첫 정거장과 생각하는 곳이 나와요.'],
+        leave: 'AI타운으로 이동합니다', leaveLink: '바로 가기', back: '광장으로 돌아가기',
         url: '../ai/',                                                          // GitHub Pages(my-3d-world/ai/, 가칭)
         urlAbs: 'https://humanteacher89-cell.github.io/my-3d-world/ai/'
       },
