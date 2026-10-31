@@ -860,11 +860,18 @@ window.HW = (function () {
       opts.main();
     }
     const sup = m => navigator.xr && navigator.xr.isSessionSupported ? navigator.xr.isSessionSupported(m).catch(() => false) : Promise.resolve(false);
-    sup('immersive-vr').then(ok => {
+    const vrSup = sup('immersive-vr'), arSup = sup('immersive-ar');
+    vrSup.then(ok => {
       if (ok) { vrBtn.disabled = false; vrBtn.textContent = 'VR로 들어가기'; }
       else { vrBtn.textContent = '이 기기는 VR 미지원'; note.textContent = window.isSecureContext ? '메타 퀘스트 브라우저에서 이 주소를 열면 VR로 들어갈 수 있어요.' : 'VR은 https 주소에서만 열려요.'; }
     });
-    sup('immersive-ar').then(ok => { if (ok && mrBtn) mrBtn.style.display = 'block'; });
+    arSup.then(ok => { if (ok && mrBtn) mrBtn.style.display = 'block'; });
+    // 10-31 휴먼쌤 "넣어": 아이폰(모든 브라우저)·카카오톡 안 브라우저는 WebXR이 없어 '내 방에서 시작'이 아예 안 나온다 → 휴대폰인데 VR·혼합현실이 둘 다 없으면 안내 한 줄
+    Promise.all([vrSup, arSup]).then(([v, a]) => {
+      if (v || a || !mrBtn || !note) return;
+      if (!/iPhone|iPad|iPod|Android|Mobile|KAKAOTALK/i.test(navigator.userAgent || '')) return;
+      note.textContent = "이 브라우저(아이폰·카카오톡 안 등)에서는 '내 방에서 시작'이 없어요. '화면으로 보기'로 보세요.";
+    });
     if (opts.anchor) placeAnchor.copy(opts.anchor);
     // 오류가 나면 화면에 잠깐 보여 준다(휴대폰·헤드셋에서 시험할 때 원인 찾기용)
     let lastErr = '', lastErrT = -99;   // 같은 오류는 다시 안 띄우고, 3초에 한 번만(매 프레임 오류 → 판을 계속 만들어 먹통 되는 것 방지)
