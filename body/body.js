@@ -173,10 +173,10 @@
       for (let i = 0; i < n; i++) { const m = new THREE.Mesh(rbcGeo, rbcMat(1)); m.scale.setScalar(0.32); body.add(m); cells.push({ m, L, u: i / n, spin: Math.random() * 6 }); }
     }
   }
-  let bpm = 70, br = 15, oxyFlow = 0.35, running = false, beatPh = 0, breathPh = 0, manualBreath = false;
+  let bpm = 70, br = 20, oxyFlow = 0.35, running = false, beatPh = 0, breathPh = 0, manualBreath = false;   /* 쉴 때 호흡 약 20회/분(만 10~12세, 연구부 10-31) */
   function beatShape(p) { return p < 0.16 ? Math.sin(p / 0.16 * Math.PI) : (p > 0.3 && p < 0.4 ? 0.35 * Math.sin((p - 0.3) / 0.1 * Math.PI) : 0); }
   function stepBody(dt) {
-    const tB = running ? 140 : 70, tR = running ? 40 : 15, tO = running ? 0.9 : 0.35, k = Math.min(1, dt * 0.45);
+    const tB = running ? 140 : 70, tR = running ? 40 : 20, tO = running ? 0.9 : 0.35, k = Math.min(1, dt * 0.45);
     bpm += (tB - bpm) * k; br += (tR - br) * k; oxyFlow += (tO - oxyFlow) * k;
     beatPh = (beatPh + dt * bpm / 60) % 1; const bs = beatShape(beatPh);
     heart.userData.beat.scale.setScalar(1 - 0.075 * bs);
