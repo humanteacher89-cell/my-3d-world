@@ -218,10 +218,11 @@ window.WORLD_CONFIG = {
       aiIsland: {
         index: 2,
         name: 'AI타운',
-        go: 'AI타운으로', goSub: 'AI가 생각하고 사는 방식',
+        go: 'AI타운으로', goSub: 'AI들만 사는 마을',
         flyLines: ['AI타운으로 출발할게요!'],
         signTitle: 'AI타운', signSub: '사람 손님, 어서 오세요',
-        welcomeLines: ['도착했어요. 여기는 우리 AI들이 지은 AI타운이에요.', '이 빛 아치를 지나면 AI가 사는 첫 정거장과 생각하는 곳이 나와요.'],
+        // 11-01 AI타운 v1.0(사람 없이 AI들만 사는 마을 + 미션 RPG, 휴먼쌤 "올려")에 맞춘 안내
+        welcomeLines: ['도착했어요. 여기는 사람 없이 AI들만 모여 사는 AI타운이에요.', '주민들의 부탁을 하나씩 도우며 마을을 탐험해 보세요.'],
         leave: 'AI타운으로 이동합니다', leaveLink: '바로 가기', back: '광장으로 돌아가기',
         url: '../ai/',                                                          // GitHub Pages(my-3d-world/ai/, 가칭)
         urlAbs: 'https://humanteacher89-cell.github.io/my-3d-world/ai/'
