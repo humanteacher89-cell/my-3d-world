@@ -1,0 +1,10 @@
+월드 1 「휴먼쌤이 누구인가」 프로필 판 배경음악 출처 (2026-11-01)
+
+"Carefree" Kevin MacLeod (incompetech.com) — 시작부터 조각 모으기까지(day)
+"Heartwarming" Kevin MacLeod (incompetech.com) — 네 조각이 모인 뒤 엔딩·프로필·문 너머까지(ending)
+Licensed under Creative Commons: By Attribution 4.0 License
+http://creativecommons.org/licenses/by/4.0/
+
+내려받은 곳: https://incompetech.com/music/royalty-free/mp3-royaltyfree/ (2026-11-01, 휴먼쌤 "둘 다 좋아").
+쓰는 곳: audio.js TRACKS. 출처 표시는 문 너머 고르기 화면 아래 줄(profile.config.js ending.pickWorld.credit).
+(엑스리아 월드의 Pamgaea · Dreamer와 다른 곡 — 11-01 휴먼쌤 "배경음악이 xrea랑 똑같아서 바꾸고싶고")
