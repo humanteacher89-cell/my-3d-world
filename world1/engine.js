@@ -945,7 +945,7 @@ function start(CFG){
       ['#ff8c8c','#ffbf73','#ffe57a','#8fe0a0','#8fbfff'].forEach((c,k)=>{const t=new THREE.Mesh(new THREE.TorusGeometry(2.3-k*0.22,0.12,10,40,Math.PI),std(c,{roughness:.5,emissive:c,emissiveIntensity:.25}));t.position.set(0,y0,az);o.add(t);});
       [-2.45,2.45].forEach(x=>{const cl=new THREE.Mesh(new THREE.SphereGeometry(0.62,14,10),std('#ffffff',{roughness:.9}));cl.scale.set(1.25,0.8,1);cl.position.set(x,y0+0.3,az);o.add(cl);});
       const signT=label(1024,300,(c,w,h)=>{c.fillStyle='#ffffff';c.fillRect(0,0,w,h);c.strokeStyle='#f0a91e';c.lineWidth=12;c.strokeRect(14,14,w-28,h-28);
-        c.textAlign='center';c.textBaseline='middle';c.fillStyle='#3a3550';c.font=`900 ${Math.round(h*0.34)}px ${FONT}`;c.fillText(T_(F.signTitle||F.name||'생각놀이섬'),w/2,h*0.42);
+        c.textAlign='center';c.textBaseline='middle';c.fillStyle='#3a3550';c.font=`900 ${Math.round(h*0.34)}px ${FONT}`;c.fillText(T_(F.signTitle||F.name||'띵킹버스'),w/2,h*0.42);
         c.fillStyle='#23a98f';c.font=`700 ${Math.round(h*0.15)}px ${FONT}`;c.fillText(T_(F.signSub||''),w/2,h*0.77);});
       const sg=new THREE.Mesh(new THREE.PlaneGeometry(4.4,1.28),new THREE.MeshStandardMaterial({map:signT,emissiveMap:signT,emissive:'#ffffff',emissiveIntensity:.75,roughness:.6}));sg.position.set(0,y0+3.35,az);o.add(sg);
       // 왼쪽: 둥근 나무 숲 + 물음표 등불(노란 빛 구슬)
@@ -974,7 +974,7 @@ function start(CFG){
       // 광장에서 보이는 섬 이름표
       const nt=label(1024,256,(c,w,h)=>{c.fillStyle='rgba(255,255,255,.92)';if(c.roundRect){c.beginPath();c.roundRect(8,8,w-16,h-16,h*0.4);c.fill();}else c.fillRect(8,8,w-16,h-16);
         c.strokeStyle='#f0a91e';c.lineWidth=8;if(c.roundRect){c.beginPath();c.roundRect(8,8,w-16,h-16,h*0.4);c.stroke();}
-        c.fillStyle='#3a3550';c.font=`900 ${Math.round(h*0.42)}px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillText(T_(F.name||'생각놀이섬'),w/2,h/2+4);});
+        c.fillStyle='#3a3550';c.font=`900 ${Math.round(h*0.42)}px ${FONT}`;c.textAlign='center';c.textBaseline='middle';c.fillText(T_(F.name||'띵킹버스'),w/2,h/2+4);});
       const ns=new THREE.Sprite(new THREE.SpriteMaterial({map:nt,transparent:true,depthWrite:false,fog:false,toneMapped:false}));ns.scale.set(r*1.9,r*0.475,1);ns.position.y=r*1.62;o.add(ns);
       out.dest.think={o,r,pad,arch:new THREE.Vector3(0,y0+2.0,az),label:ns};}
     // 북쪽 하늘의 섬들: 떠 있는 바위 + 풀밭 + 나무 + 꺼진 등(섬이 열리면 켜진다). 주제가 정해지기 전이라 이름은 없다
