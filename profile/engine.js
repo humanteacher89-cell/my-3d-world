@@ -58,7 +58,7 @@ const UI_HTML=`
   <div class="btns"><button id="endReplay"></button><button id="endRestart"></button></div>
   <div id="exit" hidden><p class="kicker"></p><h1></h1><p class="sub"></p><a id="exitLink" hidden></a></div></div>
 <div id="pick" hidden role="dialog" aria-labelledby="pickTitle"><div class="box"><p class="kicker"></p><div class="who"><b id="pickName"></b><span id="pickRole"></span></div><div id="pickHero" hidden></div><h1 id="pickTitle"></h1><p class="sub" id="pickSub"></p><div id="pickList"></div><p id="pickCredit" hidden></p></div>
-  <div class="btns"><button id="pickBack"></button><button id="pickReplay" hidden></button><button id="pickRestart" hidden></button></div></div>
+  <div class="btns"><button id="pickBack"></button><button id="pickReplay" hidden></button><button id="pickRestart" hidden></button><button id="pickProf" hidden></button></div></div>
 <div id="prof" hidden role="dialog" aria-labelledby="pfName"><div class="pwrap">
   <article id="pfCard"><header><span id="pfAv" class="av lg"></span><div class="hd"><p class="k" id="pfKicker"></p><h2 id="pfName"></h2><p class="rl" id="pfRole"></p></div></header>
     <p id="pfOne"></p><ul id="pfRows"></ul><div id="pfCh"></div><div id="pfAsk"></div></article>
@@ -405,7 +405,7 @@ function start(CFG){
         gg.fillStyle='rgba(246,243,232,.92)';gg.font='400 64px Gaegu,"Noto Sans KR",sans-serif';gg.fillText(BD.line||'',w/2,478,w-140);bt.needsUpdate=true;};
       draw();if(document.fonts&&document.fonts.load)Promise.all([document.fonts.load('700 100px Gaegu','휴먼쌤'),document.fonts.load('400 64px Gaegu','휴먼쌤')]).then(draw).catch(()=>{});
       bt.anisotropy=renderer.capabilities.getMaxAnisotropy();
-      const bm=new THREE.Mesh(new THREE.PlaneGeometry(5.1,1.45),new THREE.MeshBasicMaterial({map:bt,toneMapped:false}));bm.position.set(0,1.75,-6.40);g.add(bm);}
+      const bm=new THREE.Mesh(new THREE.PlaneGeometry(5.1,1.45),new THREE.MeshBasicMaterial({map:bt,toneMapped:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-4}));bm.position.set(0,1.75,-6.385);   /* 11-13 구운 칠판(옛 글)과 겹쳐 줄무늬로 비치지 않게 조금 앞으로 */g.add(bm);}
     // 전시물 글(설정 stage.exhibits): 창가 액자 셋 · 교탁 앞 팻말 · 책장 앞 책 둘 · 뒤 게시판 · 게시판 위 띠. 구운 무대 위에 또렷한 그림으로 덧붙인다
     {const EX=ST.exhibits||{},HAND='Gaegu,"Noto Sans KR",sans-serif',SANS='"Noto Sans KR",sans-serif';
       const ready=(document.fonts&&document.fonts.load)?Promise.all([document.fonts.load('700 80px Gaegu','휴먼쌤'),document.fonts.load('700 40px "Noto Sans KR"','휴먼쌤'),document.fonts.load('500 32px "Noto Sans KR"','휴먼쌤')]).catch(()=>{}):Promise.resolve();
@@ -1079,7 +1079,7 @@ function start(CFG){
       cine.li++;if(cine.li>=cine.lines.length){$('#cineNext').hidden=true;talkDone();}else cineShowLine();return;}
     if(cine.pt>0.6)cine.pt+=99;}
   // 말이 끝나면: 프로필 카드(설정 profile)가 있으면 연출을 마치고 카드를 띄운다(문은 '문으로 가기'를 누를 때 열린다). 없으면 예전처럼 문이 열린다
-  function talkDone(){setSub('','');if(PROF){finishEnding();showProfile('full');return;}human.act='open';nextPhase();SND('sfx','door');cineTitle(T_(END.doorTitle||''));}
+  function talkDone(){setSub('','');if(PROF){finishEnding();if(PK&&PK.members){enterDoor();return;}showProfile('full');return;}   /* 11-13 휴먼버스: 말이 끝나면 프로필 카드 대신 앞문으로 걸어 나가 '휴먼버스 어디로 입장할까요?' */human.act='open';nextPhase();SND('sfx','door');cineTitle(T_(END.doorTitle||''));}
   // 교실 무대: 휴먼쌤이 앞문으로 걸어 들어와 교탁 옆에 선다(STAGE.humanWalk 점들, 빠르기 END.humanSpeed). 들어오는 동안 리니 한마디(END.guideLine)
   function appearWalk(dt,pt){const W=STAGE.humanWalk,Hp=hState.pos;
     if(!cine.walk){cine.walk={i:1,done:false,t:0};Hp.copy(W[0]);hState.facing=Math.atan2(W[1].x-W[0].x,W[1].z-W[0].z);human.root.visible=true;hState.scale=1;human.act=null;cineTitle('');SND('sfx','door');
@@ -1095,7 +1095,7 @@ function start(CFG){
     hState.pos.copy(STAGE.humanWalk?STAGE.human:new THREE.Vector3(2.1,0,-6.0));hState.facing=Math.atan2(player.pos.x-hState.pos.x,player.pos.z-hState.pos.z);
     Q.human=true;qSave();checklistUI();cine.active=false;document.body.classList.remove('cine','talking');$('#cine').hidden=true;cineTitle('');setSub('','');J.busy=false;J.node='meet';DIR.init=false;camYaw=0;camPitch=0.3;refreshChoices();}
   $('#cine').addEventListener('pointerdown',e=>{if(e.target.closest('#cineSkip,#arrGo'))return;e.preventDefault();if(END.autoAdvance===false)cineAdvance();});
-  $('#cineSkip').onclick=()=>{if(cine.active){finishEnding();if(PROF)showProfile('full');}};
+  $('#cineSkip').onclick=()=>{if(cine.active){finishEnding();if(PROF){if(PK&&PK.members)enterDoor();else showProfile('full');}}};
   function updateEnding(dt){cine.pt+=dt;const pt=cine.pt;let rate=4;const Hp=hState.pos,P=player.pos;
     switch(cine.phase){
       case PH.GATHER:{const k=Math.min(1,pt/3.4),e=ez(k);const tgt=new THREE.Vector3(Hp.x,2.4,Hp.z);
@@ -1169,17 +1169,19 @@ function start(CFG){
   function showPick(){if(!PK)return;hideChoices();J.busy=true;
     $('#pick .kicker').textContent=T_(PK.kicker||V.mainWorld||'');$('#pickName').textContent=T_(PK.asker||human.name||'');$('#pickRole').textContent=T_(PK.askerRole||HM.role||'');
     $('#pickTitle').textContent=T_(PK.title||'누구의 월드로 들어갈까요?');$('#pickSub').textContent=T_(PK.sub||'');$('#pickBack').textContent=T_(PK.back||END.stayLabel||'조금 더 머물기');
-    PSTACK.length=0;if(MEMBERS)renderMembers();else renderPick(PK.worlds||[],null,null);{const r=$('#pickReplay'),x=$('#pickRestart');r.textContent=T_(UI.endReplay||'엔딩 다시 보기');x.textContent=T_(UI.endRestart||'처음부터');r.hidden=x.hidden=!PROF;}
+    PSTACK.length=0;if(MEMBERS)renderMembers();else renderPick(PK.worlds||[],null,null);{const r=$('#pickReplay'),x=$('#pickRestart');r.textContent=T_(UI.endReplay||'엔딩 다시 보기');x.textContent=T_(UI.endRestart||'처음부터');r.hidden=x.hidden=!PROF;const pp=$('#pickProf');if(pp){pp.textContent=T_(PK.profileLink||'');pp.hidden=!(PROF&&PK.profileLink);}}
     const cr=$('#pickCredit');cr.textContent=T_(PK.credit||'');cr.hidden=!PK.credit;   /* 음악 등 출처 한 줄(CC BY 표기) */
     const el=$('#pick');el.classList.remove('leaving');el.hidden=false;el.scrollTop=0;}
   // 회원 카드: 아바타 · 이름 · 하는 일 · 한 줄 소개 · 월드 이름 칩(PK.chipMax개까지, 기본 둘 + 나머지 수). 빈 자리는 점선 카드, 누르면 '준비 중' 한 줄
   function renderMembers(){const list=$('#pickList');list.textContent='';list.className='members';pickHero(null);
+    if(PK.logo){const h=$('#pickHero');h.hidden=false;$('#pick').classList.add('member');const i=pel('img','hvlogo');i.alt='';i.src=PK.logo;h.appendChild(i);h.appendChild(pel('span','rl',T_([PK.asker,PK.askerRole].filter(Boolean).join(' · '))));}   /* 휴먼버스 로고(11-13) */
     $('#pickTitle').textContent=T_(PK.title||'누구의 월드로 들어갈까요?');$('#pickSub').textContent=T_(PK.sub||'');
-    MEMBERS.forEach(m=>{const ws=Array.isArray(m.worlds)?m.worlds:[];const empty=m.ready===false||!ws.length;const b=pel('button','mcard'+(empty?' empty':''));b.style.setProperty('--c',m.color||'#c9b28a');
+    MEMBERS.forEach(m=>{const ws=Array.isArray(m.worlds)?m.worlds:[];const empty=m.ready===false||(!ws.length&&!(m.url||m.urlAbs));const b=pel('button','mcard'+(empty?' empty':''));b.style.setProperty('--c',m.color||'#c9b28a');
       b.appendChild(avatarEl(m));const tx=pel('span','tx');tx.appendChild(pel('b','nm',T_(m.name||'')));if(m.role)tx.appendChild(pel('span','rl',T_(m.role)));if(m.intro)tx.appendChild(pel('span','in',T_(m.intro)));
-      if(!empty){const ch=pel('span','chips'),k=PK.chipMax||2;ws.slice(0,k).forEach(w=>ch.appendChild(pel('i','',T_(w.short||w.name||''))));if(ws.length>k)ch.appendChild(pel('i','more','+'+(ws.length-k)));tx.appendChild(ch);}
+      const direct=!!(m.url||m.urlAbs);if(direct&&Array.isArray(m.tags)){const ch=pel('span','chips');m.tags.slice(0,PK.tagMax||3).forEach(x=>ch.appendChild(pel('i','',T_(x))));tx.appendChild(ch);}   /* 11-13 카드에 바로 가는 주소(url)가 있으면 누르자마자 입장 */
+      if(!empty&&!direct){const ch=pel('span','chips'),k=PK.chipMax||2;ws.slice(0,k).forEach(w=>ch.appendChild(pel('i','',T_(w.short||w.name||''))));if(ws.length>k)ch.appendChild(pel('i','more','+'+(ws.length-k)));tx.appendChild(ch);}
       b.appendChild(tx);if(!empty)b.appendChild(pel('span','ar','›'));
-      b.onclick=()=>{SND('sfx','click');if(empty){$('#pickSub').textContent=T_(m.toast||PK.soonToast||'아직 준비 중이에요.');return;}renderPick(ws,null,m);$('#pick').scrollTop=0;};list.appendChild(b);});}
+      b.onclick=()=>{SND('sfx','click');if(empty){$('#pickSub').textContent=T_(m.toast||PK.soonToast||'아직 준비 중이에요.');return;}if(m.url||m.urlAbs){goWorld(m);return;}renderPick(ws,null,m);$('#pick').scrollTop=0;};list.appendChild(b);});}
   // 월드 목록 그리기(member = 그 회원의 월드, 없으면 예전 목록). 묶음(w.children)은 누르면 그 안 목록으로 들어가고 '뒤로'가 생긴다(예: XR 과학 실험실 다섯)
   function renderPick(items,parent,member){const list=$('#pickList');list.textContent='';list.className='';pickHero(member);
     if(parent){$('#pickTitle').textContent=T_(parent.name||'');$('#pickSub').textContent=T_(parent.pickSub||parent.sub||'');}
@@ -1196,6 +1198,7 @@ function start(CFG){
   $('#pickBack').onclick=()=>{SND('sfx','click');leaveEnd();if(STAGE.canWalk)enterFree();else refreshChoices();};   /* 교실에 조금 더 있기 = 자유 이동 */
   $('#pickReplay').onclick=()=>{SND('sfx','click');leaveEnd();startEnding(true);};
   $('#pickRestart').onclick=()=>{SND('sfx','click');leaveEnd();restartAll();};
+  $('#pickProf').onclick=()=>{SND('sfx','click');$('#pick').hidden=true;showProfile('quick');};   /* 11-13 프로필 카드는 고르기 화면 아래 작은 단추로 */
 
   /* ---------- 프로필 카드 (설정 profile, 월드 1 프로필 판 2026-11-01) ----------
      'full' = 엔딩 뒤(문으로 가기 · 그림으로 저장), 'quick' = 시작 화면 '프로필 바로 보기'(조각 하나씩 보기 · 그림으로 저장 · 교실 둘러보기 · 문 너머로).
@@ -1285,7 +1288,7 @@ function start(CFG){
   // 주소에 plaza=1이 있으면(연수 때 바로 광장으로 모일 때) 처음 온 사람도 같은 버튼으로 광장에 바로 온다
   const TO_PLAZA=!!PZC&&(Q.plaza||QS.get('plaza')==='1');
   if(TO_PLAZA)$('#introSkip').textContent=T_(PZC.toPlaza||'광장으로 바로 가기');
-  $('#introSkip').onclick=()=>{SND('unlock');SND('sfx','select');closeIntro();hideChoices();if(PROF){SND('music','day');shot(STAGE.introShot?STAGE.introShot():shotIntro(),9999,null,false);showProfile('quick');return;}if(TO_PLAZA){enterPlaza(null);return;}if(AD)startArrival();else{Q.entered=true;qSave();checklistUI();if(PK)showPick();else showEnd();}};
+  $('#introSkip').onclick=()=>{SND('unlock');SND('sfx','select');closeIntro();hideChoices();if(PROF){SND('music','day');shot(STAGE.introShot?STAGE.introShot():shotIntro(),9999,null,false);if(PK&&PK.members){Q.entered=true;qSave();checklistUI();showPick();return;}showProfile('quick');return;}   /* 11-13 휴먼버스: 바로 입장 = 고르기 화면 */if(TO_PLAZA){enterPlaza(null);return;}if(AD)startArrival();else{Q.entered=true;qSave();checklistUI();if(PK)showPick();else showEnd();}};
   // 처음부터: 저장된 진행을 지우고 처음부터 시작한다
   $('#introGo').onclick=()=>{SND('unlock');SND('sfx','select');SND('music','day');if(Q.met||Q.human||Q.entered||Object.keys(Q.got).some(k=>gotList(k).length))restartAll(true);closeIntro();
     if(IS_TOUCH&&innerWidth>innerHeight&&UI.rotateHintLandscape)toast(UI.rotateHintLandscape);else if(IS_TOUCH&&innerHeight>innerWidth&&UI.rotateHint)toast(UI.rotateHint);   /* 월드 1 프로필은 세로가 기본(11-01) — 가로로 들었을 때만 안내 */

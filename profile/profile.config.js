@@ -7,7 +7,7 @@
 
    지킬 것
    - 캐릭터 휴먼쌤이 말할 때는 실명 없이 '휴먼쌤'만(브랜드북 2절). 실명 '휴먼쌤 김수현'은 칠판 명함·프로필 카드에만.
-   - 효과 주장·'최초' 같은 말 없음. 생각주도력 정의·휴먼쌤 ACT·슬로건은 정한 문장 그대로.
+   - 효과 주장·'최초' 같은 말 없음. AI주도력 정의·휴먼쌤 ACT·묶는 말은 정한 문장 그대로(11-13 새 말로 바꿈: 결정-기록 11-10 · 11-13).
    - 자세한 숫자(협회 회원·연수 인원·세미나·해커톤 횟수·입상·보도 건수·육아 기간)는 쓰지 않는다(11-01 휴먼쌤 "숫자는 뺄순없나").
      14년차와 연표 연도는 남긴다. 아이 정보는 '딸 둘'까지.
    - [확인 전] 없음(11-01): 원격연수 플랫폼 이름은 휴먼쌤 확인(대표 강의는 휴먼쌤이 고른 뒤 더함), 엔딩 셋째 줄은 휴먼쌤 "그대로 두기".
@@ -21,10 +21,10 @@
    ===================================================================== */
 window.WORLD_CONFIG = {
   id: 'hm-profile',
-  version: '1.0 시험판 (2026-11-01)',
-  title: '휴먼쌤이 누구인가',
-  kicker: '휴먼쌤 월드 · 첫 번째 월드',
-  subtitle: '교실 네 곳을 걸으며 휴먼쌤의 조각을 모아요',
+  version: '1.1 휴먼버스 입구 (2026-11-13)',
+  title: '휴먼쌤의 교실',   /* 11-13 휴먼쌤 "그냥 '휴먼쌤의 교실'로 할게"(옛 '휴먼쌤이 누구인가') */
+  kicker: '휴먼버스 · HUMANVERSE',
+  subtitle: '휴먼쌤을 만나고, 휴먼버스로 들어가요',
   missionOrder: 'guided',
   vars: {},
 
@@ -35,7 +35,7 @@ window.WORLD_CONFIG = {
     sky: { top: '#7fb2ea', hor: '#e8f1fb', bot: '#f4efe6' },
     model: { url: 'assets/stage-classroom.glb', lite: 'assets/stage-classroom-m.glb' },
     bloom: { strength: 0.1, threshold: 0.92 },
-    board: { name: '휴먼쌤 김수현', role: '생각주도력 키우는 교사아빠', line: 'AI가 답을 주는 시대, 아이가 질문하고 판단하며 삶을 주도하는 힘을 기릅니다' },
+    board: { name: '휴먼쌤 김수현', role: '아이를 AI의 주인으로 키우는 교사아빠', line: 'AI주도력을 길러주는 휴먼쌤 ACT' },
     // 전시물 글(조각 자리의 벽·교탁·책장·게시판에 붙는 그림). 대본 카드와 같은 사실만 쓴다
     exhibits: {
       window: [   /* 창가 액자 셋: 창을 보고 서면 왼쪽부터 */
@@ -49,10 +49,10 @@ window.WORLD_CONFIG = {
         { title: '2025 대한민국 미래 교육 트렌드', pub: '뜨인돌', year: '2024.11', color: '#9cc4ff' }
       ],
       board: {
-        title: '생각주도력',
-        text: '주체적 사고와 지적 자율성을 바탕으로, 스스로 질문을 세우고 근거를 살피며 자신의 판단을 형성하고 수정해 가는 힘.',
-        steps: ['질문하기 Ask', '확인하기 Check', '실천하기 Try'],
-        slogan: '휴먼쌤 ACT로 키우는 생각주도력'
+        title: 'AI주도력',
+        text: '인간이 기술의 주인이 되어 AI를 목적에 맞게 이끌고 협업하는 주체적인 힘.',
+        steps: ['체험하기 A · 우리 주변의 AI를', '비교하기 C · 내 생각과 AI 답변을', '표현하기 T · 내 생각을 프롬프트로'],   /* 11-13 휴먼쌤 새 이름 */
+        slogan: 'AI주도력을 길러주는 휴먼쌤 ACT'
       }
     }
   },
@@ -79,19 +79,19 @@ window.WORLD_CONFIG = {
       { text: '휴먼쌤이 누구인지 궁금해서 오셨죠?', choices: [{ label: '네, 궁금해요' }, { label: '휴먼쌤이 누구예요?' }] },
       { text: '칠판부터 보세요. 제 선생님을 한 줄로 소개하면 이래요.', view: 'board',
         card: { eyebrow: '칠판 명함', color: '#ffcf5a', title: '휴먼쌤 김수현',
-          viz: [ { quote: { text: '생각주도력 키우는 교사아빠, 휴먼쌤' } },
-                 { quote: { text: '"AI가 답을 주는 시대, 아이가 질문하고 판단하며 삶을 주도하는 힘을 기릅니다"', small: true } } ] } },
+          viz: [ { quote: { text: '아이를 AI의 주인으로 키우는 교사아빠, 휴먼쌤' } },
+                 { quote: { text: 'AI주도력을 길러주는 휴먼쌤 ACT', small: true } } ] } },
       '교실 네 곳에 선생님의 조각이 있어요. 창가부터 차례로 같이 가요. 네 조각을 다 모으면 선생님이 직접 오실 거예요.'
     ],
     help: ['아래 단추를 누르면 제가 같이 걸어가요. 화면을 끌면 교실을 둘러볼 수 있어요.'],
     afterAll: ['네 조각이 다 모였어요. 교탁 앞으로 가 보세요.'],
-    afterMeet: ['앞문 너머에서 선생님이 만든 것들을 고를 수 있어요.']
+    afterMeet: ['앞문 너머가 휴먼버스예요. 들어갈 곳을 고를 수 있어요.']
   },
 
   // 엔딩에 들어오는 만화풍 휴먼쌤(엑스리아 월드와 같은 GLB, 동작 idle·walk·wave). 앞문으로 들어와 교탁 옆에 선다.
   human: {
     name: '휴먼쌤',
-    role: '생각주도력 키우는 교사아빠',
+    role: '아이를 AI의 주인으로 키우는 교사아빠',
     look: [0, 0, 0, 5, 2],
     model: {
       /* humanssam_toon-clean.glb = 엑스리아 만화풍 휴먼쌤(?v=1031b 걷기 고친 판)의 텍스처를 정리하고 2048로 줄인 것(work\glb_clean.py) */
@@ -175,25 +175,25 @@ window.WORLD_CONFIG = {
       summary: { title: '쌓아 온 것' }
     },
     {
-      id: 'think', label: '생각', title: '생각주도력', color: '#9e8cff', sub: '뒤 게시판 · 글귀',
+      id: 'think', label: 'AI주도력', title: 'AI주도력', color: '#9e8cff', sub: '뒤 게시판 · 글귀',
       arrive: '뒤 게시판에는 선생님이 늘 하는 말이 붙어 있어요.',
       question: '휴먼쌤이 가장 키우고 싶은 힘은 무엇일까요?',
       choices: [
-        { label: 'AI를 잘 쓰는 힘', reply: 'AI를 쓰든 쓰지 않든, 생각의 주인이 내가 되는 힘이에요. 선생님은 이 힘을 \'생각주도력\'이라고 불러요.' },
-        { label: '스스로 생각을 이끄는 힘', reply: 'AI를 쓰든 쓰지 않든, 생각의 주인이 내가 되는 힘이에요. 선생님은 이 힘을 \'생각주도력\'이라고 불러요.' }
+        { label: 'AI를 잘 쓰는 힘', reply: 'AI를 잘 쓰는 것을 넘어, 아이가 AI의 주인이 되어 목적에 맞게 이끄는 힘이에요. 선생님은 이 힘을 \'AI주도력\'이라고 불러요.' },
+        { label: 'AI를 목적에 맞게 이끄는 힘', reply: '맞아요. 아이가 AI의 주인이 되어 목적에 맞게 이끌고 함께 일하는 힘이에요. 선생님은 이 힘을 \'AI주도력\'이라고 불러요.' }
       ],
       fact: {
-        title: '생각주도력',
+        title: 'AI주도력',
         /* 그림틀: ACT 세 걸음 순환도(cycle) + 정의 글귀 + 슬로건 띠 */
         viz: [
-          { label: '휴먼쌤 ACT — 생각주도력을 깨우는 세 걸음',
-            cycle: { center: '생각주도력', steps: [ { icon: 'ask', t: '질문하기', e: 'Ask' }, { icon: 'check', t: '확인하기', e: 'Check' }, { icon: 'try', t: '실천하기', e: 'Try' } ] } },
-          { label: '생각주도력', quote: { text: '"주체적 사고와 지적 자율성을 바탕으로, 스스로 질문을 세우고 근거를 살피며 자신의 판단을 형성하고 수정해 가는 힘."', small: true } },
-          { quote: { text: '휴먼쌤 ACT로 키우는 생각주도력', banner: true } }
+          { label: '휴먼쌤 ACT — AI주도력을 길러주는 세 걸음',
+            cycle: { center: 'AI주도력', steps: [ { icon: 'ask', t: '체험하기', e: 'A' }, { icon: 'check', t: '비교하기', e: 'C' }, { icon: 'try', t: '표현하기', e: 'T' } ] } },
+          { label: 'AI주도력', quote: { text: '"인간이 기술의 주인이 되어 AI를 목적에 맞게 이끌고 협업하는 주체적인 힘."', small: true } },
+          { quote: { text: 'AI주도력을 길러주는 휴먼쌤 ACT', banner: true } }
         ]
       },
       complete: '네 조각이 다 모였어요.',
-      summary: { title: '생각' }
+      summary: { title: 'AI주도력' }
     }
   ],
 
@@ -207,21 +207,34 @@ window.WORLD_CONFIG = {
     // 휴먼쌤 인사(캐릭터는 실명 없이). 둘째 줄 11-01 "B로 할게", 셋째 줄 11-01 "그대로 두기"
     lines: [
       '안녕하세요, 휴먼쌤이에요.',
-      '제가 하는 일은 하나예요. 아이가 스스로 생각을 이끄는 힘을 기르도록 곁에서 돕는 것.',
-      '제 조각을 모아 주셔서 고마워요. 문 너머에서 또 만나요.'
+      '제가 하는 일은 하나예요. 아이가 AI의 주인이 되도록 곁에서 돕는 것.',
+      '제 조각을 모아 주셔서 고마워요. 문 너머 휴먼버스에서 또 만나요.'
     ],
     doorTitle: '어디로 갈까요?',
     enterLabel: '문으로 가기',
     stayLabel: '교실에 조금 더 있기',
 
-    // 문 너머: 휴먼쌤이 만든 것 고르기(휴먼티처닷컴 칸 셋 + 월드 목록). 묶음(children)은 누르면 그 안 목록.
-    // '광장과 섬' = 옛 월드 1 광장(생각놀이섬 창이 광장 왼쪽 섬을 입구로 씀 — 옛 world1/은 손대지 않는다)
+    // 문 너머: '휴먼버스 어디로 입장할까요?'(11-13 휴먼쌤 "'누구의 월드로 들어갈까요?' 처럼 '휴먼버스 어디로 입장할까요?'로").
+    // 엑스리아 월드의 회원 카드 꼴(members)을 쓰고, 카드에 url이 있으면 누르자마자 그 월드로 간다(엔진 renderMembers).
+    // 옛 목록(worlds: 클라우드 · 앱 · 월드)은 members가 있으면 쓰지 않는다 — 기록으로 남겨 둠.
     pickWorld: {
-      asker: '리니', askerRole: '휴먼쌤 월드 안내',
-      kicker: '휴먼쌤 월드 · 문 너머',
-      title: '어디로 갈까요?',
-      sub: '휴먼쌤이 만든 것들이에요. 하나를 고르면 바로 열려요.',
+      asker: '휴먼버스', askerRole: 'HUMANVERSE',
+      logo: 'assets/hv/humanverse.svg',
+      kicker: '휴먼버스 · 문 너머',
+      title: '휴먼버스 어디로 입장할까요?',
+      sub: '휴먼쌤이 지은 네 곳이에요. 카드를 누르면 바로 입장해요.',
       walkLabel: '문 너머로',
+      tagMax: 3,
+      members: [
+        { name: '띵킹버스', role: '학생용 · 리니와 생각 탐험', color: '#FFC12E', avatar: 'assets/hv/think.svg',
+          intro: '섬을 걸으며 오늘의 수수께끼를 체험하기 · 비교하기 · 표현하기로 풀어요', tags: ['초등', '수수께끼 다섯', '약 10분'], url: '../think/' },
+        { name: '가상융합교육 캠퍼스', role: '선생님용 · 웹 캠퍼스', color: '#5cc2b5', avatar: 'assets/hv/campus.svg',
+          intro: '관 여섯 곳을 걸으며 가상융합교육을 알아보고 연수 수첩 도장을 모아요', tags: ['선생님', '관 여섯', '수료증'], url: '../xr/' },
+        { name: 'WebXR 과학 실험실', role: '실험실 다섯 · 손으로 하는 과학', color: '#6b9eff', avatar: 'assets/hv/science.svg',
+          intro: '공기 분자 · 빛과 그림자 · 물 · 태양계 · 심장과 폐를 손으로 만져 봐요', tags: ['5~6분씩', '휴대폰 · PC · 퀘스트'], url: '../science/' },
+        { name: '한국어학습 XR콘텐츠', role: '다섯 곳 · 초급 한국어', color: '#f2a84f', avatar: 'assets/hv/korean.svg',
+          intro: '하나와 함께 집 · 편의점 · 분식집 · 지하철 · 약국을 다니며 한국어를 배워요', tags: ['한국어 초급', '낱말 10개씩', '활동지'], url: '../korean/' }
+      ],
       worlds: [
         { name: '클라우드', sub: '읽고 활용하는 교육 자료', url: 'https://human-teacher.com/#/cloud' },
         { name: '앱', sub: '설치 없이 주소 하나로 여는 작은 웹 앱', url: 'https://human-teacher.com/#/app' },
@@ -243,48 +256,49 @@ window.WORLD_CONFIG = {
       backList: '← 돌아가기',
       credit: '음악: "Carefree" · "Heartwarming" Kevin MacLeod (incompetech.com) · CC BY 4.0',   /* assets/music/LICENSE.txt */
       back: '교실에 조금 더 있기',
-      leaving: '{name}(으)로 이동합니다'
+      profileLink: '휴먼쌤 프로필 카드',
+      leaving: '{name}(으)로 입장합니다'
     },
     exitUrl: '',
-    exit: { kicker: '휴먼쌤 월드', title: '월드를 나왔습니다', text: '이 창을 닫아 주세요.' }
+    exit: { kicker: '휴먼버스', title: '월드를 나왔습니다', text: '이 창을 닫아 주세요.' }
   },
 
   // 프로필 카드(엔딩 뒤 · 시작 화면 '프로필 바로 보기'). '그림으로 저장'은 이 칸으로 1080x1350 그림을 그린다.
   profile: {
-    kicker: '휴먼쌤 월드 · 프로필 카드',
+    kicker: '휴먼버스 · 프로필 카드',
     name: '휴먼쌤 김수현',
-    role: '생각주도력 키우는 교사아빠',
+    role: '아이를 AI의 주인으로 키우는 교사아빠',
     avatar: 'assets/avatars/humanssaem.webp',
     color: '#ffcf5a',
-    intro: 'AI가 답을 주는 시대, 아이가 질문하고 판단하며 삶을 주도하는 힘을 기릅니다',
+    intro: '아이가 AI의 주인이 되어 목적에 맞게 이끌고 협업하는 힘, AI주도력을 기릅니다',
     rows: [
       { label: '걸어온 길', text: '기술을 거의 안 쓰던 교사 → 가상융합교육협회 회장', color: '#f2a84f' },
       { label: '지금', text: '14년차 초등교사 · 협회 회장 · 딸 둘 아빠', color: '#5cc2b5' },
       { label: '쌓아 온 것', text: '함께 쓴 책 · 원격연수 강의', color: '#6b9eff' },
-      { label: '생각', text: '생각주도력 · 휴먼쌤 ACT', color: '#9e8cff' }
+      { label: '생각', text: 'AI주도력 · 휴먼쌤 ACT', color: '#9e8cff' }
     ],
     channelsTitle: '채널',
     channels: [
-      { name: '네프콘', handle: '휴먼쌤의 생각주도력', url: 'https://contents.premium.naver.com/humanteacher/humanteacher89' },
+      { name: '네프콘', handle: '휴먼쌤', url: 'https://contents.premium.naver.com/humanteacher/humanteacher89' },
       { name: '스레드', handle: '@human_teacher_', url: 'https://www.threads.com/@human_teacher_' },
       { name: '인스타', handle: '@human_teacher_', url: 'https://www.instagram.com/human_teacher_/' },
       { name: '유튜브', handle: '@human_teacher', url: 'https://www.youtube.com/@human_teacher' },
       { name: '링크 모음', handle: 'litt.ly/humanteacher', url: 'https://litt.ly/humanteacher' }
     ],
     contact: { label: '강의·연수 문의', text: 'litt.ly/humanteacher', url: 'https://litt.ly/humanteacher' },   /* 11-01 휴먼쌤 "litt.ly로 잇기" */
-    footer: '휴먼쌤 월드 · 휴먼쌤이 누구인가',
+    footer: '휴먼버스 · human-teacher.com/humanverse',
     saveFile: '휴먼쌤-프로필',
     saveHint: '그림 파일로 내려받았어요.',
     saveHintTouch: '저장이 안 되면 그림을 길게 눌러 저장하세요.',
     again: '프로필 카드 다시 보기',
-    buttons: { save: '그림으로 저장', toDoor: '문으로 가기', stay: '교실에 조금 더 있기', pieces: '조각 하나씩 보기', tour: '교실 둘러보기', tourSub: '약 3분', door: '문 너머로' }
+    buttons: { save: '그림으로 저장', toDoor: '문으로 가기', stay: '교실에 조금 더 있기', pieces: '조각 하나씩 보기', tour: '교실 둘러보기', tourSub: '약 3분', door: '휴먼버스로 입장' }
   },
 
   ui: {
     start: '처음부터 시작하기',
     startSub: '약 3분',   /* 11-01 휴먼쌤 "2 3분 정도에 모든 프로필을" */
-    skipWorld: '프로필 바로 보기',
-    skipWorldSub: '1분',
+    skipWorld: '휴먼버스 바로 입장',
+    skipWorldSub: '',
     checklist: '조각 모으기',
     rowMeet: '리니 만나기',
     rowHuman: '휴먼쌤 만나기',

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="휴먼버스">
+  <!-- 휴먼버스 아이콘 확정(2026-11-13 휴먼쌤 "시안은 나 그물지구로 하되, 지금 모양이 한글 '웃' 같아 보여서 그냥 전체적으로 모양이 ㅎ자가 되도록 해줘"):
+       스튜디오 로고와 같은 ㅎ 짜임 — 짧은 막대 · 긴 막대 · 동그라미(= 위도 · 경도 선이 비치는 그물 지구, 노란 점은 접속한 친구들) -->
+  <defs>
+    <linearGradient id="hv-sky" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7B5CFF"/><stop offset="1" stop-color="#24186B"/></linearGradient>
+    <radialGradient id="hv-oc" cx=".38" cy=".3" r=".85"><stop offset="0" stop-color="#7FD8FF"/><stop offset=".55" stop-color="#2F8BE6"/><stop offset="1" stop-color="#1D3FA8"/></radialGradient>
+    <radialGradient id="hv-sh" cx=".3" cy=".25" r="1"><stop offset=".45" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#0B0A3A" stop-opacity=".5"/></radialGradient>
+    <radialGradient id="hv-gl" cx=".5" cy=".5" r=".5"><stop offset=".74" stop-color="#9FE8FF" stop-opacity=".5"/><stop offset="1" stop-color="#9FE8FF" stop-opacity="0"/></radialGradient>
+    <clipPath id="hv-g"><circle cx="50" cy="64" r="24"/></clipPath>
+  </defs>
+  <rect width="100" height="100" rx="27" fill="url(#hv-sky)"/>
+  <circle cx="50" cy="16.5" r="7.5" fill="#fff"/>
+  <rect x="21" y="27" width="58" height="9" rx="4.5" fill="#fff"/>
+  <circle cx="50" cy="64" r="28" fill="url(#hv-gl)"/>
+  <circle cx="50" cy="64" r="24" fill="url(#hv-oc)"/>
+  <g clip-path="url(#hv-g)" fill="none" stroke="#CFF6FF" stroke-opacity=".75" stroke-width="1.6">
+    <ellipse cx="50" cy="64" rx="24" ry="7.5"/>
+    <ellipse cx="50" cy="64" rx="24" ry="16"/>
+    <line x1="26" y1="64" x2="74" y2="64"/>
+    <ellipse cx="50" cy="64" rx="8.5" ry="24"/>
+    <ellipse cx="50" cy="64" rx="17" ry="24"/>
+    <line x1="50" y1="40" x2="50" y2="88"/>
+  </g>
+  <circle cx="50" cy="64" r="24" fill="url(#hv-sh)"/>
+  <circle cx="50" cy="64" r="24" fill="none" stroke="#CFF6FF" stroke-width="2"/>
+  <circle cx="61" cy="54" r="2.7" fill="#FFE066"/><circle cx="37" cy="71" r="2.1" fill="#FFE066"/><circle cx="56" cy="78" r="1.9" fill="#FFE066"/>
+  <path d="M82 9 l1.6 4.2 4.2 1.6 -4.2 1.6 -1.6 4.2 -1.6 -4.2 -4.2 -1.6 4.2 -1.6z" fill="#FFE066"/>
+</svg>

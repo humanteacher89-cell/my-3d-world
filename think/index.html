@@ -168,7 +168,7 @@
 <body>
 <div id="cover"><div class="box">
   <div class="k" id="cvK"></div><h1 id="cvT"></h1><p id="cvP"></p>
-  <div class="acts"><span style="background:var(--A2)">A 질문하기</span><span style="background:var(--C)">C 확인하기</span><span style="background:var(--T)">T 실천하기</span></div>
+  <div class="acts"><span style="background:var(--A2)">A 체험하기</span><span style="background:var(--C)">C 비교하기</span><span style="background:var(--T)">T 표현하기</span></div>
   <button id="startBtn" type="button" disabled>불러오는 중…</button>
   <button id="restartBtn" type="button" hidden>처음부터</button>
   <small id="cvC"></small>
@@ -183,7 +183,7 @@
 <div id="stick"><i></i></div>
 <section id="card" hidden role="dialog" aria-live="polite"></section>
 <script>window.THINK_ASSETS = { lini: '../plaza/assets/rini-lite.glb' };</script>
-<script src="kids.config.js?v=1.1"></script>
+<script src="kids.config.js?v=1.3"></script>
 <script>
   (function () { var C = window.KIDS_CONFIG, $ = function (i) { return document.getElementById(i); };
     $('cvK').textContent = C.kicker; $('cvT').textContent = C.title; $('cvP').textContent = C.coverText; $('cvC').textContent = C.credit; document.title = C.title; })();

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="color-scheme" content="dark">
-<title>휴먼쌤이 누구인가 — 휴먼쌤 월드</title>
+<title>휴먼쌤의 교실 — 휴먼버스</title>
 <!-- 월드 1 「휴먼쌤이 누구인가」 프로필 새 판(A안 교실 전시회, 2026-11-01). 엑스리아 월드 index.html을 복사해 고친 것. 글은 profile.config.js에서만 고친다 -->
 </head>
 <body>
@@ -285,6 +285,8 @@
   .av.lg.ini{font-size:40px}
   #pickHero{display:grid;justify-items:center;gap:10px;margin:10px 0 4px}
   #pickHero .rl{font-size:12.5px;font-weight:700;color:#8a6a3a;letter-spacing:.02em}
+#pickHero .hvlogo{width:72px;height:72px;border-radius:20px;box-shadow:0 12px 28px rgba(59,36,160,.28)}   /* 휴먼버스 로고(11-13) */
+#pick .kicker{color:#5B3FE0}#pick h1,#pick .sub,.mcard{word-break:keep-all}#pick.member{grid-template-rows:1fr auto;padding-bottom:12px}#pick.member .btns{position:static;margin-top:10px;flex-wrap:wrap}#pickHero .hvlogo+.rl{color:#5B3FE0;letter-spacing:.08em}
   #pick.member .who{display:none}   /* 회원 화면에서는 묻는 이(XREA) 줄 대신 그 회원 아바타 */
   @media (max-height:760px){#pick{grid-template-rows:1fr auto;padding-bottom:12px}#pick .btns{position:static;margin-top:6px}}   /* 낮은 화면: 아래 '조금 더 머물기'가 출처 줄과 겹치지 않게 내용 밑으로 */
   /* ===== 월드 1 프로필 판(2026-11-01): 밝은 교실 무대 · 리니 한 줄 · 그림틀 덩이·책 · 칠판 명함 카드 · 조각 넘겨 보기 · 프로필 카드 ===== */
@@ -438,9 +440,9 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/postprocessing/RenderPass.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/postprocessing/EffectComposer.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
-<script src="profile.config.js?v=1.1" charset="utf-8"></script>
+<script src="profile.config.js?v=1.4" charset="utf-8"></script>
 <script src="audio.js?v=1.2" charset="utf-8"></script>
-<script src="engine.js?v=1.1" charset="utf-8"></script>
+<script src="engine.js?v=1.3" charset="utf-8"></script>
 <script>WorldEngine.start(window.WORLD_CONFIG);</script>
 
 </body>

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light"><meta name="theme-color" content="#3b2a9a">
+<title>WebXR 과학 실험실 — 휴먼버스</title><meta name="description" content="눈에 안 보이거나 손에 잡히지 않는 과학을 손으로 만져 보는 실험실 다섯 곳이에요. 로봇 리니가 옆에서 함께해요.">
+<link rel="icon" href="img/humanverse.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{color-scheme:light;--ink:#191433;--sub:#5d5878;--line:rgba(36,24,107,.12);--bg:#f5f2ff;--pu:#5B3FE0;--pu2:#24186B}
+*{box-sizing:border-box}html,body{margin:0}
+body{font-family:Pretendard,'Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-text-size-adjust:100%;word-break:keep-all}
+a{color:inherit}
+.hero{background:linear-gradient(135deg,#7B5CFF,#24186B);color:#fff;padding:22px 16px 34px;border-radius:0 0 28px 28px}
+.wrap{max-width:880px;margin:0 auto}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.brand img{width:40px;height:40px;border-radius:12px;box-shadow:0 6px 16px rgba(0,0,0,.25)}
+.brand b{display:block;font-size:15px;font-weight:800;line-height:1.1}
+.brand small{display:block;font-size:10px;letter-spacing:.22em;opacity:.75;margin-top:2px}
+.back{font-size:13px;font-weight:700;text-decoration:none;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);padding:8px 12px;border-radius:999px;white-space:nowrap}
+.kick{margin:26px 0 6px;font-size:12px;font-weight:700;letter-spacing:.14em;color:#FFE066}
+h1{margin:0;font-size:clamp(28px,7vw,44px);font-weight:900;letter-spacing:-.03em;line-height:1.15}
+.lead{margin:12px 0 0;font-size:15.5px;line-height:1.65;opacity:.9;max-width:620px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.chips i{font-style:normal;font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.16)}
+main{padding:22px 16px 40px}
+.note{margin:0 0 16px;font-size:13.5px;line-height:1.6;color:var(--sub);background:#fff;border:1px solid var(--line);border-left:4px solid var(--ac);border-radius:14px;padding:12px 14px}
+.grid{display:grid;gap:14px}
+@media (min-width:640px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.card{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:0 10px 26px rgba(36,24,107,.08)}
+.card .ph{display:block;aspect-ratio:16/10;background:#e9e4ff;overflow:hidden}
+.card .ph img{width:100%;height:100%;object-fit:cover;display:block}
+.card .bd{padding:14px 16px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
+.card .no{font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--pu)}
+.card h2{margin:0;font-size:18.5px;font-weight:900;letter-spacing:-.02em}
+.card p{margin:0;font-size:14px;line-height:1.6;color:var(--sub);flex:1}
+.acts{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.go{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:1;min-width:140px;text-decoration:none;background:var(--pu2);color:#fff;font-weight:800;font-size:15px;padding:12px 14px;border-radius:14px}
+.go:hover{background:var(--pu)}
+.sheet{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;font-weight:700;font-size:13.5px;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);color:var(--ink);background:#fff}
+footer{text-align:center;font-size:12px;color:var(--sub);padding:0 16px 32px}
+footer a{font-weight:700}
+</style></head>
+<body style="--ac:#6b9eff">
+<header class="hero"><div class="wrap">
+  <div class="top"><a class="brand" href="../profile/"><img src="img/humanverse.svg" alt=""><span><b>휴먼버스</b><small>HUMANVERSE</small></span></a><a class="back" href="../profile/">← 입구로</a></div>
+  <p class="kick">휴먼버스 · 실험실 다섯</p><h1>WebXR 과학 실험실</h1><p class="lead">눈에 안 보이거나 손에 잡히지 않는 과학을 손으로 만져 보는 실험실 다섯 곳이에요. 로봇 리니가 옆에서 함께해요.</p><div class="chips"><i>실험실마다 5~6분</i><i>휴대폰 · PC · 퀘스트 3</i></div>
+</div></header>
+<main class="wrap"><p class="note">메타 퀘스트 3(손 인식)이나 안드로이드 휴대폰에서는 내 방에 띄워 손으로 실험하고, 휴대폰 · PC 화면에서는 눌러서 해 볼 수 있어요.</p><div class="grid">
+<article class="card"><a class="ph" href="../air/" tabindex="-1" aria-hidden="true"><img src="img/air.jpg" alt="" loading="lazy" width="800" height="500"></a>
+  <div class="bd"><span class="no">01</span><h2>공기 분자 실험실</h2><p>내 방 공기를 아주 크게 키워 분자를 손으로 집고, 상자를 눌러 압력을 보고, 데우고, 원자를 붙여 이산화탄소를 만들어 봐요.</p><div class="acts"><a class="go" href="../air/">입장하기 <span aria-hidden="true">›</span></a></div></div></article>
+<article class="card"><a class="ph" href="../light/" tabindex="-1" aria-hidden="true"><img src="img/light.jpg" alt="" loading="lazy" width="800" height="500"></a>
+  <div class="bd"><span class="no">02</span><h2>빛과 그림자 실험실</h2><p>내 방에 실험 탁자와 흰 스크린을 띄워요. 손전등으로 그림자를 만들고, 키우고, 옮기고, 거울로 빛을 꺾어 봐요.</p><div class="acts"><a class="go" href="../light/">입장하기 <span aria-hidden="true">›</span></a></div></div></article>
+<article class="card"><a class="ph" href="../phase/" tabindex="-1" aria-hidden="true"><img src="img/phase.jpg" alt="" loading="lazy" width="800" height="500"></a>
+  <div class="bd"><span class="no">03</span><h2>물의 상태 변화 실험실</h2><p>물 분자를 크게 키워, 손으로 얼음을 녹이고 물을 끓이고 다시 물방울로 만들어 봐요.</p><div class="acts"><a class="go" href="../phase/">입장하기 <span aria-hidden="true">›</span></a></div></div></article>
+<article class="card"><a class="ph" href="../solar/" tabindex="-1" aria-hidden="true"><img src="img/solar.jpg" alt="" loading="lazy" width="800" height="500"></a>
+  <div class="bd"><span class="no">04</span><h2>손 위의 태양계</h2><p>내 방에 태양계를 띄워요. 행성을 손으로 집어 크기를 견주고, 진짜 거리로 펼치고, 시간을 빨리 돌려 봐요.</p><div class="acts"><a class="go" href="../solar/">입장하기 <span aria-hidden="true">›</span></a></div></div></article>
+<article class="card"><a class="ph" href="../body/" tabindex="-1" aria-hidden="true"><img src="img/body.jpg" alt="" loading="lazy" width="800" height="500"></a>
+  <div class="bd"><span class="no">05</span><h2>심장과 폐 탐험실</h2><p>내 방에 사람 몸 모형을 띄워요. 심장을 꺼내 보고, 숨을 쉬게 하고, 피의 길을 따라가 봐요.</p><div class="acts"><a class="go" href="../body/">입장하기 <span aria-hidden="true">›</span></a></div></div></article>
+</div></main>
+<footer>휴먼버스 · 휴먼쌤이 지은 곳 · <a href="https://human-teacher.com/studio/">human-teacher.com/studio</a></footer>
+</body></html>
