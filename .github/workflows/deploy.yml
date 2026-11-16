@@ -1,0 +1,40 @@
+# 올리기: main에 들어오면 점검 → Cloudflare(humanssaem-world → world.human-teacher.com) → 실제 주소 확인. 확인이 실패하면 앞 판으로 되돌린다. 올리는 묶음은 scripts/build_site.py가 _site/에 만든다(옛 github.io 주소만 바꿈). 방마다 입구(check.mjs의 MUST)가 하나라도 빠지면 올리지 않는다.
+# 열쇠는 저장소 비밀 CLOUDFLARE_API_TOKEN(휴먼쌤이 넣음, 2026-11-16). GitHub이 막히면 PC에서 같은 scripts/로 올린다(README).
+name: 올리기
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: deploy-humanssaem-world
+  cancel-in-progress: false
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_ACCOUNT_ID: b40158737f29a6a83b3f53ef2aa147aa
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      PROJECT: humanssaem-world
+      SITE_URL: https://humanssaem-world.pages.dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 묶음 만들기
+        run: python3 scripts/build_site.py _site
+      - name: 올리기 전 점검
+        run: node scripts/check.mjs _site
+      - name: 지금 공개판 번호 기억(되돌리기용)
+        run: node scripts/cf.mjs current | tee prev.txt
+      - name: Cloudflare에 올리기
+        id: deploy
+        run: npx --yes wrangler@4.162.0 pages deploy _site --project-name "$PROJECT" --branch main --commit-hash "$GITHUB_SHA" --commit-message "github ${GITHUB_SHA::7}"
+      - name: 올린 뒤 실제 주소 확인
+        run: node scripts/verify.mjs _site "$SITE_URL"
+      - name: 확인이 실패하면 앞 판으로 되돌리기
+        if: failure() && steps.deploy.outcome == 'success'
+        run: node scripts/cf.mjs rollback "$(cat prev.txt)"
