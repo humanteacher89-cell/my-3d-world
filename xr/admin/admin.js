@@ -137,9 +137,12 @@
     try { await loadScript('../lobby.config.js?t=' + Date.now()); } catch (_) { /* 아래에서 알림 */ }
     S.cfg = window.LOBBY_CONFIG || null;
     if (!S.cfg) { bootMsg('지도 설정(lobby.config.js)을 읽지 못했어요. 새로 고침해 주세요.'); return; }
-    S.api = String(Q.get('api') || await apiFromRelay() || '').replace(/\/+$/, '');
+    // 2026-11-17 보안 점검: ?api= · ?lobby=는 이 PC 시험 주소만 받는다. 남이 만든 주소로 열면 비밀번호 값이 다른 서버로 가거나
+    //   '지도 보기'에 javascript: 주소가 들어갈 수 있어서다(그런 주소는 무시하고 relay.json · 기본 지도를 쓴다)
+    const local = v => /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?(\/|$)/.test(String(v || ''));
+    S.api = String((local(Q.get('api')) && Q.get('api')) || await apiFromRelay() || '').replace(/\/+$/, '');
     if (!S.api) { bootMsg('서버 주소(relay.json)를 찾지 못했어요.'); return; }
-    if (Q.get('lobby')) $('viewLobby').href = Q.get('lobby');
+    if (local(Q.get('lobby'))) $('viewLobby').href = Q.get('lobby');
     const saved = lsGet(LS, null);
     if (saved && saved.token) {
       S.token = saved.token;
