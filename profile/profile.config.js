@@ -226,7 +226,7 @@ window.WORLD_CONFIG = {
       walkLabel: '문 너머로',
       tagMax: 3,
       members: [
-        { name: '띵킹버스', role: '학생용 · 리니와 생각 탐험', color: '#FFC12E', avatar: 'assets/hv/think.svg',
+        { name: '띵킹월드', role: '학생용 · 리니와 생각 탐험', color: '#FFC12E', avatar: 'assets/hv/think.svg',
           intro: '섬을 걸으며 오늘의 수수께끼를 체험하기 · 생각하기 · 표현하기로 풀어요', tags: ['초등', '수수께끼 다섯', '약 10분'], url: '../think/' },
         { name: '가상융합교육 캠퍼스', role: '선생님용 · 웹 캠퍼스', color: '#5cc2b5', avatar: 'assets/hv/campus.svg',
           intro: '관 여섯 곳을 걸으며 가상융합교육을 알아보고 연수 수첩 도장을 모아요', tags: ['선생님', '관 여섯', '수료증'], url: '../xr/' },
