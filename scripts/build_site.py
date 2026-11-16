@@ -5,8 +5,9 @@ import os, shutil, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, '_site'))
+# '.git'은 파일로도 뺀다: git worktree로 꺼낸 폴더에서는 .git이 PC 경로가 적힌 파일이라 그대로 올라갈 수 있다(11-16 점검)
 SKIP_DIRS = {'.git', '.github', 'node_modules', '__pycache__', 'relay', 'relay-cf', 'design', 'scripts', '_site'}
-SKIP_FILES = {'CLAUDE.md', 'README.md', 'push-github.bat', '.gitignore', '.gitattributes', '.nojekyll', 'HANDOFF.md'}
+SKIP_FILES = {'.git', 'CLAUDE.md', 'README.md', 'push-github.bat', '.gitignore', '.gitattributes', '.nojekyll', 'HANDOFF.md'}
 TEXT = ('.html', '.js', '.json', '.webmanifest', '.css', '.mjs')
 SUBS = [
     ('https://humanteacher89-cell.github.io/hangul-france/', 'https://humanssaem-hangul-france.pages.dev/'),
