@@ -205,19 +205,19 @@ window.WORLD_CONFIG = {
           // 아바타 = 문을 걸어 들어간 만화풍 휴먼쌤 3D를 블렌더로 찍은 것(out\엑스리아\toon-work\avatar_render.py, 10-31)
           name: '휴먼쌤 김수현', initial: '휴', role: '엑스리아 회장', intro: '생각주도력 키우는 교사아빠',
           color: '#ffcf5a', avatar: 'assets/avatars/humanssaem.webp',
-          // 휴먼쌤 10-30: "마지막에 '휴먼쌤월드'로 연결하지 말고, 차라리 이 'https://humanssaem-world.pages.dev/ai/' 이걸로 해줘"
+          // 휴먼쌤 10-30: "마지막에 '휴먼쌤월드'로 연결하지 말고, 차라리 이 'https://world.human-teacher.com/ai/' 이걸로 해줘"
           //            "여기에다가 AI타운말고 로봇학교 교실, 융합광장, xr과학실험실(5종) 3개 연결되도록 넣어줘" → 넷.
           // 10-31: 섬 이름은 'AI타운'(휴먼쌤 10-15 결정, ai/ 화면 이름도 10-31에 바꿈)
           worlds: [
-            { name: 'AI타운', sub: 'AI가 생각하고 사는 방식', url: 'https://humanssaem-world.pages.dev/ai/', urlAbs: 'https://humanssaem-world.pages.dev/ai/' },
+            { name: 'AI타운', sub: 'AI가 생각하고 사는 방식', url: 'https://world.human-teacher.com/ai/', urlAbs: 'https://world.human-teacher.com/ai/' },
             { name: '로봇 학교 교실', sub: 'Delightex Edu · 칠판 앞의 리니', url: 'https://edu.delightex.com/AGG-QBY', urlAbs: 'https://edu.delightex.com/AGG-QBY' },
-            { name: '융합 광장', sub: '블렌더로 지은 학교 교정 · 걷기·VR', url: 'https://humanssaem-world.pages.dev/plaza/', urlAbs: 'https://humanssaem-world.pages.dev/plaza/' },
+            { name: '융합 광장', sub: '블렌더로 지은 학교 교정 · 걷기·VR', url: 'https://world.human-teacher.com/plaza/', urlAbs: 'https://world.human-teacher.com/plaza/' },
             { name: 'XR 과학 실험실', short: '과학 실험실 5', sub: '다섯 가지 · 손으로 하는 과학', pickSub: '하나를 고르면 바로 실험실이 열려요.', children: [
-              { name: '공기 분자 실험실', sub: '혼합현실 · 손 집기', url: 'https://humanssaem-world.pages.dev/air/', urlAbs: 'https://humanssaem-world.pages.dev/air/' },
-              { name: '빛과 그림자 실험실', sub: '손전등·거울·그림자', url: 'https://humanssaem-world.pages.dev/light/', urlAbs: 'https://humanssaem-world.pages.dev/light/' },
-              { name: '물의 상태 변화 실험실', sub: '얼음·물·수증기', url: 'https://humanssaem-world.pages.dev/phase/', urlAbs: 'https://humanssaem-world.pages.dev/phase/' },
-              { name: '손 위의 태양계', sub: '행성 여덟 · 공전', url: 'https://humanssaem-world.pages.dev/solar/', urlAbs: 'https://humanssaem-world.pages.dev/solar/' },
-              { name: '심장과 폐 탐험실', sub: '숨쉬기 · 피의 길', url: 'https://humanssaem-world.pages.dev/body/', urlAbs: 'https://humanssaem-world.pages.dev/body/' }
+              { name: '공기 분자 실험실', sub: '혼합현실 · 손 집기', url: 'https://world.human-teacher.com/air/', urlAbs: 'https://world.human-teacher.com/air/' },
+              { name: '빛과 그림자 실험실', sub: '손전등·거울·그림자', url: 'https://world.human-teacher.com/light/', urlAbs: 'https://world.human-teacher.com/light/' },
+              { name: '물의 상태 변화 실험실', sub: '얼음·물·수증기', url: 'https://world.human-teacher.com/phase/', urlAbs: 'https://world.human-teacher.com/phase/' },
+              { name: '손 위의 태양계', sub: '행성 여덟 · 공전', url: 'https://world.human-teacher.com/solar/', urlAbs: 'https://world.human-teacher.com/solar/' },
+              { name: '심장과 폐 탐험실', sub: '숨쉬기 · 피의 길', url: 'https://world.human-teacher.com/body/', urlAbs: 'https://world.human-teacher.com/body/' }
             ] }
           ]
         },

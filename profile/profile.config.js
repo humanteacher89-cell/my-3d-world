@@ -240,17 +240,17 @@ window.WORLD_CONFIG = {
         { name: '앱', sub: '설치 없이 주소 하나로 여는 작은 웹 앱', url: 'https://human-teacher.com/#/app' },
         { name: '월드', sub: '걸어 다니며 만나는 3D 월드', pickSub: '하나를 고르면 바로 열려요.', children: [
           { name: '엑스리아 월드', sub: '한국가상융합교육협회의 어제·오늘·내일', url: 'https://human-teacher.com/xrea/' },
-          { name: 'AI타운', sub: 'AI가 일하는 방식대로 사는 마을', url: 'https://humanssaem-world.pages.dev/ai/' },
-          { name: '유럽 한글학교 메타버스', sub: '프랑스·독일·영국 한글학교의 온라인 로비', url: 'https://humanssaem-hangul-france.pages.dev/eu/' },
-          { name: '융합 광장', sub: '학교 교정과 가상 구역이 만나는 광장', url: 'https://humanssaem-world.pages.dev/plaza/' },
+          { name: 'AI타운', sub: 'AI가 일하는 방식대로 사는 마을', url: 'https://world.human-teacher.com/ai/' },
+          { name: '유럽 한글학교 메타버스', sub: '프랑스·독일·영국 한글학교의 온라인 로비', url: 'https://hangeulworld.human-teacher.com/eu/' },
+          { name: '융합 광장', sub: '학교 교정과 가상 구역이 만나는 광장', url: 'https://world.human-teacher.com/plaza/' },
           { name: 'XR 과학 실험실', sub: '다섯 가지 · 손으로 하는 과학', pickSub: '하나를 고르면 바로 실험실이 열려요.', children: [
-            { name: '공기 분자 실험실', sub: '혼합현실 · 손 집기', url: 'https://humanssaem-world.pages.dev/air/' },
-            { name: '빛과 그림자 실험실', sub: '손전등·거울·그림자', url: 'https://humanssaem-world.pages.dev/light/' },
-            { name: '물의 상태 변화 실험실', sub: '얼음·물·수증기', url: 'https://humanssaem-world.pages.dev/phase/' },
-            { name: '손 위의 태양계', sub: '행성 여덟 · 공전', url: 'https://humanssaem-world.pages.dev/solar/' },
-            { name: '심장과 폐 탐험실', sub: '숨쉬기 · 피의 길', url: 'https://humanssaem-world.pages.dev/body/' }
+            { name: '공기 분자 실험실', sub: '혼합현실 · 손 집기', url: 'https://world.human-teacher.com/air/' },
+            { name: '빛과 그림자 실험실', sub: '손전등·거울·그림자', url: 'https://world.human-teacher.com/light/' },
+            { name: '물의 상태 변화 실험실', sub: '얼음·물·수증기', url: 'https://world.human-teacher.com/phase/' },
+            { name: '손 위의 태양계', sub: '행성 여덟 · 공전', url: 'https://world.human-teacher.com/solar/' },
+            { name: '심장과 폐 탐험실', sub: '숨쉬기 · 피의 길', url: 'https://world.human-teacher.com/body/' }
           ] },
-          { name: '광장과 섬', sub: '리니를 만나는 광장 · 섬으로 가는 길', url: 'https://humanssaem-world.pages.dev/world1/?plaza=1' }
+          { name: '광장과 섬', sub: '리니를 만나는 광장 · 섬으로 가는 길', url: 'https://world.human-teacher.com/world1/?plaza=1' }
         ] }
       ],
       backList: '← 돌아가기',
@@ -286,7 +286,7 @@ window.WORLD_CONFIG = {
       { name: '링크 모음', handle: 'litt.ly/humanteacher', url: 'https://litt.ly/humanteacher' }
     ],
     contact: { label: '강의·연수 문의', text: 'litt.ly/humanteacher', url: 'https://litt.ly/humanteacher' },   /* 11-01 휴먼쌤 "litt.ly로 잇기" */
-    footer: '휴먼버스 · human-teacher.com/humanverse',
+    footer: '휴먼버스 · world.human-teacher.com',
     saveFile: '휴먼쌤-프로필',
     saveHint: '그림 파일로 내려받았어요.',
     saveHintTouch: '저장이 안 되면 그림을 길게 눌러 저장하세요.',

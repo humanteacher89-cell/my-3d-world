@@ -199,8 +199,8 @@ window.WORLD_CONFIG = {
         signTitle: '프랑스 한글학교', signSub: 'Bienvenue · 어서 오세요',
         welcomeLines: ['도착했어요. 여기는 프랑스 한글학교 섬이에요.', '이 문을 지나면 프랑스 곳곳의 한글학교를 만날 수 있어요.'],
         leave: '프랑스 한글학교 로비로 이동합니다', leaveLink: '바로 가기', back: '광장으로 돌아가기',
-        url: 'https://humanteacher89-cell.github.io/hangul-france/',           // 2026-10-07 휴먼쌤 결정: 프랑스 로비는 따로 된 저장소 hangul-france(옛 ../france/는 넘김 페이지만)
-        urlAbs: 'https://humanteacher89-cell.github.io/hangul-france/'         // 그 밖(이 PC 미리보기·아티팩트)도 같은 주소
+        url: 'https://hangeulworld.human-teacher.com/',           // 2026-10-07 휴먼쌤 결정: 프랑스 로비는 따로 된 저장소 hangul-france(옛 ../france/는 넘김 페이지만)
+        urlAbs: 'https://hangeulworld.human-teacher.com/'         // 그 밖(이 PC 미리보기·아티팩트)도 같은 주소
       },
       // 띵킹버스(옛 이름 생각놀이섬, 2026-11-05 휴먼쌤 "띵킹버스로 정함"). 2026-11-01 휴먼쌤 "단계 4로", 학생용 월드 3, 기획안 핸드오프\20261031-생각놀이섬-재개기획.md). 왼쪽 섬(옛 가상융합교육 섬 자리 — 10-31 휴먼쌤 "더이상 안할꺼라서" 접음).
       // 같은 비행·도착 뒤 띵킹버스(think/, 블렌더로 구운 걷는 월드)로. 엔진 buildThinkIsland. 문구 [확인 전]. 옛 xrIsland 묶음은 뺐다(xr/ 폴더는 그대로 남아 있지만 광장에서 잇지 않음)
@@ -213,7 +213,7 @@ window.WORLD_CONFIG = {
         welcomeLines: ['도착했어요. 여기는 띵킹버스예요.', '무지개 문을 지나면 오늘의 수수께끼가 기다리고 있어요.'],
         leave: '띵킹버스로 이동합니다', leaveLink: '바로 가기', back: '광장으로 돌아가기',
         url: '../think/',
-        urlAbs: 'https://humanssaem-world.pages.dev/think/'
+        urlAbs: 'https://world.human-teacher.com/think/'
       },
       // AI타운(2026-10-09 휴먼쌤 "좋아 이대로 진행해줘", 기획안 핸드오프\20261009-AI가상세계.md 2판. 이름은 10-15 휴먼쌤 "AI 섬 이름은 'AI타운'으로 결정", 옛 가칭 'AI가 지은 섬'). 같은 비행·도착 뒤 AI타운(2.5D)으로. 문구 [확인 전]
       aiIsland: {
@@ -226,7 +226,7 @@ window.WORLD_CONFIG = {
         welcomeLines: ['도착했어요. 여기는 사람 없이 AI들만 모여 사는 AI타운이에요.', '주민들의 부탁을 하나씩 도우며 마을을 탐험해 보세요.'],
         leave: 'AI타운으로 이동합니다', leaveLink: '바로 가기', back: '광장으로 돌아가기',
         url: '../ai/',                                                          // GitHub Pages(my-3d-world/ai/, 가칭)
-        urlAbs: 'https://humanteacher89-cell.github.io/my-3d-world/ai/'
+        urlAbs: 'https://world.human-teacher.com/ai/'
       },
       school: '로봇 학교',                                       // 세계관 정본: 장소 이름 [확정], 도시 배치(광장·학교·정류장)는 [제안·XR]
       moveHintTouch: '왼쪽 아래 동그라미를 밀면 걸어요.',
