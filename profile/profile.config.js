@@ -241,7 +241,7 @@ window.WORLD_CONFIG = {
         { name: '월드', sub: '걸어 다니며 만나는 3D 월드', pickSub: '하나를 고르면 바로 열려요.', children: [
           { name: '엑스리아 월드', sub: '한국가상융합교육협회의 어제·오늘·내일', url: 'https://human-teacher.com/xrea/' },
           { name: 'AI타운', sub: 'AI가 일하는 방식대로 사는 마을', url: 'https://world.human-teacher.com/ai/' },
-          { name: '유럽 한글학교 메타버스', sub: '프랑스·독일·영국 한글학교의 온라인 로비', url: 'https://hangeulworld.human-teacher.com/eu/' },
+          { name: '유럽 한글학교 메타버스', sub: '프랑스·독일·영국 한글학교의 온라인 로비', url: 'https://hangeulworld.human-teacher.com/' },
           { name: '융합 광장', sub: '학교 교정과 가상 구역이 만나는 광장', url: 'https://world.human-teacher.com/plaza/' },
           { name: 'XR 과학 실험실', sub: '다섯 가지 · 손으로 하는 과학', pickSub: '하나를 고르면 바로 실험실이 열려요.', children: [
             { name: '공기 분자 실험실', sub: '혼합현실 · 손 집기', url: 'https://world.human-teacher.com/air/' },

@@ -199,8 +199,8 @@ window.WORLD_CONFIG = {
         signTitle: '프랑스 한글학교', signSub: 'Bienvenue · 어서 오세요',
         welcomeLines: ['도착했어요. 여기는 프랑스 한글학교 섬이에요.', '이 문을 지나면 프랑스 곳곳의 한글학교를 만날 수 있어요.'],
         leave: '프랑스 한글학교 로비로 이동합니다', leaveLink: '바로 가기', back: '광장으로 돌아가기',
-        url: 'https://hangeulworld.human-teacher.com/',           // 2026-10-07 휴먼쌤 결정: 프랑스 로비는 따로 된 저장소 hangul-france(옛 ../france/는 넘김 페이지만)
-        urlAbs: 'https://hangeulworld.human-teacher.com/'         // 그 밖(이 PC 미리보기·아티팩트)도 같은 주소
+        url: 'https://hangeulworld.human-teacher.com/fr/',           // 2026-10-07 휴먼쌤 결정: 프랑스 로비는 따로 된 저장소 hangul-france(옛 ../france/는 넘김 페이지만)
+        urlAbs: 'https://hangeulworld.human-teacher.com/fr/'         // 그 밖(이 PC 미리보기·아티팩트)도 같은 주소
       },
       // 띵킹월드(옛 이름 띵킹버스 · 생각놀이섬, 2026-11-05 휴먼쌤 "띵킹버스로 정함"). 2026-11-01 휴먼쌤 "단계 4로", 학생용 월드 3, 기획안 핸드오프\20261031-생각놀이섬-재개기획.md). 왼쪽 섬(옛 가상융합교육 섬 자리 — 10-31 휴먼쌤 "더이상 안할꺼라서" 접음).
       // 같은 비행·도착 뒤 띵킹월드(think/, 블렌더로 구운 걷는 월드)로. 엔진 buildThinkIsland. 문구 [확인 전]. 옛 xrIsland 묶음은 뺐다(xr/ 폴더는 그대로 남아 있지만 광장에서 잇지 않음)
