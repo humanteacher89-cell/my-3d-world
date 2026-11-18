@@ -388,6 +388,8 @@
     for (const l of A.meal.lines) { const i = await riniSay(l.text, l.choices, null, l.gloss); if (l.reply && l.reply[i]) await riniSay(l.reply[i]); }
     finish(4);
   }
+  // 끝 화면 '하나랑 대화 연습하기'(2026-11-18 휴먼쌤 "전부다 진행해줘"): 한글원샷 하나 미리 쓴 대화의 같은 주제로 — 활동지 · XR · 대화가 서로 이어지게
+  const TALKGO = { label: '하나랑 대화 연습하기', url: 'https://hangeul-oneshot.human-teacher.com/hana/?topic=hanok' };
   async function ending() {
     stage = 'free'; log('state ending');
     const E = A.ending;
@@ -407,11 +409,12 @@
       for (const c of E.culture) p.text('· ' + c, 24, '#5a5470', { gap: 4 });
       if (E.cultureSrc) p.text(E.cultureSrc, 18, DIM, { gap: 4 });
       p.space(12);
-      p.button(E.free, null, '#7f8fd6', null, 84); p.button(E.restart, null, '#ece5d8', null, 76); p.button(BACK ? E.back : E.exit, null, '#3b3550', null, 76);
+      p.button(E.free, null, '#7f8fd6', null, 84); p.button(E.restart, null, '#ece5d8', null, 76); p.button(BACK ? E.back : E.exit, null, '#3b3550', null, 76); p.button(TALKGO.label, null, '#e86a9a', null, 76);   /* 11-18 한글원샷 하나랑 대화(같은 장면 주제)로 */
       p.finish(); H.placeAhead(p, 1.1, 0, -0.1); p.show(true);
       if (H.AUTOTEST) { log('autotest done'); return; }
       const i = await waitPick(p, 0, 1e9); p.show(false);
       if (i === 0) { toast('물건을 눌러 이름을 다시 들어 보세요.', 3); await until(() => false); }
+      if (i === 3) { const s = H.renderer.xr.getSession(); if (s) { try { await s.end(); } catch (e) {} } location.href = TALKGO.url; return; }
       if (i === 2) { if (BACK) { location.href = BACK; return; } const s = H.renderer.xr.getSession(); if (s) { s.end(); return; } }
       location.reload(); return;
     }
