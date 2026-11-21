@@ -51,7 +51,7 @@ window.WORLD_CONFIG = {
       board: {
         title: 'AI주도력',
         text: '인간이 기술의 주인이 되어 AI를 목적에 맞게 이끌고 협업하는 주체적인 힘.',
-        steps: ['체험하기 A · 우리 주변의 AI를', '생각하기 C · 내 생각과 AI 답변을 견주어', '표현하기 T · 내 생각을 프롬프트로'],   /* 11-13 휴먼쌤 새 이름 */
+        steps: ['질문하기 A · 스스로 질문거리를 찾아 AI에게', '생각하기 C · 내 생각과 AI 답변을 견주어', '표현하기 T · 내 생각을 프롬프트로'],   /* 11-13 휴먼쌤 새 이름 */
         slogan: 'AI주도력을 길러주는 휴먼쌤 ACT'
       }
     }
@@ -187,7 +187,7 @@ window.WORLD_CONFIG = {
         /* 그림틀: ACT 세 걸음 순환도(cycle) + 정의 글귀 + 슬로건 띠 */
         viz: [
           { label: '휴먼쌤 ACT — AI주도력을 길러주는 세 걸음',
-            cycle: { center: 'AI주도력', steps: [ { icon: 'ask', t: '체험하기', e: 'A' }, { icon: 'check', t: '생각하기', e: 'C' }, { icon: 'try', t: '표현하기', e: 'T' } ] } },
+            cycle: { center: 'AI주도력', steps: [ { icon: 'ask', t: '질문하기', e: 'A' }, { icon: 'check', t: '생각하기', e: 'C' }, { icon: 'try', t: '표현하기', e: 'T' } ] } },
           { label: 'AI주도력', quote: { text: '"인간이 기술의 주인이 되어 AI를 목적에 맞게 이끌고 협업하는 주체적인 힘."', small: true } },
           { quote: { text: 'AI주도력을 길러주는 휴먼쌤 ACT', banner: true } }
         ]
@@ -227,7 +227,7 @@ window.WORLD_CONFIG = {
       tagMax: 3,
       members: [
         { name: '띵킹월드', role: '학생용 · 리니와 생각 탐험', color: '#FFC12E', avatar: 'assets/hv/think.svg',
-          intro: '섬을 걸으며 오늘의 수수께끼를 체험하기 · 생각하기 · 표현하기로 풀어요', tags: ['초등', '수수께끼 다섯', '약 10분'], url: '../think/' },
+          intro: '섬을 걸으며 오늘의 수수께끼를 질문하기 · 생각하기 · 표현하기로 풀어요', tags: ['초등', '수수께끼 다섯', '약 10분'], url: '../think/' },
         { name: '가상융합교육 캠퍼스', role: '선생님용 · 웹 캠퍼스', color: '#5cc2b5', avatar: 'assets/hv/campus.svg',
           intro: '관 여섯 곳을 걸으며 가상융합교육을 알아보고 연수 수첩 도장을 모아요', tags: ['선생님', '관 여섯', '수료증'], url: '../xr/' },
         { name: 'WebXR 과학 실험실', role: '실험실 다섯 · 손으로 하는 과학', color: '#6b9eff', avatar: 'assets/hv/science.svg',
