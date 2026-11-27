@@ -912,6 +912,17 @@ window.HW = (function () {
     if (mrBtn) mrBtn.addEventListener('click', () => startXR('immersive-ar'));
     flatBtn.addEventListener('click', begin);
     if (Q.has('mrtest')) { setMR(true); document.body.style.background = '#7d828a'; }
+    // 2026-11-27 휴먼쌤 "이 화면 아예 없애줘. VR페이지는 별도로 vrvr.kr에 별도 링크로": 시작 카드를 쓰지 않는 장면(window.HW_NO_COVER, 한국어 XR 5곳)은
+    //   카드 없이 바로 화면으로 시작한다(소리는 첫 누름에 켬). 주소에 ?vr이 있으면(vrvr.kr에서 온 링크) VR · 혼합현실 단추만 있는 카드를 보인다
+    const VRPAGE = Q.has('vr');
+    if (VRPAGE) { flatBtn.style.display = 'none'; }
+    else if (window.HW_NO_COVER && !renderer.xr.isPresenting) {
+      cover.style.display = 'none';
+      const un = () => { try { audio.unlock(); } catch (e) {} removeEventListener('pointerdown', un, true); removeEventListener('keydown', un, true); };
+      addEventListener('pointerdown', un, true); addEventListener('keydown', un, true);
+      begin();
+      return;
+    }
     if (AUTOTEST || Q.has('jump')) begin();
   }
 

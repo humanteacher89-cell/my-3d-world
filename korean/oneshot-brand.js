@@ -3,6 +3,7 @@
    ② 화면으로 노는 중 왼쪽 위: 동그란 한글원샷 로고(누르면 같은 주제의 한글원샷 자료실, 노는 중이면 한 번 묻는다).
    VR · 혼합현실 안에서는 화면 위 글자판이 보이지 않으므로 그대로다. 로고 그림은 한글원샷 저장소 icons/의 사본(korean/brand/). */
 (() => {
+  window.HW_NO_COVER = true;   // 2026-11-27 휴먼쌤 "이 화면 아예 없애줘": 시작 카드 없이 바로 화면으로. VR은 vrvr.kr 링크(주소 ?vr)로만 카드가 나온다(vr-core/core.js start)
   const ONESHOT = 'https://hangeul-oneshot.human-teacher.com/';
   const TOPIC = { hanok: '하나네 집', store: '편의점', bunsik: '분식집', subway: '지하철', pharmacy: '약국' };
   const scene = (location.pathname.match(/\/(hanok|store|bunsik|subway|pharmacy)\/?/) || [])[1];
